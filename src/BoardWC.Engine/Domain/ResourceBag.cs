@@ -1,30 +1,30 @@
 namespace BoardWC.Engine.Domain;
 
-public readonly record struct ResourceBag(int Iron = 0, int Rice = 0, int Flower = 0)
+public readonly record struct ResourceBag(int Food = 0, int Iron = 0, int ValueItem = 0)
 {
     public static readonly ResourceBag Empty = new();
 
     public ResourceBag Add(ResourceType type, int amount) => type switch
     {
-        ResourceType.Iron   => this with { Iron   = Iron   + amount },
-        ResourceType.Rice   => this with { Rice   = Rice   + amount },
-        ResourceType.Flower => this with { Flower = Flower + amount },
+        ResourceType.Food      => this with { Food      = Food      + amount },
+        ResourceType.Iron      => this with { Iron      = Iron      + amount },
+        ResourceType.ValueItem => this with { ValueItem = ValueItem + amount },
         _ => throw new ArgumentOutOfRangeException(nameof(type))
     };
 
     public ResourceBag Add(ResourceBag other) =>
-        new(Iron + other.Iron, Rice + other.Rice, Flower + other.Flower);
+        new(Food + other.Food, Iron + other.Iron, ValueItem + other.ValueItem);
 
     public ResourceBag Subtract(ResourceBag cost) =>
-        new(Iron - cost.Iron, Rice - cost.Rice, Flower - cost.Flower);
+        new(Food - cost.Food, Iron - cost.Iron, ValueItem - cost.ValueItem);
 
     public bool CanAfford(ResourceBag cost) =>
-        Iron >= cost.Iron && Rice >= cost.Rice && Flower >= cost.Flower;
+        Food >= cost.Food && Iron >= cost.Iron && ValueItem >= cost.ValueItem;
 
-    public int Total => Iron + Rice + Flower;
+    public int Total => Food + Iron + ValueItem;
 
     public static ResourceBag operator +(ResourceBag a, ResourceBag b) => a.Add(b);
 
     public override string ToString() =>
-        $"Iron:{Iron} Rice:{Rice} Flower:{Flower}";
+        $"Food:{Food} Iron:{Iron} VI:{ValueItem}";
 }

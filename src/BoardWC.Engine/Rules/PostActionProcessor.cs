@@ -23,18 +23,6 @@ internal static class PostActionProcessor
     {
         events.Add(new RoundEndedEvent(state.GameId, state.CurrentRound));
 
-        // Return workers from towers to their owners
-        foreach (var tower in state.Board.Towers)
-        {
-            foreach (var level in tower.Levels.Where(l => l.IsOccupied))
-            {
-                var player = state.Players.First(p => p.Id == level.OccupiedBy!.Value);
-                player.WorkersAvailable++;
-                player.WorkersOnBoard--;
-            }
-        }
-
-        state.Board.ReturnAllWorkers();
         state.Board.ClearPlacementAreas();
 
         if (state.CurrentRound >= state.MaxRounds)

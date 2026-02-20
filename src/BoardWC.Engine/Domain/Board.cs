@@ -3,7 +3,6 @@ namespace BoardWC.Engine.Domain;
 internal sealed class Board
 {
     private readonly Bridge[] _bridges;
-    private readonly Tower[] _towers;
 
     // Castle die-placement rooms: Floor 0 = 3 rooms (value 3), Floor 1 = 2 rooms (value 4)
     private readonly DicePlaceholder[][] _castleRooms =
@@ -20,7 +19,6 @@ internal sealed class Board
         [new DicePlaceholder(5), new DicePlaceholder(5)];
 
     public IReadOnlyList<Bridge> Bridges => _bridges;
-    public IReadOnlyList<Tower>  Towers  => _towers;
 
     public IReadOnlyList<IReadOnlyList<DicePlaceholder>> CastleFloors =>
         _castleRooms.Select(row => (IReadOnlyList<DicePlaceholder>)row).ToArray();
@@ -38,18 +36,11 @@ internal sealed class Board
             new Bridge(BridgeColor.Black),
             new Bridge(BridgeColor.White),
         ];
-        _towers =
-        [
-            new Tower(TowerZone.Left),
-            new Tower(TowerZone.Center),
-            new Tower(TowerZone.Right),
-        ];
     }
 
-    public Bridge          GetBridge(BridgeColor color)      => _bridges.First(b => b.Color == color);
-    public Tower           GetTower(TowerZone zone)          => _towers.First(t => t.Zone == zone);
+    public Bridge          GetBridge(BridgeColor color)       => _bridges.First(b => b.Color == color);
     public DicePlaceholder GetCastleRoom(int floor, int room) => _castleRooms[floor][room];
-    public DicePlaceholder GetOutsideSlot(int slot)          => _outsideSlots[slot];
+    public DicePlaceholder GetOutsideSlot(int slot)           => _outsideSlots[slot];
 
     /// <summary>Roll and arrange dice on all bridges for a new round.</summary>
     public void RollAllDice(int playerCount, Random rng)
@@ -58,11 +49,60 @@ internal sealed class Board
             bridge.RollAndArrange(playerCount, rng);
     }
 
-    /// <summary>Return workers from tower levels to their owners.</summary>
-    public void ReturnAllWorkers()
+    /// <summary>
+    /// Place all 15 tokens on the board at game start using a constrained random algorithm.
+    /// Ground rooms get 3 tokens each (≥2 different die colors per room).
+    /// Mid rooms get 2 tokens each (different die colors per room).
+    /// Remaining 2 tokens go to the well, resource side up.
+    /// </summary>
+    public void PlaceTokens(Random rng)
     {
-        foreach (var t in _towers) t.ReturnWorkers();
+        var bag = CreateAllTokens().OrderBy(_ => rng.Next()).ToList();
+
+        // Step 1: seed each ground floor room with 1 token, one die color per room
+        var colorOrder = Enum.GetValues<BridgeColor>().OrderBy(_ => rng.Next()).ToArray();
+        for (int r = 0; r < 3; r++)
+        {
+            var token = bag.First(t => t.DieColor == colorOrder[r]);
+            bag.Remove(token);
+            _castleRooms[0][r].AddToken(token);
+        }
+
+        // Step 2: mid floor rooms — 2 tokens each, must have different die colors
+        for (int r = 0; r < _castleRooms[1].Length; r++)
+        {
+            var t1 = bag[rng.Next(bag.Count)]; bag.Remove(t1);
+            var t2 = bag.First(t => t.DieColor != t1.DieColor); bag.Remove(t2);
+            foreach (var t in new[] { t1, t2 }.OrderBy(_ => rng.Next()))
+                _castleRooms[1][r].AddToken(t);
+        }
+
+        // Step 3: add 2 more tokens to each ground floor room
+        //         constraint: final 3 tokens per room must contain ≥2 different die colors
+        for (int r = 0; r < 3; r++)
+        {
+            var seedColor = _castleRooms[0][r].Tokens[0].DieColor;
+            var t1 = bag[rng.Next(bag.Count)]; bag.Remove(t1);
+            Token t2;
+            // If t1 has same color as seed token and a different-color option exists, force t2 to differ
+            if (t1.DieColor == seedColor && bag.Any(t => t.DieColor != seedColor))
+                t2 = bag.First(t => t.DieColor != seedColor);
+            else
+                t2 = bag[rng.Next(bag.Count)];
+            bag.Remove(t2);
+            foreach (var t in new[] { t1, t2 }.OrderBy(_ => rng.Next()))
+                _castleRooms[0][r].AddToken(t);
+        }
+
+        // Step 4: remaining 2 tokens → well, resource side up
+        foreach (var t in bag)
+            _well.AddToken(t with { IsResourceSideUp = true });
     }
+
+    private static IEnumerable<Token> CreateAllTokens() =>
+        Enum.GetValues<BridgeColor>()
+            .SelectMany(color => Enum.GetValues<TokenResource>()
+                .Select(res => new Token(color, res)));
 
     /// <summary>Clear all placed dice from castle rooms, well, and outside slots at round end.</summary>
     public void ClearPlacementAreas()
@@ -74,7 +114,6 @@ internal sealed class Board
 
     public BoardSnapshot ToSnapshot() => new(
         _bridges.Select(b => b.ToSnapshot()).ToList().AsReadOnly(),
-        _towers.Select(t => t.ToSnapshot()).ToList().AsReadOnly(),
         new CastleSnapshot(
             _castleRooms
                 .Select(row => (IReadOnlyList<DicePlaceholderSnapshot>)

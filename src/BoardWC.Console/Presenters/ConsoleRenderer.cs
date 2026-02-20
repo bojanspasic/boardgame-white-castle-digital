@@ -11,7 +11,6 @@ internal sealed class ConsoleRenderer
         Header(state);
         RenderBridges(state);
         RenderPlacementAreas(state);
-        RenderTowers(state);
         RenderPlayers(state);
         RenderClanCards(state);
         System.Console.WriteLine();
@@ -47,7 +46,7 @@ internal sealed class ConsoleRenderer
         foreach (var s in scores)
             System.Console.WriteLine(
                 $"  {s.PlayerName,-16} {s.Total,4} pts  " +
-                $"(Lanterns:{s.LanternPoints} Cards:{s.ClanCardPoints} Tower:{s.TowerPoints})");
+                $"(Lanterns:{s.LanternPoints} Cards:{s.ClanCardPoints})");
     }
 
     public void Error(string msg) =>
@@ -89,9 +88,12 @@ internal sealed class ConsoleRenderer
             System.Console.Write($"    {floorNames[f]}  ");
             for (int r = 0; r < rooms.Count; r++)
             {
-                var ph  = rooms[r];
-                var top = ph.PlacedDice.Count > 0 ? $"[{ph.PlacedDice[^1].Value}]" : "[ ]";
-                System.Console.Write($"  room{r}:{top}");
+                var ph      = rooms[r];
+                var top     = ph.PlacedDice.Count > 0 ? $"[{ph.PlacedDice[^1].Value}]" : "[ ]";
+                var tokens  = ph.Tokens.Count > 0
+                    ? " tokens:" + string.Join("", ph.Tokens.Select(FormatToken))
+                    : "";
+                System.Console.Write($"  room{r}:{top}{tokens}");
             }
             System.Console.WriteLine();
         }
@@ -101,7 +103,10 @@ internal sealed class ConsoleRenderer
         var wellDice = well.PlacedDice.Count == 0
             ? "(empty)"
             : string.Join(" ", well.PlacedDice.Select(d => $"[{d.Value}]"));
-        System.Console.WriteLine($"  Well    val=1  {wellDice}");
+        var wellTokens = well.Tokens.Count > 0
+            ? " tokens(res-side):" + string.Join("", well.Tokens.Select(FormatToken))
+            : "";
+        System.Console.WriteLine($"  Well    val=1  {wellDice}{wellTokens}");
 
         // Outside
         System.Console.Write("  Outside val=5  ");
@@ -114,24 +119,25 @@ internal sealed class ConsoleRenderer
         System.Console.WriteLine();
     }
 
-    private static void RenderTowers(GameStateSnapshot state)
+    private static string FormatToken(TokenSnapshot t)
     {
-        System.Console.WriteLine("\nTOWERS:");
-        System.Console.WriteLine($"  {"Lvl",-4} {"Left",-28} {"Center",-28} {"Right",-28}");
-        for (int lvl = 3; lvl >= 0; lvl--)
+        var color = t.DieColor switch
         {
-            System.Console.Write($"  {lvl,-4}");
-            foreach (var tower in state.Board.Towers)
-            {
-                var level = tower.Levels[lvl];
-                var occ   = level.OccupiedBy.HasValue
-                    ? $"[{PlayerName(level.OccupiedBy.Value, state)}]"
-                    : string.Empty;
-                var cell = $"{level.Action.Description} {occ}";
-                System.Console.Write($"{cell,-28}");
-            }
-            System.Console.WriteLine();
-        }
+            BridgeColor.Red   => "R",
+            BridgeColor.Black => "B",
+            BridgeColor.White => "W",
+            _                 => "?",
+        };
+        var res = t.ResourceSide switch
+        {
+            TokenResource.Food        => "Fd",
+            TokenResource.Iron        => "Fe",
+            TokenResource.ValueItem   => "VI",
+            TokenResource.AnyResource => "Any",
+            TokenResource.Coin        => "Coin",
+            _                         => "?",
+        };
+        return $"[{color}:{res}]";
     }
 
     private static void RenderPlayers(GameStateSnapshot state)
@@ -142,9 +148,9 @@ internal sealed class ConsoleRenderer
             var r = p.Resources;
             System.Console.WriteLine(
                 $"  {p.Name,-16} " +
-                $"Fe:{r.Iron,2} Ri:{r.Rice,2} Fl:{r.Flower,2} " +
-                $"Coins:{p.Coins,3} " +
-                $"Workers:{p.WorkersAvailable}/{p.WorkersAvailable + p.WorkersOnBoard} " +
+                $"Fd:{r.Food,2} Fe:{r.Iron,2} VI:{r.ValueItem,2} " +
+                $"Coins:{p.Coins,3} Seals:{p.MonarchialSeals} " +
+                $"S:{p.SoldiersAvailable} C:{p.CourtiersAvailable} F:{p.FarmersAvailable} " +
                 $"Lanterns:{p.LanternScore} " +
                 $"Cards:{p.ClanCards.Count}" +
                 (p.IsAI ? " [AI]" : ""));
@@ -167,13 +173,11 @@ internal sealed class ConsoleRenderer
         DieTakenFromBridgeEvent x => $"{PlayerName(x.PlayerId, x)} took [{x.DieValue}] from {x.BridgeColor} bridge ({x.Position})",
         LanternEffectFiredEvent x => $"{PlayerName(x.PlayerId, x)} triggered the Lantern Effect!",
         DiePlacedEvent          x => FormatPlaced(x),
-        WorkerPlacedInTowerEvent x => $"{PlayerName(x.PlayerId, x)} used tower {x.Zone} L{x.Level}: {x.ActionPerformed.Description}",
         ResourcesCollectedEvent  x => $"{PlayerName(x.PlayerId, x)} collected {x.Gained}",
         ClanCardAcquiredEvent    x => $"{PlayerName(x.PlayerId, x)} acquired clan card: {x.Card.Name}",
         LanternsGainedEvent      x => $"{PlayerName(x.PlayerId, x)} gained {x.Amount} lantern(s)",
-        TowerAdvancedEvent       x => $"{PlayerName(x.PlayerId, x)} advanced {x.Zone} tower to level {x.NewLevel}",
         PlayerPassedEvent        x => $"{PlayerName(x.PlayerId, x)} passed",
-        RoundEndedEvent          x => $"=== End of Round {x.RoundNumber} — workers returned ===",
+        RoundEndedEvent          x => $"=== End of Round {x.RoundNumber} ===",
         GameOverEvent            _  => "=== GAME OVER ===",
         GameStartedEvent         _  => "Game started!",
         _                          => e.EventType,

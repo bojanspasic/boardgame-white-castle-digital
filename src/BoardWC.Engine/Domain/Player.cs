@@ -8,18 +8,12 @@ internal sealed class Player
     public bool IsAI { get; init; }
 
     internal ResourceBag Resources { get; set; }
-    internal int WorkersAvailable { get; set; }
-    internal int WorkersOnBoard { get; set; }
     internal int LanternScore { get; set; }
     internal int Coins { get; set; }
-
-    // Tower advancement: how many levels each zone has been advanced
-    internal Dictionary<TowerZone, int> TowerLevels { get; } = new()
-    {
-        [TowerZone.Left]   = 0,
-        [TowerZone.Center] = 0,
-        [TowerZone.Right]  = 0,
-    };
+    internal int MonarchialSeals { get; set; }
+    internal int SoldiersAvailable { get; set; } = 5;
+    internal int CourtiersAvailable { get; set; } = 5;
+    internal int FarmersAvailable { get; set; } = 5;
 
     internal List<ClanCard> ClanCards { get; } = new();
 
@@ -28,11 +22,8 @@ internal sealed class Player
 
     public PlayerSnapshot ToSnapshot() => new(
         Id, Name, Color, IsAI,
-        Resources, WorkersAvailable, WorkersOnBoard, LanternScore, Coins,
-        new TowerProgressSnapshot(
-            TowerLevels[TowerZone.Left],
-            TowerLevels[TowerZone.Center],
-            TowerLevels[TowerZone.Right]),
+        Resources, LanternScore, Coins,
+        MonarchialSeals, SoldiersAvailable, CourtiersAvailable, FarmersAvailable,
         ClanCards.Select(c => c.ToSnapshot()).ToList().AsReadOnly(),
         DiceInHand.Select(d => d.ToSnapshot()).ToList().AsReadOnly()
     );

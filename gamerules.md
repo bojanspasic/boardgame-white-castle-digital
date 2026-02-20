@@ -4,8 +4,8 @@
 > Sections marked **[DEFERRED]** are known but not yet coded.
 
 ## Overview
-2–4 players compete to earn the most victory points over 3 rounds by placing dice and
-workers on the board, earning resources, coins, lanterns, and clan cards.
+2–4 players compete to earn the most victory points over 3 rounds by placing dice on the
+board and earning coins, lanterns, clan cards, resources, and monarchial seals.
 
 ---
 
@@ -16,17 +16,6 @@ Colors: **Red**, **Black**, **White**.
 Each bridge holds dice in three positions: **High** (top), **Middle** (queue), **Low** (bottom).
 At the start of each round, 3 dice are placed per bridge (9 total across all bridges).
 Middle dice slide down as High/Low dice are taken.
-
-### Towers (3)
-Zones: **Left**, **Center**, **Right**.
-Each tower has 4 levels (0–3). Players place workers on unoccupied levels to perform actions.
-Workers return to their owners at the end of each round.
-
-Tower actions (vary by zone and level):
-- **Gain Resources** — receive Iron, Rice, or Flower
-- **Advance Tower** — move up one level in a tower zone
-- **Acquire Clan Card** — take a card from the shared row
-- **Gain Lanterns** — add lanterns to your score
 
 ### Main Castle (3 floors)
 - **Ground floor** — 3 rooms, compare value = **3**
@@ -40,13 +29,57 @@ Tower actions (vary by zone and level):
 ### Outside (2 slots)
 - Compare value = **5**
 
+### Tokens (15)
+Double-sided cardboard tokens placed at game start in castle rooms and the well.
+
+**Two sides:**
+- **Die-color side** (Red / Black / White) — indicates which die color interacts with this token.
+- **Resource side** — one of: Food, Iron, Value Item, Any Resource, Coin.
+
+**Composition:** 3 die colors × 5 resource types = 15 tokens (one of each combination).
+
+**Placement at game start (constrained random):**
+
+| Destination | Count | Constraint |
+|-------------|-------|------------|
+| Ground floor rooms — seed | 1 per room (3 total) | One token of each die color, one per room |
+| Mid floor rooms | 2 per room (4 total) | Each room's 2 tokens must have different die colors |
+| Ground floor rooms — fill | 2 more per room (6 total) | Final 3 tokens per room must contain ≥2 different die colors |
+| Well | 2 remaining | Placed **resource side up** |
+
+Tokens are permanent — they are NOT cleared at round end.
+
+**Effect when die placed in a room:** **[DEFERRED]**
+
 ### Gate **[DEFERRED]**
 
 ### Training Grounds **[DEFERRED]**
 
 ### Farming Lands **[DEFERRED]**
 
-### Personal Domains **[DEFERRED]**
+---
+
+## Personal Domains
+
+Each player has a personal domain that stores their resources and personnel.
+
+### Resources
+Three types: **Food**, **Iron**, **Value Item**.
+- Maximum **7** of each resource per player.
+- How resources are earned: **[DEFERRED]**
+
+### Monarchial Seals
+- A separate earnable currency distinct from coins.
+- Maximum **5** seals per player.
+- How seals are earned: **[DEFERRED]**
+
+### Personnel
+Each player starts with:
+- 5 **Soldiers**
+- 5 **Courtiers**
+- 5 **Farmers**
+
+Placement rules for personnel: **[DEFERRED]**
 
 ---
 
@@ -54,8 +87,7 @@ Tower actions (vary by zone and level):
 
 Each turn a player must do one of:
 1. **Take a die** from a bridge (High or Low position), then immediately **place it**.
-2. **Place a worker** on a tower level (pay cost → receive reward).
-3. **Pass** (ends your turn for this round).
+2. **Pass** (ends your turn for this round).
 
 ### Taking and Placing a Die (Two-Step Action)
 
@@ -106,19 +138,11 @@ The Well always compares against its base value (1), regardless of player count.
 A round ends when the total dice remaining across all bridges drops to **3 or fewer**.
 
 At round end:
-1. All workers return to their owners.
-2. All placed dice are cleared from castle rooms, well, and outside slots.
-3. New dice are rolled for all bridges.
-4. The next round begins.
+1. All placed dice are cleared from castle rooms, well, and outside slots.
+2. New dice are rolled for all bridges.
+3. The next round begins.
 
 The game lasts **3 rounds** (configurable in engine).
-
----
-
-## Resources
-
-Three types: **Iron**, **Rice**, **Flower**.
-Resources are gained from tower actions and used to pay tower costs.
 
 ---
 
@@ -127,12 +151,11 @@ Resources are gained from tower actions and used to pay tower costs.
 Calculated at game end:
 - **Lantern score** — accumulated lanterns
 - **Clan card VP** — sum of victory points on acquired clan cards
-- **Tower advancement** — points per level reached in each tower zone
 
 ---
 
 ## Notes on Implementation
-- Coins are tracked per player and persist across rounds.
+- Coins and Monarchial Seals are tracked per player and persist across rounds.
 - Dice colors match their bridge color (cosmetic; does not affect placement rules).
-- AI strategy "greedy-resource" scores bridge actions by die face value and tower actions by
-  resource/lantern gain.
+- AI strategy "greedy-resource" scores bridge actions by die face value.
+- Tokens are placed once at game start via `Board.PlaceTokens(rng)` and persist across all rounds.

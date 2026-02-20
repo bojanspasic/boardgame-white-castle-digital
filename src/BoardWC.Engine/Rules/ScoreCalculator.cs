@@ -10,10 +10,9 @@ internal static class ScoreCalculator
             {
                 int lanterns  = p.LanternScore;
                 int clanCards = p.ClanCards.Sum(c => c.VictoryPoints);
-                int tower     = p.TowerLevels.Values.Sum();
-                int total     = lanterns + clanCards + tower;
+                int total     = lanterns + clanCards;
 
-                return new PlayerScore(p.Id, p.Name, total, lanterns, clanCards, tower);
+                return new PlayerScore(p.Id, p.Name, total, lanterns, clanCards);
             })
             .OrderByDescending(s => s.Total)
             .ToList()

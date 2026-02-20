@@ -344,8 +344,6 @@ public class GameEngineTests
         var alice  = state.Players[0];
         var bob    = state.Players[1];
 
-        // Alice places in castle 0,0 (needs a die with value ≥ 3 to afford it, or enough coins)
-        // Simplest: use a mid-level castle room so either player can afford with 0 coins if die ≥ 3
         // Find any High die with value ≥ 3 for Alice
         var aliceBridge = state.Board.Bridges.FirstOrDefault(b => b.High?.Value >= 3);
         if (aliceBridge is null) { TakeAndPlaceAtWell(engine); return; }  // skip round
@@ -471,68 +469,6 @@ public class GameEngineTests
         Assert.NotEqual(alice.Id, activeAfter.Id);
     }
 
-    // ── PlaceWorkerInTower ────────────────────────────────────────────────────
-
-    [Fact]
-    public void PlaceWorkerInTower_Level0_FreeAction_Succeeds()
-    {
-        var engine = StartedGame();
-        var alice  = engine.GetCurrentState().Players[0];
-
-        var result = engine.ProcessAction(
-            new PlaceWorkerInTowerAction(alice.Id, TowerZone.Left, 0));
-
-        Assert.IsType<ActionResult.Success>(result);
-    }
-
-    [Fact]
-    public void PlaceWorkerInTower_Level0_GrantsResources()
-    {
-        var engine = StartedGame();
-        var alice  = engine.GetCurrentState().Players[0];
-
-        engine.ProcessAction(new PlaceWorkerInTowerAction(alice.Id, TowerZone.Left, 0));
-
-        var aliceAfter = engine.GetCurrentState().Players.First(p => p.Id == alice.Id);
-        Assert.Equal(1, aliceAfter.Resources.Iron);
-    }
-
-    [Fact]
-    public void PlaceWorkerInTower_InsufficientResources_ReturnsFail()
-    {
-        var engine = StartedGame();
-        var alice  = engine.GetCurrentState().Players[0];
-
-        var result = engine.ProcessAction(
-            new PlaceWorkerInTowerAction(alice.Id, TowerZone.Left, 1));
-
-        Assert.IsType<ActionResult.Failure>(result);
-    }
-
-    // ── Workers returned after round ──────────────────────────────────────────
-
-    [Fact]
-    public void EndOfRound_TowerWorkersReturnedToPlayers()
-    {
-        var engine = StartedGame();
-        var state  = engine.GetCurrentState();
-        var alice  = state.Players[0];
-        int initialWorkers = alice.WorkersAvailable;
-
-        // Alice places a worker in tower
-        engine.ProcessAction(new PlaceWorkerInTowerAction(alice.Id, TowerZone.Left, 0));
-
-        // Drain dice (alternating players take+place) to end round
-        for (int i = 0; i < 6; i++)
-        {
-            if (engine.GetCurrentState().CurrentRound != 1) break;
-            TakeAndPlaceAtWell(engine);
-        }
-
-        var aliceAfter = engine.GetCurrentState().Players.First(p => p.Id == alice.Id);
-        Assert.Equal(initialWorkers, aliceAfter.WorkersAvailable);
-    }
-
     // ── LegalActions ──────────────────────────────────────────────────────────
 
     [Fact]
@@ -547,7 +483,7 @@ public class GameEngineTests
     }
 
     [Fact]
-    public void GetLegalActions_DuringPlay_ContainsBridgeAndTowerOptions()
+    public void GetLegalActions_DuringPlay_ContainsBridgeAndPassOptions()
     {
         var engine = StartedGame();
         var alice  = engine.GetCurrentState().Players[0];
@@ -555,7 +491,6 @@ public class GameEngineTests
         var actions = engine.GetLegalActions(alice.Id);
 
         Assert.Contains(actions, a => a is TakeDieFromBridgeAction);
-        Assert.Contains(actions, a => a is PlaceWorkerInTowerAction);
         Assert.Contains(actions, a => a is PassAction);
     }
 
@@ -648,21 +583,21 @@ public class GameEngineTests
     [Fact]
     public void ResourceBag_Add_WorksCorrectly()
     {
-        var a = new ResourceBag(Iron: 2, Rice: 1);
-        var b = new ResourceBag(Iron: 1, Flower: 3);
+        var a = new ResourceBag(Iron: 2, ValueItem: 1);
+        var b = new ResourceBag(Iron: 1, Food: 3);
 
         var result = a + b;
 
         Assert.Equal(3, result.Iron);
-        Assert.Equal(1, result.Rice);
-        Assert.Equal(3, result.Flower);
+        Assert.Equal(1, result.ValueItem);
+        Assert.Equal(3, result.Food);
     }
 
     [Fact]
     public void ResourceBag_CanAfford_TrueWhenSufficient()
     {
-        var bag  = new ResourceBag(Iron: 2, Rice: 1);
-        var cost = new ResourceBag(Iron: 1, Rice: 1);
+        var bag  = new ResourceBag(Iron: 2, Food: 1);
+        var cost = new ResourceBag(Iron: 1, Food: 1);
         Assert.True(bag.CanAfford(cost));
     }
 
@@ -672,5 +607,100 @@ public class GameEngineTests
         var bag  = new ResourceBag(Iron: 1);
         var cost = new ResourceBag(Iron: 2);
         Assert.False(bag.CanAfford(cost));
+    }
+
+    // ── Personal domain ───────────────────────────────────────────────────────
+
+    [Fact]
+    public void NewPlayer_HasFiveSoldiersAndCourtiersAndFarmers()
+    {
+        var engine = CreateTwoPlayerGame();
+        var alice  = engine.GetCurrentState().Players[0];
+
+        Assert.Equal(5, alice.SoldiersAvailable);
+        Assert.Equal(5, alice.CourtiersAvailable);
+        Assert.Equal(5, alice.FarmersAvailable);
+    }
+
+    [Fact]
+    public void NewPlayer_HasZeroMonarchialSeals()
+    {
+        var engine = CreateTwoPlayerGame();
+        var alice  = engine.GetCurrentState().Players[0];
+
+        Assert.Equal(0, alice.MonarchialSeals);
+    }
+
+    // ── Token placement ───────────────────────────────────────────────────────
+
+    [Fact]
+    public void StartGame_PlacesThreeTokensInEachGroundRoom()
+    {
+        var engine = StartedGame();
+        var castle = engine.GetCurrentState().Board.Castle;
+
+        foreach (var room in castle.Floors[0])
+            Assert.Equal(3, room.Tokens.Count);
+    }
+
+    [Fact]
+    public void StartGame_PlacesTwoTokensInEachMidRoom()
+    {
+        var engine = StartedGame();
+        var castle = engine.GetCurrentState().Board.Castle;
+
+        foreach (var room in castle.Floors[1])
+            Assert.Equal(2, room.Tokens.Count);
+    }
+
+    [Fact]
+    public void StartGame_PlacesTwoTokensInWell_ResourceSideUp()
+    {
+        var engine = StartedGame();
+        var well   = engine.GetCurrentState().Board.Well.Placeholder;
+
+        Assert.Equal(2, well.Tokens.Count);
+        Assert.All(well.Tokens, t => Assert.True(t.IsResourceSideUp));
+    }
+
+    [Fact]
+    public void StartGame_GroundRooms_HaveAtLeastTwoDifferentColors()
+    {
+        var engine = StartedGame();
+        var castle = engine.GetCurrentState().Board.Castle;
+
+        foreach (var room in castle.Floors[0])
+        {
+            var distinctColors = room.Tokens.Select(t => t.DieColor).Distinct().Count();
+            Assert.True(distinctColors >= 2,
+                $"Ground room has only {distinctColors} distinct die color(s); expected ≥2.");
+        }
+    }
+
+    [Fact]
+    public void StartGame_MidRooms_HaveTwoDifferentColors()
+    {
+        var engine = StartedGame();
+        var castle = engine.GetCurrentState().Board.Castle;
+
+        foreach (var room in castle.Floors[1])
+        {
+            var colors = room.Tokens.Select(t => t.DieColor).Distinct().Count();
+            Assert.Equal(2, colors);
+        }
+    }
+
+    [Fact]
+    public void StartGame_TotalTokensAcrossBoardIs15()
+    {
+        var engine = StartedGame();
+        var board  = engine.GetCurrentState().Board;
+
+        var castleTokens = board.Castle.Floors
+            .SelectMany(f => f)
+            .Sum(ph => ph.Tokens.Count);
+        var wellTokens = board.Well.Placeholder.Tokens.Count;
+
+        Assert.Equal(15, castleTokens + wellTokens);
     }
 }

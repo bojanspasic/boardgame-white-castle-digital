@@ -19,20 +19,18 @@ public sealed record PlayerSnapshot(
     PlayerColor Color,
     bool IsAI,
     ResourceBag Resources,
-    int WorkersAvailable,
-    int WorkersOnBoard,
     int LanternScore,
     int Coins,
-    TowerProgressSnapshot TowerProgress,
+    int MonarchialSeals,
+    int SoldiersAvailable,
+    int CourtiersAvailable,
+    int FarmersAvailable,
     IReadOnlyList<ClanCardSnapshot> ClanCards,
     IReadOnlyList<DieSnapshot> DiceInHand
 );
 
-public sealed record TowerProgressSnapshot(int LeftLevel, int CenterLevel, int RightLevel);
-
 public sealed record BoardSnapshot(
     IReadOnlyList<BridgeSnapshot> Bridges,
-    IReadOnlyList<TowerSnapshot> Towers,
     CastleSnapshot Castle,
     WellSnapshot Well,
     OutsideSnapshot Outside
@@ -53,10 +51,17 @@ public sealed record BridgeSnapshot(
 
 // ── Placement area snapshots ──────────────────────────────────────────────────
 
+public sealed record TokenSnapshot(
+    BridgeColor DieColor,
+    TokenResource ResourceSide,
+    bool IsResourceSideUp
+);
+
 public sealed record DicePlaceholderSnapshot(
     int BaseValue,
     bool UnlimitedCapacity,
-    IReadOnlyList<DieSnapshot> PlacedDice
+    IReadOnlyList<DieSnapshot> PlacedDice,
+    IReadOnlyList<TokenSnapshot> Tokens
 );
 
 public sealed record CastleSnapshot(
@@ -69,26 +74,7 @@ public sealed record OutsideSnapshot(
     IReadOnlyList<DicePlaceholderSnapshot> Slots
 );
 
-// ── Tower snapshots ───────────────────────────────────────────────────────────
-
-public sealed record TowerSnapshot(
-    TowerZone Zone,
-    IReadOnlyList<TowerLevelSnapshot> Levels
-);
-
-public sealed record TowerLevelSnapshot(
-    int Level,
-    TowerActionSnapshot Action,
-    Guid? OccupiedBy
-);
-
-public sealed record TowerActionSnapshot(
-    string Description,
-    ResourceBag Cost,
-    ResourceBag ResourceGain,
-    int LanternsGained,
-    TowerActionType ActionType
-);
+// ── Clan card snapshots ───────────────────────────────────────────────────────
 
 public sealed record ClanCardSnapshot(
     Guid CardId,
@@ -104,6 +90,5 @@ public sealed record PlayerScore(
     string PlayerName,
     int Total,
     int LanternPoints,
-    int ClanCardPoints,
-    int TowerPoints
+    int ClanCardPoints
 );

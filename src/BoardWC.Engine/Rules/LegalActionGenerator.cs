@@ -72,21 +72,6 @@ internal static class LegalActionGenerator
                 actions.Add(new TakeDieFromBridgeAction(playerId, bridge.Color, DiePosition.Low));
         }
 
-        // Tower placements
-        foreach (var tower in state.Board.Towers)
-        {
-            foreach (var level in tower.Levels)
-            {
-                if (!level.IsOccupied &&
-                    player.Resources.CanAfford(level.Action.Cost) &&
-                    !(level.Action.ActionType == TowerActionType.AcquireClanCard &&
-                      state.ClanDeck.VisibleCards.Count == 0))
-                {
-                    actions.Add(new PlaceWorkerInTowerAction(playerId, tower.Zone, level.Level));
-                }
-            }
-        }
-
         // Can always pass
         actions.Add(new PassAction(playerId));
 

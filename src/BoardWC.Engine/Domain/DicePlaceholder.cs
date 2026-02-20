@@ -14,6 +14,11 @@ internal sealed class DicePlaceholder
     private readonly List<Die> _placedDice = new();
     public IReadOnlyList<Die> PlacedDice => _placedDice.AsReadOnly();
 
+    private readonly List<Token> _tokens = new();
+    public IReadOnlyList<Token> Tokens => _tokens.AsReadOnly();
+
+    public void AddToken(Token token) => _tokens.Add(token);
+
     public DicePlaceholder(int baseValue, bool unlimitedCapacity = false)
     {
         BaseValue         = baseValue;
@@ -41,5 +46,7 @@ internal sealed class DicePlaceholder
 
     public DicePlaceholderSnapshot ToSnapshot() =>
         new(BaseValue, UnlimitedCapacity,
-            _placedDice.Select(d => d.ToSnapshot()).ToList().AsReadOnly());
+            _placedDice.Select(d => d.ToSnapshot()).ToList().AsReadOnly(),
+            _tokens.Select(t => new TokenSnapshot(t.DieColor, t.ResourceSide, t.IsResourceSideUp))
+                   .ToList().AsReadOnly());
 }

@@ -1,5 +1,12 @@
 # BoardWC — Claude Code Context
 
+## Documentation Maintenance
+**Whenever rules or architecture change, update both `CLAUDE.md` and `gamerules.md`.**
+- `gamerules.md` — source of truth for board game rules as described by the user.
+- `CLAUDE.md` — source of truth for codebase architecture, patterns, and conventions.
+
+---
+
 ## Project Overview
 Digital implementation of **The White Castle** board game in C# / .NET 10.0.
 Goal: rules engine as a reusable library; console UI as the first client.
@@ -37,7 +44,6 @@ All player moves are `sealed record` types implementing `IGameAction` in `GameAc
 StartGameAction()
 TakeDieFromBridgeAction(PlayerId, BridgeColor, DiePosition)
 PlaceDieAction(PlayerId, PlacementTarget)
-PlaceWorkerInTowerAction(PlayerId, TowerZone, Level)
 PassAction(PlayerId)
 ```
 
@@ -50,7 +56,6 @@ Registration order is in `GameEngineFactory.cs`.
 StartGameHandler
 TakeDieFromBridgeHandler
 PlaceDieHandler
-PlaceWorkerInTowerHandler
 PassHandler
 ```
 
@@ -71,7 +76,17 @@ display. Events are never used for in-engine state mutation.
 
 ### Round-end trigger
 `PostActionProcessor` checks `board.TotalDiceRemaining ≤ 3` after every action.
-When triggered: workers return, placement areas clear, dice reroll (or game ends).
+When triggered: placement areas clear, dice reroll (or game ends).
+
+## Player State
+Each player tracks:
+- **Resources**: Food, Iron, Value Item (max 7 each)
+- **Coins**: earned/spent when placing dice
+- **Monarchial Seals**: separate currency (max 5) — how earned TBD
+- **Lantern score**: victory points from lanterns
+- **Clan cards**: collected cards with VP
+- **Dice in hand**: die taken from bridge awaiting placement
+- **Personnel**: 5 Soldiers, 5 Courtiers, 5 Farmers — placement rules TBD
 
 ## Common Commands
 ```bash
@@ -82,15 +97,22 @@ dotnet run --project src/BoardWC.Console          # play in console
 
 ## Console Commands (in-game)
 ```
-start                                — start the game
-bridge <red|black|white> <high|low>  — take a die from a bridge
+start                                 — start the game
+bridge <red|black|white> <high|low>   — take a die from a bridge
 place castle <floor(0-1)> <room(0-2)> — place die in castle room
-place well                           — place die in the well
-place outside <0|1>                  — place die in outside slot
-tower <left|center|right> <0-3>      — place worker in tower
-pass                                 — end your turn
-help                                 — show command list
+place well                            — place die in the well
+place outside <0|1>                   — place die in outside slot
+pass                                  — end your turn
+help                                  — show command list
 ```
+
+## Key Enums
+- `BridgeColor`: Red, Black, White
+- `DiePosition`: High, Low
+- `ResourceType`: Food, Iron, ValueItem
+- `TokenResource`: Food, Iron, ValueItem, AnyResource, Coin
+- `PlayerColor`: White, Black, Red, Blue
+- `Phase`: Setup, WorkerPlacement, EndOfRound, GameOver
 
 ## Coding Conventions
 - Domain classes are `internal sealed class`; records used for value objects.
@@ -110,6 +132,7 @@ help                                 — show command list
 | All snapshots | `src/BoardWC.Engine/Domain/Snapshots.cs` |
 | Board model | `src/BoardWC.Engine/Domain/Board.cs` |
 | Player model | `src/BoardWC.Engine/Domain/Player.cs` |
+| Token model | `src/BoardWC.Engine/Domain/Token.cs` |
 | Placement slot | `src/BoardWC.Engine/Domain/DicePlaceholder.cs` |
 | Placement targets | `src/BoardWC.Engine/Domain/PlacementTarget.cs` |
 | Legal moves | `src/BoardWC.Engine/Rules/LegalActionGenerator.cs` |
@@ -120,7 +143,9 @@ help                                 — show command list
 
 ## Deferred / Not Yet Implemented
 - Gate of the castle (skip for now)
-- Top castle level (1 room — die placement not allowed there; purpose TBD)
+- Top castle level (1 room — die cannot be placed here; purpose TBD)
 - Training grounds
 - Farming lands
-- Personal domains
+- Monarchial Seals mechanic (how earned)
+- Personnel placement (Soldiers, Courtiers, Farmers)
+- Token gameplay effect (what happens when a die is placed on a room with tokens)

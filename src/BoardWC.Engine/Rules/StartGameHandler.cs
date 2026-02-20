@@ -19,6 +19,7 @@ internal sealed class StartGameHandler : IActionHandler
     {
         state.CurrentPhase = Phase.WorkerPlacement;
         state.Board.RollAllDice(state.Players.Count, state.Rng);
+        state.Board.PlaceTokens(state.Rng);
         events.Add(new GameStartedEvent(state.GameId));
     }
 }

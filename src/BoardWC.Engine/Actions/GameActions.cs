@@ -15,13 +15,6 @@ public sealed record TakeDieFromBridgeAction(
     DiePosition DiePosition
 ) : IGameAction;
 
-/// <summary>Place a worker in a tower level to perform its action.</summary>
-public sealed record PlaceWorkerInTowerAction(
-    Guid PlayerId,
-    TowerZone Zone,
-    int Level
-) : IGameAction;
-
 /// <summary>Place the die currently held in hand onto a placement area.</summary>
 public sealed record PlaceDieAction(
     Guid PlayerId,

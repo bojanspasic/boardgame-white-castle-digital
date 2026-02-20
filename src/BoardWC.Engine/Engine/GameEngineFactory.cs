@@ -13,8 +13,6 @@ public sealed record PlayerSetup(
 
 public static class GameEngineFactory
 {
-    private const int WorkersPerPlayer = 6;
-
     public static IGameEngine Create(
         IReadOnlyList<PlayerSetup> players,
         IAiStrategy? aiStrategy = null,
@@ -26,11 +24,10 @@ public static class GameEngineFactory
         var domainPlayers = players
             .Select(p => new Player
             {
-                Id               = Guid.NewGuid(),
-                Name             = p.Name,
-                Color            = p.Color,
-                IsAI             = p.IsAI,
-                WorkersAvailable = WorkersPerPlayer,
+                Id    = Guid.NewGuid(),
+                Name  = p.Name,
+                Color = p.Color,
+                IsAI  = p.IsAI,
             })
             .ToList();
 
@@ -46,7 +43,6 @@ public static class GameEngineFactory
             new StartGameHandler(),
             new TakeDieFromBridgeHandler(),
             new PlaceDieHandler(),
-            new PlaceWorkerInTowerHandler(),
             new PassHandler(),
         });
 }

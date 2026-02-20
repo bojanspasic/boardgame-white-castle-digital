@@ -17,7 +17,6 @@ internal sealed record ParseResult(bool Success, IGameAction? Action, string? Er
 ///   place  castle <floor> <room>              → PlaceDieAction(CastleRoomTarget)
 ///   place  well                               → PlaceDieAction(WellTarget)
 ///   place  outside <0|1>                      → PlaceDieAction(OutsideSlotTarget)
-///   tower  left|center|right  0|1|2|3         → PlaceWorkerInTowerAction
 ///   pass                                      → PassAction
 ///   start                                     → StartGameAction
 ///   help                                      → shows help text
@@ -36,7 +35,6 @@ internal sealed class ConsoleInputParser
         {
             "bridge" => ParseBridge(parts, playerId),
             "place"  => ParsePlace(parts, playerId),
-            "tower"  => ParseTower(parts, playerId),
             "pass"   => ParseResult.Ok(new PassAction(playerId)),
             "start"  => ParseResult.Ok(new StartGameAction()),
             "help"   => ParseResult.Err(HelpText()),
@@ -98,27 +96,10 @@ internal sealed class ConsoleInputParser
         return ParseResult.Ok(new PlaceDieAction(playerId, new OutsideSlotTarget(slot)));
     }
 
-    private static ParseResult ParseTower(string[] parts, Guid playerId)
-    {
-        if (parts.Length < 3)
-            return ParseResult.Err("Usage: tower <left|center|right> <0|1|2|3>");
-
-        if (!TryParseTowerZone(parts[1], out var zone))
-            return ParseResult.Err($"Unknown zone '{parts[1]}'. Use: left, center, right.");
-
-        if (!int.TryParse(parts[2], out var level) || level < 0 || level > 3)
-            return ParseResult.Err("Level must be 0, 1, 2, or 3.");
-
-        return ParseResult.Ok(new PlaceWorkerInTowerAction(playerId, zone, level));
-    }
-
     private static bool TryParseBridgeColor(string s, out BridgeColor result) =>
         Enum.TryParse(Capitalize(s), out result);
 
     private static bool TryParseDiePosition(string s, out DiePosition result) =>
-        Enum.TryParse(Capitalize(s), out result);
-
-    private static bool TryParseTowerZone(string s, out TowerZone result) =>
         Enum.TryParse(Capitalize(s), out result);
 
     private static string Capitalize(string s) =>
@@ -132,7 +113,6 @@ internal sealed class ConsoleInputParser
           place castle <floor(0-1)> <room(0-2)>      — place die in castle room
           place well                                 — place die at the well
           place outside <0|1>                        — place die at an outside slot
-          tower  <left|center|right> <0|1|2|3>       — place worker in tower level
           pass                                       — pass your turn
           start                                      — start the game (from Setup phase)
           help                                       — show this message

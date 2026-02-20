@@ -41,18 +41,6 @@ public sealed record DiePlacedEvent(
     public string EventType => nameof(DiePlacedEvent);
 }
 
-public sealed record WorkerPlacedInTowerEvent(
-    Guid GameId,
-    Guid PlayerId,
-    TowerZone Zone,
-    int Level,
-    TowerActionSnapshot ActionPerformed
-) : IDomainEvent
-{
-    public DateTimeOffset OccurredAt { get; } = DateTimeOffset.UtcNow;
-    public string EventType => nameof(WorkerPlacedInTowerEvent);
-}
-
 public sealed record ResourcesCollectedEvent(
     Guid GameId,
     Guid PlayerId,
@@ -81,17 +69,6 @@ public sealed record LanternsGainedEvent(
 {
     public DateTimeOffset OccurredAt { get; } = DateTimeOffset.UtcNow;
     public string EventType => nameof(LanternsGainedEvent);
-}
-
-public sealed record TowerAdvancedEvent(
-    Guid GameId,
-    Guid PlayerId,
-    TowerZone Zone,
-    int NewLevel
-) : IDomainEvent
-{
-    public DateTimeOffset OccurredAt { get; } = DateTimeOffset.UtcNow;
-    public string EventType => nameof(TowerAdvancedEvent);
 }
 
 public sealed record PlayerPassedEvent(
