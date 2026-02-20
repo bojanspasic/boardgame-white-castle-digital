@@ -34,7 +34,9 @@ public sealed record BoardSnapshot(
     IReadOnlyList<BridgeSnapshot> Bridges,
     CastleSnapshot Castle,
     WellSnapshot Well,
-    OutsideSnapshot Outside
+    OutsideSnapshot Outside,
+    int GroundFloorDeckRemaining,
+    int MidFloorDeckRemaining
 )
 {
     public int TotalDiceRemaining => Bridges.Sum(b =>
@@ -62,7 +64,8 @@ public sealed record DicePlaceholderSnapshot(
     int BaseValue,
     bool UnlimitedCapacity,
     IReadOnlyList<DieSnapshot> PlacedDice,
-    IReadOnlyList<TokenSnapshot> Tokens
+    IReadOnlyList<TokenSnapshot> Tokens,
+    RoomCardSnapshot? Card
 );
 
 public sealed record CastleSnapshot(
@@ -73,6 +76,25 @@ public sealed record WellSnapshot(DicePlaceholderSnapshot Placeholder);
 
 public sealed record OutsideSnapshot(
     IReadOnlyList<DicePlaceholderSnapshot> Slots
+);
+
+// ── Room card snapshots ───────────────────────────────────────────────────────
+
+public sealed record CardGainItemSnapshot(string GainType, int Amount);
+public sealed record CardCostItemSnapshot(string CostType, int Amount);
+
+public sealed record CardFieldSnapshot(
+    bool IsGain,
+    IReadOnlyList<CardGainItemSnapshot>? Gains,
+    string? ActionDescription,
+    IReadOnlyList<CardCostItemSnapshot>? ActionCost
+);
+
+public sealed record RoomCardSnapshot(
+    string Id,
+    string Name,
+    IReadOnlyList<CardFieldSnapshot> Fields,
+    string? Layout
 );
 
 // ── Clan card snapshots ───────────────────────────────────────────────────────

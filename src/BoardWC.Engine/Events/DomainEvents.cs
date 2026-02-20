@@ -120,3 +120,30 @@ public sealed record AnyResourceChosenEvent(
     public DateTimeOffset OccurredAt { get; } = DateTimeOffset.UtcNow;
     public string EventType => nameof(AnyResourceChosenEvent);
 }
+
+public sealed record CardFieldGainActivatedEvent(
+    Guid GameId,
+    Guid PlayerId,
+    string CardId,
+    int FieldIndex,
+    ResourceBag ResourcesGained,
+    int CoinsGained,
+    int SealsGained,
+    int LanternGained
+) : IDomainEvent
+{
+    public DateTimeOffset OccurredAt { get; } = DateTimeOffset.UtcNow;
+    public string EventType => nameof(CardFieldGainActivatedEvent);
+}
+
+public sealed record CardActionActivatedEvent(
+    Guid GameId,
+    Guid PlayerId,
+    string CardId,
+    int FieldIndex,
+    string ActionDescription
+) : IDomainEvent
+{
+    public DateTimeOffset OccurredAt { get; } = DateTimeOffset.UtcNow;
+    public string EventType => nameof(CardActionActivatedEvent);
+}

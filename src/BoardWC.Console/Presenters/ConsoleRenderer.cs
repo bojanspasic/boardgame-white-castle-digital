@@ -89,17 +89,18 @@ internal sealed class ConsoleRenderer
         for (int f = 0; f < state.Board.Castle.Floors.Count; f++)
         {
             var rooms = state.Board.Castle.Floors[f];
-            System.Console.Write($"    {floorNames[f]}  ");
+            System.Console.WriteLine($"    {floorNames[f]}:");
             for (int r = 0; r < rooms.Count; r++)
             {
-                var ph      = rooms[r];
-                var top     = ph.PlacedDice.Count > 0 ? $"[{ph.PlacedDice[^1].Value}]" : "[ ]";
-                var tokens  = ph.Tokens.Count > 0
+                var ph     = rooms[r];
+                var top    = ph.PlacedDice.Count > 0 ? $"[{ph.PlacedDice[^1].Value}]" : "[ ]";
+                var tokens = ph.Tokens.Count > 0
                     ? " tokens:" + string.Join("", ph.Tokens.Select(FormatToken))
                     : "";
-                System.Console.Write($"  room{r}:{top}{tokens}");
+                System.Console.WriteLine($"      room{r}: {top}{tokens}");
+                if (ph.Card is { } card)
+                    System.Console.WriteLine($"             {FormatCardFields(ph.Tokens, card.Fields)}");
             }
-            System.Console.WriteLine();
         }
 
         // Well
@@ -144,6 +145,36 @@ internal sealed class ConsoleRenderer
         return $"[{color}:{res}]";
     }
 
+    private static string FormatCardFields(
+        IReadOnlyList<TokenSnapshot> tokens,
+        IReadOnlyList<CardFieldSnapshot> fields)
+    {
+        int limit = Math.Min(tokens.Count, fields.Count);
+        var parts = new List<string>();
+        for (int i = 0; i < limit; i++)
+        {
+            var colorAbbr = tokens[i].DieColor switch
+            {
+                BridgeColor.Red   => "R",
+                BridgeColor.Black => "B",
+                BridgeColor.White => "W",
+                _                 => "?",
+            };
+            var field = fields[i];
+            string fieldStr = field.IsGain
+                ? string.Join(", ", field.Gains!.Select(g => $"+{g.Amount} {g.GainType}"))
+                : $"[Action] {FormatActionCost(field.ActionCost)}→ \"{field.ActionDescription}\"";
+            parts.Add($"{colorAbbr}:{fieldStr}");
+        }
+        return string.Join("  |  ", parts);
+    }
+
+    private static string FormatActionCost(IReadOnlyList<CardCostItemSnapshot>? cost)
+    {
+        if (cost is null || cost.Count == 0) return "";
+        return "(" + string.Join(", ", cost.Select(c => $"-{c.Amount} {c.CostType}")) + ") ";
+    }
+
     private static void RenderPlayers(GameStateSnapshot state)
     {
         System.Console.WriteLine("\nPLAYERS:");
@@ -177,7 +208,9 @@ internal sealed class ConsoleRenderer
         DieTakenFromBridgeEvent x => $"{PlayerName(x.PlayerId, x)} took [{x.DieValue}] from {x.BridgeColor} bridge ({x.Position})",
         LanternEffectFiredEvent x => $"{PlayerName(x.PlayerId, x)} triggered the Lantern Effect!",
         DiePlacedEvent          x => FormatPlaced(x),
-        WellEffectAppliedEvent  x => FormatWellEffect(x),
+        WellEffectAppliedEvent      x => FormatWellEffect(x),
+        CardFieldGainActivatedEvent x => FormatCardFieldGain(x),
+        CardActionActivatedEvent    x => $"{PlayerName(x.PlayerId, x)} card action field {x.FieldIndex} on '{x.CardId}': {x.ActionDescription}",
         AnyResourceChosenEvent  x => $"{PlayerName(x.PlayerId, x)} chose {x.Choice} from AnyResource token",
         ResourcesCollectedEvent  x => $"{PlayerName(x.PlayerId, x)} collected {x.Gained}",
         ClanCardAcquiredEvent    x => $"{PlayerName(x.PlayerId, x)} acquired clan card: {x.Card.Name}",
@@ -196,6 +229,17 @@ internal sealed class ConsoleRenderer
         if (x.CoinsGained > 0)           parts.Add($"+{x.CoinsGained} coin(s)");
         if (x.PendingChoices > 0)        parts.Add($"{x.PendingChoices} choice(s) pending");
         return $"{PlayerName(x.PlayerId, x)} well effect: {string.Join(", ", parts)}";
+    }
+
+    private static string FormatCardFieldGain(CardFieldGainActivatedEvent x)
+    {
+        var parts = new List<string>();
+        if (x.ResourcesGained.Total > 0) parts.Add($"resources: {x.ResourcesGained}");
+        if (x.CoinsGained   > 0) parts.Add($"+{x.CoinsGained} coin(s)");
+        if (x.SealsGained   > 0) parts.Add($"+{x.SealsGained} seal(s)");
+        if (x.LanternGained > 0) parts.Add($"+{x.LanternGained} lantern(s)");
+        var gained = parts.Count > 0 ? string.Join(", ", parts) : "nothing";
+        return $"{PlayerName(x.PlayerId, x)} card field {x.FieldIndex} gain: {gained}";
     }
 
     private static string FormatPlaced(DiePlacedEvent x)

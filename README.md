@@ -13,3 +13,5 @@ Plan actually turned out to be pretty decent. However, Claude got the game rules
 # specifying the rules
 
 By specifying the rules, I led Claude to shape the game properly. First impressions are pretty good. It builds a console interface, which I did not specify, apart for telling it to make a console interface. This is a pretty nice side-effect, so I don't have to waste time on throwaway code.
+
+Claude responds pretty well to hard-set rules. CLAUDE.md requires that gamerules.md are updated as we go, so the knowledge is preserved. So far so good. Will check the coverage and actual tests down the line.

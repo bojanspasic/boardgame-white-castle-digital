@@ -18,6 +18,11 @@ internal sealed class Board
     private readonly DicePlaceholder[] _outsideSlots =
         [new DicePlaceholder(5), new DicePlaceholder(5)];
 
+    private FloorCardDeck? _groundDeck;
+    private FloorCardDeck? _midDeck;
+    public int GroundFloorDeckRemaining => _groundDeck?.Remaining ?? 0;
+    public int MidFloorDeckRemaining    => _midDeck?.Remaining   ?? 0;
+
     public IReadOnlyList<Bridge> Bridges => _bridges;
 
     public IReadOnlyList<IReadOnlyList<DicePlaceholder>> CastleFloors =>
@@ -99,6 +104,22 @@ internal sealed class Board
             _well.AddToken(t with { IsResourceSideUp = true });
     }
 
+    /// <summary>
+    /// Load and shuffle both floor card decks, deal one card to each castle room.
+    /// Called once at game start; cards remain for the entire game.
+    /// </summary>
+    public void PlaceCards(Random rng)
+    {
+        _groundDeck = FloorCardDeck.LoadGroundFloor(rng);
+        _midDeck    = FloorCardDeck.LoadMidFloor(rng);
+
+        for (int r = 0; r < _castleRooms[0].Length; r++)
+            if (_groundDeck.Deal() is { } c) _castleRooms[0][r].SetCard(c);
+
+        for (int r = 0; r < _castleRooms[1].Length; r++)
+            if (_midDeck.Deal() is { } c) _castleRooms[1][r].SetCard(c);
+    }
+
     private static IEnumerable<Token> CreateAllTokens() =>
         Enum.GetValues<BridgeColor>()
             .SelectMany(color => Enum.GetValues<TokenResource>()
@@ -120,6 +141,8 @@ internal sealed class Board
                     row.Select(r => r.ToSnapshot()).ToArray())
                 .ToArray()),
         new WellSnapshot(_well.ToSnapshot()),
-        new OutsideSnapshot(_outsideSlots.Select(s => s.ToSnapshot()).ToArray())
+        new OutsideSnapshot(_outsideSlots.Select(s => s.ToSnapshot()).ToArray()),
+        GroundFloorDeckRemaining,
+        MidFloorDeckRemaining
     );
 }

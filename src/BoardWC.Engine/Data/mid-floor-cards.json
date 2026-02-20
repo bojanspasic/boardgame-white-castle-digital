@@ -1,0 +1,81 @@
+{
+  "cards": [
+    {
+      "id": "mid_001",
+      "name": "Card Name",
+      "layout": "DoubleTop",
+      "field1": [
+        { "type": "Food", "amount": 2 },
+        { "type": "Coin", "amount": 1 }
+      ],
+      "field2": [
+        { "type": "Iron", "amount": 1 }
+      ]
+    },
+    {
+      "id": "mid_002",
+      "name": "Card Name",
+      "layout": "DoubleBottom",
+      "field1": [
+        { "type": "MonarchialSeal", "amount": 1 }
+      ],
+      "field2": [
+        { "type": "ValueItem", "amount": 1 },
+        { "type": "Lantern", "amount": 1 }
+      ]
+    },
+    {
+      "id": "mid_003",
+      "name": "Card Name",
+      "layout": "DoubleTop",
+      "field1": [
+        { "type": "Iron", "amount": 2 },
+        { "type": "Food", "amount": 1 }
+      ],
+      "field2": {
+        "cost": [
+          { "type": "Coin", "amount": 1 }
+        ],
+        "description": "Description of what the player may do"
+      }
+    },
+    {
+      "id": "mid_004",
+      "name": "Card Name",
+      "layout": "DoubleBottom",
+      "field1": [
+        { "type": "Coin", "amount": 3 }
+      ],
+      "field2": [
+        { "type": "Food", "amount": 2 },
+        { "type": "Iron", "amount": 1 }
+      ]
+    },
+    {
+      "id": "mid_005",
+      "name": "Card Name",
+      "layout": "DoubleTop",
+      "field1": {
+        "cost": [
+          { "type": "MonarchialSeal", "amount": 1 }
+        ],
+        "description": "Description of what the player may do"
+      },
+      "field2": [
+        { "type": "Lantern", "amount": 2 }
+      ]
+    },
+    {
+      "id": "mid_006",
+      "name": "Card Name",
+      "layout": "DoubleBottom",
+      "field1": [
+        { "type": "ValueItem", "amount": 2 }
+      ],
+      "field2": [
+        { "type": "Coin", "amount": 1 },
+        { "type": "MonarchialSeal", "amount": 1 }
+      ]
+    }
+  ]
+}

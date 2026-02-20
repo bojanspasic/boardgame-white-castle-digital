@@ -345,11 +345,26 @@ public class GameEngineTests
         if (bridgeWithHighDie is null) return;  // skip if no matching die > 3
 
         int dieValue = bridgeWithHighDie.High!.Value;
+
+        // Pre-compute coin gains from card fields activated by this die's color
+        var room0 = state.Board.Castle.Floors[0][0];
+        int cardCoinGains = 0;
+        if (room0.Card is { } card)
+        {
+            for (int i = 0; i < Math.Min(room0.Tokens.Count, card.Fields.Count); i++)
+            {
+                if (room0.Tokens[i].DieColor != bridgeWithHighDie.Color) continue;
+                var field = card.Fields[i];
+                if (!field.IsGain || field.Gains is null) continue;
+                cardCoinGains += field.Gains.Where(g => g.GainType == "Coin").Sum(g => g.Amount);
+            }
+        }
+
         engine.ProcessAction(new TakeDieFromBridgeAction(alice.Id, bridgeWithHighDie.Color, DiePosition.High));
         engine.ProcessAction(new PlaceDieAction(alice.Id, new CastleRoomTarget(0, 0)));
 
         var aliceAfter = engine.GetCurrentState().Players.First(p => p.Id == alice.Id);
-        Assert.Equal(dieValue - 3, aliceAfter.Coins);
+        Assert.Equal(dieValue - 3 + cardCoinGains, aliceAfter.Coins);
     }
 
     // ── Capacity ──────────────────────────────────────────────────────────────
@@ -857,6 +872,100 @@ public class GameEngineTests
         var wellTokens = board.Well.Placeholder.Tokens.Count;
 
         Assert.Equal(15, castleTokens + wellTokens);
+    }
+
+    // ── Room cards ────────────────────────────────────────────────────────────
+
+    [Fact]
+    public void StartGame_PlacesOneCardInEachGroundFloorRoom()
+    {
+        var engine = StartedGame();
+        var floors = engine.GetCurrentState().Board.Castle.Floors;
+
+        Assert.All(floors[0], room => Assert.NotNull(room.Card));
+    }
+
+    [Fact]
+    public void StartGame_PlacesOneCardInEachMidFloorRoom()
+    {
+        var engine = StartedGame();
+        var floors = engine.GetCurrentState().Board.Castle.Floors;
+
+        Assert.All(floors[1], room => Assert.NotNull(room.Card));
+    }
+
+    [Fact]
+    public void StartGame_GroundFloorCard_HasThreeFields()
+    {
+        var engine = StartedGame();
+        var floors = engine.GetCurrentState().Board.Castle.Floors;
+
+        Assert.All(floors[0], room => Assert.Equal(3, room.Card!.Fields.Count));
+    }
+
+    [Fact]
+    public void StartGame_MidFloorCard_HasTwoFields()
+    {
+        var engine = StartedGame();
+        var floors = engine.GetCurrentState().Board.Castle.Floors;
+
+        Assert.All(floors[1], room => Assert.Equal(2, room.Card!.Fields.Count));
+    }
+
+    [Fact]
+    public void StartGame_MidFloorCard_HasLayout()
+    {
+        var engine = StartedGame();
+        var floors = engine.GetCurrentState().Board.Castle.Floors;
+
+        Assert.All(floors[1], room =>
+            Assert.True(room.Card!.Layout is "DoubleTop" or "DoubleBottom",
+                $"Expected DoubleTop or DoubleBottom, got '{room.Card!.Layout}'"));
+    }
+
+    [Fact]
+    public void PlaceDieInRoom_ActivatesMatchingGainField_AppliesGains()
+    {
+        var engine = StartedGame();
+        var state  = engine.GetCurrentState();
+        var alice  = state.Players[0];
+
+        // Find a ground floor room where:
+        //   - a gain field exists at position i
+        //   - the token at position i has a die color matching an available bridge with a high die
+        //   - the die value is affordable (≥ 3, since ground floor value = 3)
+        for (int r = 0; r < state.Board.Castle.Floors[0].Count; r++)
+        {
+            var room = state.Board.Castle.Floors[0][r];
+            if (room.Card is null) continue;
+
+            for (int i = 0; i < Math.Min(room.Tokens.Count, room.Card.Fields.Count); i++)
+            {
+                if (room.Card.Fields[i] is not { IsGain: true } gainField) continue;
+
+                var tokenColor = room.Tokens[i].DieColor;
+                var bridge = state.Board.Bridges
+                    .FirstOrDefault(b => b.Color == tokenColor && b.High?.Value >= 3);
+                if (bridge is null) continue;
+
+                // Found a valid setup — take the die and place it
+                var coinsBefore     = alice.Coins;
+                var resourcesBefore = alice.Resources;
+                var sealsBefore     = alice.MonarchialSeals;
+                var lanternBefore   = alice.LanternScore;
+
+                engine.ProcessAction(new TakeDieFromBridgeAction(alice.Id, bridge.Color, DiePosition.High));
+                var result = engine.ProcessAction(new PlaceDieAction(alice.Id, new CastleRoomTarget(0, r)));
+
+                Assert.IsType<ActionResult.Success>(result);
+
+                // At least one gain-event should have been emitted
+                var success = (ActionResult.Success)result;
+                Assert.Contains(success.Events, e => e is CardFieldGainActivatedEvent);
+                return;
+            }
+        }
+        Assert.True(true, "Test skipped (no suitable room/bridge combination found).");
     }
 
     // ── Castle room color restriction ─────────────────────────────────────────

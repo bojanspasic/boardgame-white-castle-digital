@@ -63,6 +63,57 @@ internal sealed class PlaceDieHandler : IActionHandler
 
         events.Add(new DiePlacedEvent(state.GameId, player.Id, a.Target, die.Value, delta));
 
+        // Castle room card effects — activate fields whose token color matches the die's color
+        if (a.Target is CastleRoomTarget && placeholder.Card is { } card)
+        {
+            var tokens = placeholder.Tokens;
+            int limit  = Math.Min(tokens.Count, card.Fields.Count);
+
+            for (int i = 0; i < limit; i++)
+            {
+                if (tokens[i].DieColor != die.Color) continue;
+
+                if (card.Fields[i] is GainCardField gainField)
+                {
+                    var resources = new ResourceBag();
+                    int coins = 0, seals = 0, lantern = 0;
+
+                    foreach (var item in gainField.Gains)
+                    {
+                        switch (item.Type)
+                        {
+                            case CardGainType.Food:
+                                resources = resources.Add(ResourceType.Food, item.Amount); break;
+                            case CardGainType.Iron:
+                                resources = resources.Add(ResourceType.Iron, item.Amount); break;
+                            case CardGainType.ValueItem:
+                                resources = resources.Add(ResourceType.ValueItem, item.Amount); break;
+                            case CardGainType.Coin:
+                                coins += item.Amount; break;
+                            case CardGainType.MonarchialSeal:
+                                seals += item.Amount; break;
+                            case CardGainType.Lantern:
+                                lantern += item.Amount; break;
+                        }
+                    }
+
+                    player.Resources = (player.Resources + resources).Clamp(7);
+                    player.Coins += coins;
+                    player.MonarchialSeals = Math.Min(player.MonarchialSeals + seals, 5);
+                    player.LanternScore += lantern;
+
+                    events.Add(new CardFieldGainActivatedEvent(
+                        state.GameId, player.Id, card.Id, i,
+                        resources, coins, seals, lantern));
+                }
+                else if (card.Fields[i] is ActionCardField actionField)
+                {
+                    events.Add(new CardActionActivatedEvent(
+                        state.GameId, player.Id, card.Id, i, actionField.Description));
+                }
+            }
+        }
+
         // Well token effects — apply when die is placed in the well
         if (a.Target is WellTarget)
         {

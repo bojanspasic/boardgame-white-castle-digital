@@ -1,0 +1,143 @@
+{
+  "cards": [
+    {
+      "id": "card_001",
+      "name": "Card Name",
+      "gain1": [
+        { "type": "Food", "amount": 2 },
+        { "type": "Coin", "amount": 1 }
+      ],
+      "gain2": [
+        { "type": "Iron", "amount": 1 }
+      ],
+      "action": {
+        "cost": [
+          { "type": "Coin", "amount": 2 }
+        ],
+        "description": "Description of what the player may do"
+      }
+    },
+    {
+      "id": "card_002",
+      "name": "Card Name",
+      "gain1": [
+        { "type": "Iron", "amount": 1 }
+      ],
+      "gain2": [
+        { "type": "MonarchialSeal", "amount": 1 },
+        { "type": "Food", "amount": 1 }
+      ],
+      "action": {
+        "cost": [
+          { "type": "MonarchialSeal", "amount": 1 }
+        ],
+        "description": "Description of what the player may do"
+      }
+    },
+    {
+      "id": "card_003",
+      "name": "Card Name",
+      "gain1": [
+        { "type": "ValueItem", "amount": 1 }
+      ],
+      "gain2": [
+        { "type": "Lantern", "amount": 2 }
+      ],
+      "action": {
+        "description": "Description of what the player may do"
+      }
+    },
+    {
+      "id": "card_004",
+      "name": "Card Name",
+      "gain1": [
+        { "type": "Food", "amount": 1 },
+        { "type": "Iron", "amount": 1 }
+      ],
+      "gain2": [
+        { "type": "Coin", "amount": 2 }
+      ],
+      "action": {
+        "description": "Description of what the player may do"
+      }
+    },
+    {
+      "id": "card_005",
+      "name": "Card Name",
+      "gain1": [
+        { "type": "Lantern", "amount": 1 }
+      ],
+      "gain2": [
+        { "type": "ValueItem", "amount": 2 }
+      ],
+      "action": {
+        "cost": [
+          { "type": "Coin", "amount": 1 }
+        ],
+        "description": "Description of what the player may do"
+      }
+    },
+    {
+      "id": "card_006",
+      "name": "Card Name",
+      "gain1": [
+        { "type": "Coin", "amount": 2 }
+      ],
+      "gain2": [
+        { "type": "Food", "amount": 2 },
+        { "type": "Iron", "amount": 1 }
+      ],
+      "action": {
+        "cost": [
+          { "type": "MonarchialSeal", "amount": 1 }
+        ],
+        "description": "Description of what the player may do"
+      }
+    },
+    {
+      "id": "card_007",
+      "name": "Card Name",
+      "gain1": [
+        { "type": "MonarchialSeal", "amount": 1 }
+      ],
+      "gain2": [
+        { "type": "Food", "amount": 1 },
+        { "type": "ValueItem", "amount": 1 }
+      ],
+      "action": {
+        "description": "Description of what the player may do"
+      }
+    },
+    {
+      "id": "card_008",
+      "name": "Card Name",
+      "gain1": [
+        { "type": "Iron", "amount": 2 }
+      ],
+      "gain2": [
+        { "type": "Lantern", "amount": 2 }
+      ],
+      "action": {
+        "cost": [
+          { "type": "Coin", "amount": 2 }
+        ],
+        "description": "Description of what the player may do"
+      }
+    },
+    {
+      "id": "card_009",
+      "name": "Card Name",
+      "gain1": [
+        { "type": "ValueItem", "amount": 1 },
+        { "type": "Coin", "amount": 1 }
+      ],
+      "gain2": [
+        { "type": "MonarchialSeal", "amount": 1 },
+        { "type": "Iron", "amount": 1 }
+      ],
+      "action": {
+        "description": "Description of what the player may do"
+      }
+    }
+  ]
+}
