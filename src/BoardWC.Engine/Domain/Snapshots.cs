@@ -25,6 +25,7 @@ public sealed record PlayerSnapshot(
     int SoldiersAvailable,
     int CourtiersAvailable,
     int FarmersAvailable,
+    int PendingAnyResourceChoices,
     IReadOnlyList<ClanCardSnapshot> ClanCards,
     IReadOnlyList<DieSnapshot> DiceInHand
 );

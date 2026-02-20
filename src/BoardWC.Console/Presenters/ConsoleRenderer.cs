@@ -32,6 +32,10 @@ internal sealed class ConsoleRenderer
             var die = p.DiceInHand[0];
             System.Console.WriteLine($"  [Die in hand: {die.Color} {die.Value} — type 'place ...' to place it]");
         }
+        // Show hint if player has pending AnyResource choices
+        if (p.PendingAnyResourceChoices > 0)
+            System.Console.WriteLine(
+                $"  [Pending resource choice ({p.PendingAnyResourceChoices} remaining) — type 'choose food|iron|valueitem']");
         System.Console.Write($"[{p.Name}] > ");
     }
 
@@ -173,6 +177,8 @@ internal sealed class ConsoleRenderer
         DieTakenFromBridgeEvent x => $"{PlayerName(x.PlayerId, x)} took [{x.DieValue}] from {x.BridgeColor} bridge ({x.Position})",
         LanternEffectFiredEvent x => $"{PlayerName(x.PlayerId, x)} triggered the Lantern Effect!",
         DiePlacedEvent          x => FormatPlaced(x),
+        WellEffectAppliedEvent  x => FormatWellEffect(x),
+        AnyResourceChosenEvent  x => $"{PlayerName(x.PlayerId, x)} chose {x.Choice} from AnyResource token",
         ResourcesCollectedEvent  x => $"{PlayerName(x.PlayerId, x)} collected {x.Gained}",
         ClanCardAcquiredEvent    x => $"{PlayerName(x.PlayerId, x)} acquired clan card: {x.Card.Name}",
         LanternsGainedEvent      x => $"{PlayerName(x.PlayerId, x)} gained {x.Amount} lantern(s)",
@@ -182,6 +188,15 @@ internal sealed class ConsoleRenderer
         GameStartedEvent         _  => "Game started!",
         _                          => e.EventType,
     };
+
+    private static string FormatWellEffect(WellEffectAppliedEvent x)
+    {
+        var parts = new List<string> { "+1 seal" };
+        if (x.ResourcesGained.Total > 0) parts.Add($"resources: {x.ResourcesGained}");
+        if (x.CoinsGained > 0)           parts.Add($"+{x.CoinsGained} coin(s)");
+        if (x.PendingChoices > 0)        parts.Add($"{x.PendingChoices} choice(s) pending");
+        return $"{PlayerName(x.PlayerId, x)} well effect: {string.Join(", ", parts)}";
+    }
 
     private static string FormatPlaced(DiePlacedEvent x)
     {

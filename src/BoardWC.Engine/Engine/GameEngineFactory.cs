@@ -43,6 +43,7 @@ public static class GameEngineFactory
             new StartGameHandler(),
             new TakeDieFromBridgeHandler(),
             new PlaceDieHandler(),
+            new ChooseResourceHandler(),
             new PassHandler(),
         });
 }

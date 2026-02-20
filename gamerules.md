@@ -22,6 +22,10 @@ Middle dice slide down as High/Low dice are taken.
 - **Mid floor** — 2 rooms, compare value = **4**
 - **Top floor** — 1 room — **[DEFERRED — die cannot be placed here; purpose TBD]**
 
+**Die-color restriction**: A die may only be placed in a castle room if the room contains
+at least one token whose die-color side matches the die's color.
+E.g. a room with tokens [R:Fd][R:Fe][W:VI] accepts Red and White dice but rejects Black dice.
+
 ### The Well
 - 1 slot, compare value always = **1**
 - **Unlimited capacity** (any number of dice may be placed here)
@@ -49,7 +53,20 @@ Double-sided cardboard tokens placed at game start in castle rooms and the well.
 
 Tokens are permanent — they are NOT cleared at round end.
 
-**Effect when die placed in a room:** **[DEFERRED]**
+**Effect when die placed in the well:**
+The player immediately receives:
+- **+1 Monarchial Seal** (capped at 5)
+- For each well token (resource side up):
+  - Food token → +1 Food (capped at 7)
+  - Iron token → +1 Iron (capped at 7)
+  - Value Item token → +1 Value Item (capped at 7)
+  - Coin token → +1 Coin
+  - Any Resource token → player chooses Food, Iron, or Value Item (capped at 7); prompted separately for each
+
+When AnyResource tokens are present, the player must resolve each choice before their turn advances.
+In the console, use: `choose food`, `choose iron`, or `choose valueitem`.
+
+**Effect when die placed in a castle room:** **[DEFERRED]**
 
 ### Gate **[DEFERRED]**
 

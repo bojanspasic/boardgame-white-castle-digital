@@ -44,6 +44,7 @@ All player moves are `sealed record` types implementing `IGameAction` in `GameAc
 StartGameAction()
 TakeDieFromBridgeAction(PlayerId, BridgeColor, DiePosition)
 PlaceDieAction(PlayerId, PlacementTarget)
+ChooseResourceAction(PlayerId, ResourceType)   ← resolves AnyResource token from well
 PassAction(PlayerId)
 ```
 
@@ -56,6 +57,7 @@ Registration order is in `GameEngineFactory.cs`.
 StartGameHandler
 TakeDieFromBridgeHandler
 PlaceDieHandler
+ChooseResourceHandler
 PassHandler
 ```
 
@@ -68,11 +70,15 @@ Every handler emits `IDomainEvent` records on `Apply`. The engine returns them a
 `ActionResult.Success(events)`. Consumers (console, tests) read events for side-effects /
 display. Events are never used for in-engine state mutation.
 
-### Two-step turn flow (take die → place die)
+### Two-step turn flow (take die → place die → optional resource choices)
 `TakeDieFromBridgeHandler` puts the die into `player.DiceInHand`.
-`PostActionProcessor` returns early (skips turn advance) while `DiceInHand.Count > 0`.
-`LegalActionGenerator` returns ONLY `PlaceDieAction` options while die is in hand.
-`PlaceDieHandler` removes the die from hand; normal turn advance resumes.
+`PostActionProcessor` returns early (skips turn advance) while `DiceInHand.Count > 0` or `PendingAnyResourceChoices > 0`.
+`LegalActionGenerator` returns ONLY `PlaceDieAction` options while die is in hand; ONLY `ChooseResourceAction` options while choices are pending.
+`PlaceDieHandler` removes the die from hand; if placed at the well, applies token effects (seal, resources, coins) and sets `PendingAnyResourceChoices`.
+`ChooseResourceHandler` decrements `PendingAnyResourceChoices` and grants the chosen resource.
+Castle room placement is restricted to rooms that contain a token matching the die's color
+(`PlaceDieHandler.Validate` checks `placeholder.Tokens.Any(t => t.DieColor == die.Color)`;
+`LegalActionGenerator` applies the same filter so illegal rooms are never offered).
 
 ### Round-end trigger
 `PostActionProcessor` checks `board.TotalDiceRemaining ≤ 3` after every action.
@@ -82,10 +88,11 @@ When triggered: placement areas clear, dice reroll (or game ends).
 Each player tracks:
 - **Resources**: Food, Iron, Value Item (max 7 each)
 - **Coins**: earned/spent when placing dice
-- **Monarchial Seals**: separate currency (max 5) — how earned TBD
+- **Monarchial Seals**: separate currency (max 5); +1 gained each time a die is placed at the well
 - **Lantern score**: victory points from lanterns
 - **Clan cards**: collected cards with VP
 - **Dice in hand**: die taken from bridge awaiting placement
+- **PendingAnyResourceChoices**: unresolved AnyResource token choices from the well
 - **Personnel**: 5 Soldiers, 5 Courtiers, 5 Farmers — placement rules TBD
 
 ## Common Commands
@@ -102,6 +109,7 @@ bridge <red|black|white> <high|low>   — take a die from a bridge
 place castle <floor(0-1)> <room(0-2)> — place die in castle room
 place well                            — place die in the well
 place outside <0|1>                   — place die in outside slot
+choose <food|iron|valueitem>          — choose resource from AnyResource token (after placing at well)
 pass                                  — end your turn
 help                                  — show command list
 ```
@@ -146,6 +154,6 @@ help                                  — show command list
 - Top castle level (1 room — die cannot be placed here; purpose TBD)
 - Training grounds
 - Farming lands
-- Monarchial Seals mechanic (how earned)
+- Monarchial Seals additional earn mechanics (beyond well placement)
 - Personnel placement (Soldiers, Courtiers, Farmers)
-- Token gameplay effect (what happens when a die is placed on a room with tokens)
+- Token gameplay effect when a die is placed in a **castle room** (well effect is implemented)

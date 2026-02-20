@@ -23,6 +23,9 @@ public readonly record struct ResourceBag(int Food = 0, int Iron = 0, int ValueI
 
     public int Total => Food + Iron + ValueItem;
 
+    public ResourceBag Clamp(int max) =>
+        new(Math.Min(Food, max), Math.Min(Iron, max), Math.Min(ValueItem, max));
+
     public static ResourceBag operator +(ResourceBag a, ResourceBag b) => a.Add(b);
 
     public override string ToString() =>

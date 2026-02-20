@@ -30,6 +30,14 @@ internal sealed class PlaceDieHandler : IActionHandler
             return ValidationResult.Fail("That placement slot is full.");
 
         var die = player.DiceInHand[0];
+
+        // Castle rooms only accept dice whose color matches at least one room token
+        if (a.Target is CastleRoomTarget)
+        {
+            if (!placeholder.Tokens.Any(t => t.DieColor == die.Color))
+                return ValidationResult.Fail(
+                    $"A {die.Color} die cannot be placed in this room (no matching token).");
+        }
         int compareValue = placeholder.GetCompareValue(state.Players.Count);
         int delta = die.Value - compareValue;
         if (delta < 0 && player.Coins < -delta)
@@ -54,6 +62,35 @@ internal sealed class PlaceDieHandler : IActionHandler
         player.DiceInHand.RemoveAt(0);
 
         events.Add(new DiePlacedEvent(state.GameId, player.Id, a.Target, die.Value, delta));
+
+        // Well token effects — apply when die is placed in the well
+        if (a.Target is WellTarget)
+        {
+            player.MonarchialSeals = Math.Min(player.MonarchialSeals + 1, 5);
+
+            var resourcesGained = new ResourceBag();
+            int coinsGained     = 0;
+            int pendingChoices  = 0;
+
+            foreach (var token in state.Board.Well.Tokens)
+            {
+                switch (token.ResourceSide)
+                {
+                    case TokenResource.Food:        resourcesGained = resourcesGained.Add(ResourceType.Food,      1); break;
+                    case TokenResource.Iron:        resourcesGained = resourcesGained.Add(ResourceType.Iron,      1); break;
+                    case TokenResource.ValueItem:   resourcesGained = resourcesGained.Add(ResourceType.ValueItem, 1); break;
+                    case TokenResource.Coin:        coinsGained++;    break;
+                    case TokenResource.AnyResource: pendingChoices++; break;
+                }
+            }
+
+            player.Resources = (player.Resources + resourcesGained).Clamp(7);
+            player.Coins    += coinsGained;
+            player.PendingAnyResourceChoices += pendingChoices;
+
+            events.Add(new WellEffectAppliedEvent(
+                state.GameId, player.Id, 1, resourcesGained, coinsGained, pendingChoices));
+        }
     }
 
     private static DicePlaceholder? Resolve(PlacementTarget target, Board board) =>

@@ -35,6 +35,7 @@ internal sealed class ConsoleInputParser
         {
             "bridge" => ParseBridge(parts, playerId),
             "place"  => ParsePlace(parts, playerId),
+            "choose" => ParseChoose(parts, playerId),
             "pass"   => ParseResult.Ok(new PassAction(playerId)),
             "start"  => ParseResult.Ok(new StartGameAction()),
             "help"   => ParseResult.Err(HelpText()),
@@ -85,6 +86,20 @@ internal sealed class ConsoleInputParser
         return ParseResult.Ok(new PlaceDieAction(playerId, new CastleRoomTarget(floor, room)));
     }
 
+    private static ParseResult ParseChoose(string[] parts, Guid playerId)
+    {
+        if (parts.Length < 2)
+            return ParseResult.Err("Usage: choose <food|iron|valueitem>");
+
+        return parts[1] switch
+        {
+            "food"      => ParseResult.Ok(new ChooseResourceAction(playerId, ResourceType.Food)),
+            "iron"      => ParseResult.Ok(new ChooseResourceAction(playerId, ResourceType.Iron)),
+            "valueitem" => ParseResult.Ok(new ChooseResourceAction(playerId, ResourceType.ValueItem)),
+            _ => ParseResult.Err($"Unknown resource '{parts[1]}'. Use: food, iron, valueitem."),
+        };
+    }
+
     private static ParseResult ParsePlaceOutside(string[] parts, Guid playerId)
     {
         if (parts.Length < 3)
@@ -113,6 +128,7 @@ internal sealed class ConsoleInputParser
           place castle <floor(0-1)> <room(0-2)>      — place die in castle room
           place well                                 — place die at the well
           place outside <0|1>                        — place die at an outside slot
+          choose <food|iron|valueitem>               — choose resource from AnyResource token (well)
           pass                                       — pass your turn
           start                                      — start the game (from Setup phase)
           help                                       — show this message

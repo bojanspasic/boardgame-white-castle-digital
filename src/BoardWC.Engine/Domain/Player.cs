@@ -15,6 +15,9 @@ internal sealed class Player
     internal int CourtiersAvailable { get; set; } = 5;
     internal int FarmersAvailable { get; set; } = 5;
 
+    /// <summary>Number of unresolved AnyResource token choices from the well.</summary>
+    internal int PendingAnyResourceChoices { get; set; }
+
     internal List<ClanCard> ClanCards { get; } = new();
 
     /// <summary>Dice the player has taken from bridges this round.</summary>
@@ -24,6 +27,7 @@ internal sealed class Player
         Id, Name, Color, IsAI,
         Resources, LanternScore, Coins,
         MonarchialSeals, SoldiersAvailable, CourtiersAvailable, FarmersAvailable,
+        PendingAnyResourceChoices,
         ClanCards.Select(c => c.ToSnapshot()).ToList().AsReadOnly(),
         DiceInHand.Select(d => d.ToSnapshot()).ToList().AsReadOnly()
     );

@@ -97,3 +97,26 @@ public sealed record GameOverEvent(
     public DateTimeOffset OccurredAt { get; } = DateTimeOffset.UtcNow;
     public string EventType => nameof(GameOverEvent);
 }
+
+public sealed record WellEffectAppliedEvent(
+    Guid GameId,
+    Guid PlayerId,
+    int SealGained,
+    ResourceBag ResourcesGained,
+    int CoinsGained,
+    int PendingChoices   // count of AnyResource tokens requiring a choice
+) : IDomainEvent
+{
+    public DateTimeOffset OccurredAt { get; } = DateTimeOffset.UtcNow;
+    public string EventType => nameof(WellEffectAppliedEvent);
+}
+
+public sealed record AnyResourceChosenEvent(
+    Guid GameId,
+    Guid PlayerId,
+    ResourceType Choice
+) : IDomainEvent
+{
+    public DateTimeOffset OccurredAt { get; } = DateTimeOffset.UtcNow;
+    public string EventType => nameof(AnyResourceChosenEvent);
+}

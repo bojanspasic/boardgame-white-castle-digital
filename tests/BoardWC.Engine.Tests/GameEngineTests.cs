@@ -23,7 +23,8 @@ public class GameEngineTests
     }
 
     /// <summary>
-    /// Takes the High die from the first available bridge and places it at the Well.
+    /// Takes the High die from the first available bridge and places it at the Well,
+    /// then resolves any pending AnyResource choices (choosing Food each time).
     /// Returns false if no bridge has a High die.
     /// </summary>
     private static bool TakeAndPlaceAtWell(IGameEngine engine)
@@ -35,6 +36,11 @@ public class GameEngineTests
 
         engine.ProcessAction(new TakeDieFromBridgeAction(player.Id, bridge.Color, DiePosition.High));
         engine.ProcessAction(new PlaceDieAction(player.Id, new WellTarget()));
+
+        // Resolve any pending AnyResource choices (choosing Food each time)
+        while (engine.GetCurrentState().Players.First(p => p.Id == player.Id).PendingAnyResourceChoices > 0)
+            engine.ProcessAction(new ChooseResourceAction(player.Id, ResourceType.Food));
+
         return true;
     }
 
@@ -236,6 +242,10 @@ public class GameEngineTests
         engine.ProcessAction(new TakeDieFromBridgeAction(alice.Id, BridgeColor.Red, DiePosition.High));
         engine.ProcessAction(new PlaceDieAction(alice.Id, new WellTarget()));
 
+        // Resolve any pending AnyResource choices before checking turn advance
+        while (engine.GetCurrentState().Players.First(p => p.Id == alice.Id).PendingAnyResourceChoices > 0)
+            engine.ProcessAction(new ChooseResourceAction(alice.Id, ResourceType.Food));
+
         var activeAfter = engine.GetCurrentState().Players[engine.GetCurrentState().ActivePlayerIndex];
         Assert.NotEqual(alice.Id, activeAfter.Id);
     }
@@ -271,16 +281,21 @@ public class GameEngineTests
     [Fact]
     public void PlaceDieAtWell_DieHigherThanOne_EarnsCoins()
     {
-        var engine  = StartedGame();
-        var state   = engine.GetCurrentState();
-        var alice   = state.Players[0];
-        var redHigh = state.Board.Bridges.First(b => b.Color == BridgeColor.Red).High!;
+        var engine     = StartedGame();
+        var state      = engine.GetCurrentState();
+        var alice      = state.Players[0];
+        var redHigh    = state.Board.Bridges.First(b => b.Color == BridgeColor.Red).High!;
+        var wellTokens = state.Board.Well.Placeholder.Tokens;
+        int coinTokens = wellTokens.Count(t => t.ResourceSide == TokenResource.Coin);
 
         engine.ProcessAction(new TakeDieFromBridgeAction(alice.Id, BridgeColor.Red, DiePosition.High));
         engine.ProcessAction(new PlaceDieAction(alice.Id, new WellTarget()));
+        while (engine.GetCurrentState().Players.First(p => p.Id == alice.Id).PendingAnyResourceChoices > 0)
+            engine.ProcessAction(new ChooseResourceAction(alice.Id, ResourceType.Food));
 
         var aliceAfter = engine.GetCurrentState().Players.First(p => p.Id == alice.Id);
-        Assert.Equal(redHigh.Value - 1, aliceAfter.Coins);
+        // Coins = placement delta (die - 1) + any Coin tokens from the well
+        Assert.Equal(redHigh.Value - 1 + coinTokens, aliceAfter.Coins);
     }
 
     [Fact]
@@ -322,9 +337,12 @@ public class GameEngineTests
         var state  = engine.GetCurrentState();
         var alice  = state.Players[0];
 
+        // Room (0, 0) has ≥2 token colors; find a bridge whose color matches AND has die > 3
+        var room0Colors       = state.Board.Castle.Floors[0][0].Tokens
+                                     .Select(t => t.DieColor).ToHashSet();
         var bridgeWithHighDie = state.Board.Bridges
-            .FirstOrDefault(b => b.High?.Value > 3);
-        if (bridgeWithHighDie is null) return;  // skip if no die > 3
+            .FirstOrDefault(b => b.High?.Value > 3 && room0Colors.Contains(b.Color));
+        if (bridgeWithHighDie is null) return;  // skip if no matching die > 3
 
         int dieValue = bridgeWithHighDie.High!.Value;
         engine.ProcessAction(new TakeDieFromBridgeAction(alice.Id, bridgeWithHighDie.Color, DiePosition.High));
@@ -344,17 +362,21 @@ public class GameEngineTests
         var alice  = state.Players[0];
         var bob    = state.Players[1];
 
-        // Find any High die with value ≥ 3 for Alice
-        var aliceBridge = state.Board.Bridges.FirstOrDefault(b => b.High?.Value >= 3);
+        // Room (0, 0) has ≥2 token colors; find a bridge whose color matches AND has die ≥ 3
+        var room0Colors = state.Board.Castle.Floors[0][0].Tokens
+                               .Select(t => t.DieColor).ToHashSet();
+        var aliceBridge = state.Board.Bridges
+            .FirstOrDefault(b => b.High?.Value >= 3 && room0Colors.Contains(b.Color));
         if (aliceBridge is null) { TakeAndPlaceAtWell(engine); return; }  // skip round
 
         engine.ProcessAction(new TakeDieFromBridgeAction(alice.Id, aliceBridge.Color, DiePosition.High));
         engine.ProcessAction(new PlaceDieAction(alice.Id, new CastleRoomTarget(0, 0)));
 
-        // Bob tries the same room
-        var bobState   = engine.GetCurrentState();
-        var bobBridge  = bobState.Board.Bridges.FirstOrDefault(b => b.High?.Value >= 3);
-        if (bobBridge is null) return;  // skip if Bob can't afford it either
+        // Bob tries the same room with a matching-color die of value ≥ 3
+        var bobState  = engine.GetCurrentState();
+        var bobBridge = bobState.Board.Bridges
+            .FirstOrDefault(b => b.High?.Value >= 3 && room0Colors.Contains(b.Color));
+        if (bobBridge is null) return;  // skip if no affordable matching die for Bob
 
         engine.ProcessAction(new TakeDieFromBridgeAction(bob.Id, bobBridge.Color, DiePosition.High));
         var result = engine.ProcessAction(new PlaceDieAction(bob.Id, new CastleRoomTarget(0, 0)));
@@ -372,9 +394,13 @@ public class GameEngineTests
 
         engine.ProcessAction(new TakeDieFromBridgeAction(alice.Id, BridgeColor.Red, DiePosition.High));
         engine.ProcessAction(new PlaceDieAction(alice.Id, new WellTarget()));
+        while (engine.GetCurrentState().Players.First(p => p.Id == alice.Id).PendingAnyResourceChoices > 0)
+            engine.ProcessAction(new ChooseResourceAction(alice.Id, ResourceType.Food));
 
         engine.ProcessAction(new TakeDieFromBridgeAction(bob.Id, BridgeColor.Black, DiePosition.High));
         var result = engine.ProcessAction(new PlaceDieAction(bob.Id, new WellTarget()));
+        while (engine.GetCurrentState().Players.First(p => p.Id == bob.Id).PendingAnyResourceChoices > 0)
+            engine.ProcessAction(new ChooseResourceAction(bob.Id, ResourceType.Food));
 
         Assert.IsType<ActionResult.Success>(result);
         Assert.Equal(2, engine.GetCurrentState().Board.Well.Placeholder.PlacedDice.Count);
@@ -631,6 +657,135 @@ public class GameEngineTests
         Assert.Equal(0, alice.MonarchialSeals);
     }
 
+    // ── Well effects ─────────────────────────────────────────────────────────
+
+    private static void TakeAndPlaceAtWellForPlayer(IGameEngine engine, Guid playerId)
+    {
+        var state  = engine.GetCurrentState();
+        var bridge = state.Board.Bridges.FirstOrDefault(b => b.High != null);
+        if (bridge is null) return;
+        engine.ProcessAction(new TakeDieFromBridgeAction(playerId, bridge.Color, DiePosition.High));
+        engine.ProcessAction(new PlaceDieAction(playerId, new WellTarget()));
+    }
+
+    private static void ResolveAllPendingChoices(IGameEngine engine, Guid playerId)
+    {
+        while (engine.GetCurrentState().Players.First(p => p.Id == playerId).PendingAnyResourceChoices > 0)
+            engine.ProcessAction(new ChooseResourceAction(playerId, ResourceType.Food));
+    }
+
+    [Fact]
+    public void PlaceDieAtWell_GrantsSeal()
+    {
+        var engine = StartedGame();
+        var alice  = engine.GetCurrentState().Players[0];
+
+        TakeAndPlaceAtWellForPlayer(engine, alice.Id);
+        ResolveAllPendingChoices(engine, alice.Id);
+
+        var aliceAfter = engine.GetCurrentState().Players.First(p => p.Id == alice.Id);
+        Assert.Equal(1, aliceAfter.MonarchialSeals);
+    }
+
+    [Fact]
+    public void PlaceDieAtWell_ResourcesMatchNonAnyTokenTypes()
+    {
+        var engine     = StartedGame();
+        var alice      = engine.GetCurrentState().Players[0];
+        var wellTokens = engine.GetCurrentState().Board.Well.Placeholder.Tokens;
+
+        // ResolveAllPendingChoices picks Food for each AnyResource token
+        int anyResourceCount = wellTokens.Count(t => t.ResourceSide == TokenResource.AnyResource);
+        int expectedFood = wellTokens.Count(t => t.ResourceSide == TokenResource.Food) + anyResourceCount;
+        int expectedIron = wellTokens.Count(t => t.ResourceSide == TokenResource.Iron);
+        int expectedVI   = wellTokens.Count(t => t.ResourceSide == TokenResource.ValueItem);
+
+        TakeAndPlaceAtWellForPlayer(engine, alice.Id);
+        ResolveAllPendingChoices(engine, alice.Id);
+
+        var aliceAfter = engine.GetCurrentState().Players.First(p => p.Id == alice.Id);
+        Assert.Equal(expectedFood, aliceAfter.Resources.Food);
+        Assert.Equal(expectedIron, aliceAfter.Resources.Iron);
+        Assert.Equal(expectedVI,   aliceAfter.Resources.ValueItem);
+    }
+
+    [Fact]
+    public void PlaceDieAtWell_PendingChoices_EqualsAnyResourceTokenCount()
+    {
+        var engine     = StartedGame();
+        var alice      = engine.GetCurrentState().Players[0];
+        var wellTokens = engine.GetCurrentState().Board.Well.Placeholder.Tokens;
+        int expected   = wellTokens.Count(t => t.ResourceSide == TokenResource.AnyResource);
+
+        TakeAndPlaceAtWellForPlayer(engine, alice.Id);
+
+        var aliceAfter = engine.GetCurrentState().Players.First(p => p.Id == alice.Id);
+        Assert.Equal(expected, aliceAfter.PendingAnyResourceChoices);
+    }
+
+    [Fact]
+    public void PlaceDieAtWell_WithAnyResourcePending_LegalActionsAreChooseResourceOnly()
+    {
+        var engine     = StartedGame();
+        var alice      = engine.GetCurrentState().Players[0];
+        var wellTokens = engine.GetCurrentState().Board.Well.Placeholder.Tokens;
+
+        if (!wellTokens.Any(t => t.ResourceSide == TokenResource.AnyResource)) return;
+
+        TakeAndPlaceAtWellForPlayer(engine, alice.Id);
+
+        var actions = engine.GetLegalActions(alice.Id);
+        Assert.All(actions, a => Assert.IsType<ChooseResourceAction>(a));
+    }
+
+    [Fact]
+    public void ChooseResource_ResolvesOnePendingChoice()
+    {
+        var engine     = StartedGame();
+        var alice      = engine.GetCurrentState().Players[0];
+        var wellTokens = engine.GetCurrentState().Board.Well.Placeholder.Tokens;
+
+        if (!wellTokens.Any(t => t.ResourceSide == TokenResource.AnyResource)) return;
+
+        TakeAndPlaceAtWellForPlayer(engine, alice.Id);
+        int choicesBefore = engine.GetCurrentState().Players.First(p => p.Id == alice.Id).PendingAnyResourceChoices;
+
+        engine.ProcessAction(new ChooseResourceAction(alice.Id, ResourceType.Iron));
+
+        var aliceAfter = engine.GetCurrentState().Players.First(p => p.Id == alice.Id);
+        Assert.Equal(choicesBefore - 1, aliceAfter.PendingAnyResourceChoices);
+    }
+
+    [Fact]
+    public void ChooseResource_GrantsChosenResource()
+    {
+        var engine     = StartedGame();
+        var alice      = engine.GetCurrentState().Players[0];
+        var wellTokens = engine.GetCurrentState().Board.Well.Placeholder.Tokens;
+
+        if (!wellTokens.Any(t => t.ResourceSide == TokenResource.AnyResource)) return;
+
+        TakeAndPlaceAtWellForPlayer(engine, alice.Id);
+
+        engine.ProcessAction(new ChooseResourceAction(alice.Id, ResourceType.Iron));
+
+        var aliceAfter = engine.GetCurrentState().Players.First(p => p.Id == alice.Id);
+        Assert.True(aliceAfter.Resources.Iron >= 1);
+    }
+
+    [Fact]
+    public void ChooseResource_AfterAllChoicesResolved_TurnAdvances()
+    {
+        var engine = StartedGame();
+        var alice  = engine.GetCurrentState().Players[0];
+
+        TakeAndPlaceAtWellForPlayer(engine, alice.Id);
+        ResolveAllPendingChoices(engine, alice.Id);
+
+        var activeAfter = engine.GetCurrentState().Players[engine.GetCurrentState().ActivePlayerIndex];
+        Assert.NotEqual(alice.Id, activeAfter.Id);
+    }
+
     // ── Token placement ───────────────────────────────────────────────────────
 
     [Fact]
@@ -702,5 +857,86 @@ public class GameEngineTests
         var wellTokens = board.Well.Placeholder.Tokens.Count;
 
         Assert.Equal(15, castleTokens + wellTokens);
+    }
+
+    // ── Castle room color restriction ─────────────────────────────────────────
+
+    [Fact]
+    public void CastleRoom_RejectsPlacement_WhenDieColorHasNoMatchingToken()
+    {
+        var engine    = StartedGame();
+        var state     = engine.GetCurrentState();
+        var alice     = state.Players[0];
+        var allColors = new[] { BridgeColor.Red, BridgeColor.Black, BridgeColor.White };
+
+        // Mid-floor rooms have exactly 2 die colors — always 1 missing color
+        for (int r = 0; r < state.Board.Castle.Floors[1].Count; r++)
+        {
+            var room    = state.Board.Castle.Floors[1][r];
+            var present = room.Tokens.Select(t => t.DieColor).ToHashSet();
+            var missing = allColors.Where(c => !present.Contains(c))
+                                   .Cast<BridgeColor?>().FirstOrDefault();
+            if (missing is null) continue;
+
+            engine.ProcessAction(new TakeDieFromBridgeAction(alice.Id, missing.Value, DiePosition.High));
+            var result = engine.ProcessAction(new PlaceDieAction(alice.Id, new CastleRoomTarget(1, r)));
+
+            Assert.IsType<ActionResult.Failure>(result);
+            return;
+        }
+        Assert.True(true, "Test skipped (no suitable room found).");
+    }
+
+    [Fact]
+    public void CastleRoom_AcceptsPlacement_WhenDieColorMatchesAToken()
+    {
+        var engine = StartedGame();
+        var state  = engine.GetCurrentState();
+        var alice  = state.Players[0];
+
+        // Find a ground-floor room with a bridge whose color is in the room tokens and die value ≥ 3
+        for (int r = 0; r < state.Board.Castle.Floors[0].Count; r++)
+        {
+            var room   = state.Board.Castle.Floors[0][r];
+            var colors = room.Tokens.Select(t => t.DieColor).ToHashSet();
+            var bridge = state.Board.Bridges.FirstOrDefault(b =>
+                colors.Contains(b.Color) && b.High?.Value >= 3);
+            if (bridge is null) continue;
+
+            engine.ProcessAction(new TakeDieFromBridgeAction(alice.Id, bridge.Color, DiePosition.High));
+            var result = engine.ProcessAction(new PlaceDieAction(alice.Id, new CastleRoomTarget(0, r)));
+
+            Assert.IsType<ActionResult.Success>(result);
+            return;
+        }
+        Assert.True(true, "Test skipped (no affordable matching bridge found).");
+    }
+
+    [Fact]
+    public void LegalActions_CastleRoom_ExcludesRoomsWithNoMatchingToken()
+    {
+        var engine    = StartedGame();
+        var state     = engine.GetCurrentState();
+        var alice     = state.Players[0];
+        var allColors = new[] { BridgeColor.Red, BridgeColor.Black, BridgeColor.White };
+
+        // Mid-floor rooms have exactly 2 die colors — find a room missing at least 1 color
+        for (int r = 0; r < state.Board.Castle.Floors[1].Count; r++)
+        {
+            var room    = state.Board.Castle.Floors[1][r];
+            var present = room.Tokens.Select(t => t.DieColor).ToHashSet();
+            var missing = allColors.Where(c => !present.Contains(c))
+                                   .Cast<BridgeColor?>().FirstOrDefault();
+            if (missing is null) continue;
+
+            engine.ProcessAction(new TakeDieFromBridgeAction(alice.Id, missing.Value, DiePosition.High));
+            var actions = engine.GetLegalActions(alice.Id);
+
+            Assert.DoesNotContain(actions, a =>
+                a is PlaceDieAction pda && pda.Target is CastleRoomTarget crt &&
+                crt.Floor == 1 && crt.RoomIndex == r);
+            return;
+        }
+        Assert.True(true, "Test skipped (no suitable room found).");
     }
 }

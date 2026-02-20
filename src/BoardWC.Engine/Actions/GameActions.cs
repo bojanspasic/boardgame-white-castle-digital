@@ -23,3 +23,9 @@ public sealed record PlaceDieAction(
 
 /// <summary>Player passes their turn.</summary>
 public sealed record PassAction(Guid PlayerId) : IGameAction;
+
+/// <summary>Resolve a pending AnyResource token choice gained from the well.</summary>
+public sealed record ChooseResourceAction(
+    Guid PlayerId,
+    ResourceType Choice
+) : IGameAction;

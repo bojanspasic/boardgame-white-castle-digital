@@ -22,6 +22,15 @@ internal static class LegalActionGenerator
         if (player is null || state.ActivePlayer.Id != playerId)
             return actions.AsReadOnly();
 
+        // Player must resolve pending AnyResource choices before acting
+        if (player.PendingAnyResourceChoices > 0)
+        {
+            actions.Add(new ChooseResourceAction(playerId, ResourceType.Food));
+            actions.Add(new ChooseResourceAction(playerId, ResourceType.Iron));
+            actions.Add(new ChooseResourceAction(playerId, ResourceType.ValueItem));
+            return actions.AsReadOnly();
+        }
+
         // Player has taken a die and must place it before doing anything else
         if (player.DiceInHand.Count > 0)
         {
@@ -37,7 +46,9 @@ internal static class LegalActionGenerator
                 {
                     var ph    = rooms[room];
                     int delta = die.Value - ph.GetCompareValue(pc);
-                    if (ph.CanAccept(pc) && (delta >= 0 || player.Coins >= -delta))
+                    if (ph.CanAccept(pc)
+                        && (delta >= 0 || player.Coins >= -delta)
+                        && ph.Tokens.Any(t => t.DieColor == die.Color))
                         actions.Add(new PlaceDieAction(playerId, new CastleRoomTarget(floor, room)));
                 }
             }
