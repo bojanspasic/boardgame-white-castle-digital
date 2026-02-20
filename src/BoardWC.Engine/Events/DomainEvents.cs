@@ -1,0 +1,122 @@
+using BoardWC.Engine.Domain;
+
+namespace BoardWC.Engine.Events;
+
+public sealed record GameStartedEvent(Guid GameId) : IDomainEvent
+{
+    public DateTimeOffset OccurredAt { get; } = DateTimeOffset.UtcNow;
+    public string EventType => nameof(GameStartedEvent);
+}
+
+public sealed record DieTakenFromBridgeEvent(
+    Guid GameId,
+    Guid PlayerId,
+    BridgeColor BridgeColor,
+    DiePosition Position,
+    int DieValue
+) : IDomainEvent
+{
+    public DateTimeOffset OccurredAt { get; } = DateTimeOffset.UtcNow;
+    public string EventType => nameof(DieTakenFromBridgeEvent);
+}
+
+public sealed record LanternEffectFiredEvent(
+    Guid GameId,
+    Guid PlayerId
+) : IDomainEvent
+{
+    public DateTimeOffset OccurredAt { get; } = DateTimeOffset.UtcNow;
+    public string EventType => nameof(LanternEffectFiredEvent);
+}
+
+public sealed record DiePlacedEvent(
+    Guid GameId,
+    Guid PlayerId,
+    PlacementTarget Target,
+    int DieValue,
+    int CoinDelta   // positive = earned, negative = spent
+) : IDomainEvent
+{
+    public DateTimeOffset OccurredAt { get; } = DateTimeOffset.UtcNow;
+    public string EventType => nameof(DiePlacedEvent);
+}
+
+public sealed record WorkerPlacedInTowerEvent(
+    Guid GameId,
+    Guid PlayerId,
+    TowerZone Zone,
+    int Level,
+    TowerActionSnapshot ActionPerformed
+) : IDomainEvent
+{
+    public DateTimeOffset OccurredAt { get; } = DateTimeOffset.UtcNow;
+    public string EventType => nameof(WorkerPlacedInTowerEvent);
+}
+
+public sealed record ResourcesCollectedEvent(
+    Guid GameId,
+    Guid PlayerId,
+    ResourceBag Gained
+) : IDomainEvent
+{
+    public DateTimeOffset OccurredAt { get; } = DateTimeOffset.UtcNow;
+    public string EventType => nameof(ResourcesCollectedEvent);
+}
+
+public sealed record ClanCardAcquiredEvent(
+    Guid GameId,
+    Guid PlayerId,
+    ClanCardSnapshot Card
+) : IDomainEvent
+{
+    public DateTimeOffset OccurredAt { get; } = DateTimeOffset.UtcNow;
+    public string EventType => nameof(ClanCardAcquiredEvent);
+}
+
+public sealed record LanternsGainedEvent(
+    Guid GameId,
+    Guid PlayerId,
+    int Amount
+) : IDomainEvent
+{
+    public DateTimeOffset OccurredAt { get; } = DateTimeOffset.UtcNow;
+    public string EventType => nameof(LanternsGainedEvent);
+}
+
+public sealed record TowerAdvancedEvent(
+    Guid GameId,
+    Guid PlayerId,
+    TowerZone Zone,
+    int NewLevel
+) : IDomainEvent
+{
+    public DateTimeOffset OccurredAt { get; } = DateTimeOffset.UtcNow;
+    public string EventType => nameof(TowerAdvancedEvent);
+}
+
+public sealed record PlayerPassedEvent(
+    Guid GameId,
+    Guid PlayerId
+) : IDomainEvent
+{
+    public DateTimeOffset OccurredAt { get; } = DateTimeOffset.UtcNow;
+    public string EventType => nameof(PlayerPassedEvent);
+}
+
+public sealed record RoundEndedEvent(
+    Guid GameId,
+    int RoundNumber
+) : IDomainEvent
+{
+    public DateTimeOffset OccurredAt { get; } = DateTimeOffset.UtcNow;
+    public string EventType => nameof(RoundEndedEvent);
+}
+
+public sealed record GameOverEvent(
+    Guid GameId,
+    IReadOnlyList<PlayerScore> FinalScores
+) : IDomainEvent
+{
+    public DateTimeOffset OccurredAt { get; } = DateTimeOffset.UtcNow;
+    public string EventType => nameof(GameOverEvent);
+}
