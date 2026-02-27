@@ -22,6 +22,8 @@ internal sealed record ParseResult(bool Success, IGameAction? Action, string? Er
 ///   castle move <gate|ground|mid> <1|2>           → CastleAdvanceCourtierAction (2 or 5 VI)
 ///   train <0|1|2>                                 → TrainingGroundsPlaceSoldierAction
 ///   train skip                                    → TrainingGroundsSkipAction
+///   farm <red|black|white> <inland|outside>       → PlaceFarmerAction
+///   farm skip                                     → FarmSkipAction
 ///   pass                                          → PassAction
 ///   start                                         → StartGameAction
 ///   help                                          → shows help text
@@ -43,6 +45,7 @@ internal sealed class ConsoleInputParser
             "choose"  => ParseChoose(parts, playerId),
             "castle"  => ParseCastle(parts, playerId),
             "train"   => ParseTrain(parts, playerId),
+            "farm"    => ParseFarm(parts, playerId),
             "pass"    => ParseResult.Ok(new PassAction(playerId)),
             "start"   => ParseResult.Ok(new StartGameAction()),
             "help"    => ParseResult.Err(HelpText()),
@@ -154,6 +157,27 @@ internal sealed class ConsoleInputParser
         return ParseResult.Ok(new TrainingGroundsPlaceSoldierAction(playerId, area));
     }
 
+    private static ParseResult ParseFarm(string[] parts, Guid playerId)
+    {
+        if (parts.Length < 2)
+            return ParseResult.Err("Usage: farm skip | farm <red|black|white> <inland|outside>");
+
+        if (parts[1] == "skip")
+            return ParseResult.Ok(new FarmSkipAction(playerId));
+
+        if (parts.Length < 3)
+            return ParseResult.Err("Usage: farm <red|black|white> <inland|outside>");
+
+        if (!TryParseBridgeColor(parts[1], out var color))
+            return ParseResult.Err($"Unknown bridge '{parts[1]}'. Use: red, black, white.");
+
+        if (parts[2] is not ("inland" or "outside"))
+            return ParseResult.Err($"Unknown side '{parts[2]}'. Use: inland, outside.");
+
+        bool isInland = parts[2] == "inland";
+        return ParseResult.Ok(new PlaceFarmerAction(playerId, color, isInland));
+    }
+
     private static bool TryParseCourtierPosition(string s, out CourtierPosition result)
     {
         result = s switch
@@ -200,6 +224,8 @@ internal sealed class ConsoleInputParser
           castle move <gate|ground|mid> <1|2>              — advance courtier (2 VI / 5 VI)
           train <0|1|2>                                    — place soldier in training grounds area (1/3/5 iron)
           train skip                                       — skip training grounds
+          farm <red|black|white> <inland|outside>          — place farmer on a farm field (pay food cost)
+          farm skip                                        — skip farm action
           pass                                             — pass your turn
           start                                            — start the game (from Setup phase)
           help                                             — show this message

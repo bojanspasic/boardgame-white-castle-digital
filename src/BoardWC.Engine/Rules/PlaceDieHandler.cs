@@ -120,6 +120,10 @@ internal sealed class PlaceDieHandler : IActionHandler
                     {
                         player.PendingTrainingGroundsActions++;
                     }
+                    else if (actionField.Description == "Play farm")
+                    {
+                        player.PendingFarmActions++;
+                    }
                 }
             }
         }

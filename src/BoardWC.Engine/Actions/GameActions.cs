@@ -58,3 +58,13 @@ public sealed record TrainingGroundsPlaceSoldierAction(
 
 /// <summary>Skip the pending training grounds action.</summary>
 public sealed record TrainingGroundsSkipAction(Guid PlayerId) : IGameAction;
+
+/// <summary>Place a farmer on an inland or outside farm field of a specific bridge, paying food.</summary>
+public sealed record PlaceFarmerAction(
+    Guid PlayerId,
+    BridgeColor BridgeColor,
+    bool IsInland
+) : IGameAction;
+
+/// <summary>Skip the pending farm action.</summary>
+public sealed record FarmSkipAction(Guid PlayerId) : IGameAction;

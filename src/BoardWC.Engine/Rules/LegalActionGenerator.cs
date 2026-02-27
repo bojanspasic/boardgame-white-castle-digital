@@ -31,6 +31,25 @@ internal static class LegalActionGenerator
             return actions.AsReadOnly();
         }
 
+        // Player must resolve pending farm actions before acting
+        if (player.PendingFarmActions > 0)
+        {
+            actions.Add(new FarmSkipAction(playerId));
+            var fl = state.Board.FarmingLands;
+            foreach (BridgeColor color in Enum.GetValues<BridgeColor>())
+            {
+                foreach (bool isInland in new[] { true, false })
+                {
+                    var field = fl.GetField(color, isInland);
+                    if (player.FarmersAvailable > 0
+                        && player.Resources.Food >= field.Card.FoodCost
+                        && !field.HasFarmer(player.Name))
+                        actions.Add(new PlaceFarmerAction(playerId, color, isInland));
+                }
+            }
+            return actions.AsReadOnly();
+        }
+
         // Player must resolve pending training grounds actions before acting
         if (player.PendingTrainingGroundsActions > 0)
         {

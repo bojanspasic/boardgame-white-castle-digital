@@ -11,6 +11,8 @@
     <EmbeddedResource Include="Data\ground-floor-cards.json" />
     <EmbeddedResource Include="Data\mid-floor-cards.json" />
     <EmbeddedResource Include="Data\training-grounds-tokens.json" />
+    <EmbeddedResource Include="Data\inland-farm-cards.json" />
+    <EmbeddedResource Include="Data\outside-farm-cards.json" />
   </ItemGroup>
 
 </Project>

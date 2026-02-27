@@ -1,0 +1,77 @@
+{
+  "cards": [
+    {
+      "id": "farm_inland_01",
+      "foodCost": 1,
+      "gainItems": [{ "type": "Food", "amount": 3 }],
+      "actionDescription": "",
+      "actionCost": []
+    },
+    {
+      "id": "farm_inland_02",
+      "foodCost": 1,
+      "gainItems": [{ "type": "Iron", "amount": 2 }],
+      "actionDescription": "",
+      "actionCost": []
+    },
+    {
+      "id": "farm_inland_03",
+      "foodCost": 2,
+      "gainItems": [{ "type": "ValueItem", "amount": 3 }],
+      "actionDescription": "",
+      "actionCost": []
+    },
+    {
+      "id": "farm_inland_04",
+      "foodCost": 1,
+      "gainItems": [{ "type": "Coin", "amount": 2 }],
+      "actionDescription": "",
+      "actionCost": []
+    },
+    {
+      "id": "farm_inland_05",
+      "foodCost": 2,
+      "gainItems": [{ "type": "Coin", "amount": 3 }],
+      "actionDescription": "",
+      "actionCost": []
+    },
+    {
+      "id": "farm_inland_06",
+      "foodCost": 2,
+      "gainItems": [{ "type": "MonarchialSeal", "amount": 1 }],
+      "actionDescription": "",
+      "actionCost": []
+    },
+    {
+      "id": "farm_inland_07",
+      "foodCost": 1,
+      "gainItems": [],
+      "actionDescription": "Play castle",
+      "actionCost": []
+    },
+    {
+      "id": "farm_inland_08",
+      "foodCost": 2,
+      "gainItems": [],
+      "actionDescription": "Play castle",
+      "actionCost": []
+    },
+    {
+      "id": "farm_inland_09",
+      "foodCost": 1,
+      "gainItems": [{ "type": "Lantern", "amount": 1 }],
+      "actionDescription": "",
+      "actionCost": []
+    },
+    {
+      "id": "farm_inland_10",
+      "foodCost": 2,
+      "gainItems": [
+        { "type": "Food", "amount": 2 },
+        { "type": "Iron", "amount": 1 }
+      ],
+      "actionDescription": "",
+      "actionCost": []
+    }
+  ]
+}

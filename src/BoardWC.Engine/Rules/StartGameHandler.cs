@@ -22,6 +22,7 @@ internal sealed class StartGameHandler : IActionHandler
         state.Board.PlaceTokens(state.Rng);
         state.Board.PlaceCards(state.Rng);
         state.Board.SetupTrainingGrounds(state.Rng);
+        state.Board.SetupFarmingLands(state.Rng);
         events.Add(new GameStartedEvent(state.GameId));
     }
 }

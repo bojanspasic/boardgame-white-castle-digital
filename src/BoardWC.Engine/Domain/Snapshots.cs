@@ -27,6 +27,7 @@ public sealed record PlayerSnapshot(
     int FarmersAvailable,
     int PendingAnyResourceChoices,
     int PendingTrainingGroundsActions,
+    int PendingFarmActions,
     int CastlePlaceRemaining,
     int CastleAdvanceRemaining,
     int CourtiersAtGate,
@@ -44,7 +45,8 @@ public sealed record BoardSnapshot(
     OutsideSnapshot Outside,
     int GroundFloorDeckRemaining,
     int MidFloorDeckRemaining,
-    TrainingGroundsSnapshot TrainingGrounds
+    TrainingGroundsSnapshot TrainingGrounds,
+    FarmingLandsSnapshot FarmingLands
 )
 {
     public int TotalDiceRemaining => Bridges.Sum(b =>
@@ -127,6 +129,19 @@ public sealed record TgAreaSnapshot(
 );
 
 public sealed record TrainingGroundsSnapshot(IReadOnlyList<TgAreaSnapshot> Areas);
+
+// ── Farming lands snapshots ───────────────────────────────────────────────────
+
+public sealed record FarmFieldSnapshot(
+    BridgeColor BridgeColor,
+    bool IsInland,
+    int FoodCost,
+    IReadOnlyList<CardGainItemSnapshot> GainItems,
+    string ActionDescription,
+    IReadOnlyList<string> FarmerOwners
+);
+
+public sealed record FarmingLandsSnapshot(IReadOnlyList<FarmFieldSnapshot> Fields);
 
 public sealed record PlayerScore(
     Guid PlayerId,

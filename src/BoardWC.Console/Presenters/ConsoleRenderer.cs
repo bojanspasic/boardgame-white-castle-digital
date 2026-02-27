@@ -54,6 +54,12 @@ internal sealed class ConsoleRenderer
             System.Console.WriteLine(
                 $"  [Pending training grounds — areas: {string.Join(", ", available)}, skip — type 'train <0|1|2|skip>']");
         }
+        // Show hint if player has pending farm actions
+        if (p.PendingFarmActions > 0)
+        {
+            System.Console.WriteLine(
+                "  [Pending farm action — type 'farm <red|black|white> <inland|outside>' or 'farm skip']");
+        }
         System.Console.Write($"[{p.Name}] > ");
     }
 
@@ -156,10 +162,35 @@ internal sealed class ConsoleRenderer
             var effectStr = string.Join("  +  ", new[] { resPart, actPart }.Where(s => s.Length > 0));
             if (string.IsNullOrEmpty(effectStr)) effectStr = "(not set)";
             var soldiers = area.SoldierOwners.Count > 0
-                ? "  soldiers: " + string.Join(", ", area.SoldierOwners)
+                ? "  soldiers: " + string.Join(", ", area.SoldierOwners
+                    .GroupBy(n => n)
+                    .Select(g => $"{g.Count()} ({g.Key})"))
                 : "";
             System.Console.WriteLine(
                 $"    Area {area.AreaIndex} ({area.IronCost} iron): {effectStr}{soldiers}");
+        }
+
+        // Farming lands
+        if (state.Board.FarmingLands.Fields.Count > 0)
+        {
+            System.Console.WriteLine("  Farming Lands:");
+            var byBridge = state.Board.FarmingLands.Fields.GroupBy(f => f.BridgeColor);
+            foreach (var group in byBridge)
+            {
+                System.Console.WriteLine($"    {group.Key}:");
+                foreach (var field in group.OrderByDescending(f => f.IsInland))
+                {
+                    var side    = field.IsInland ? "Inland " : "Outside";
+                    var effect  = field.GainItems.Count > 0
+                        ? string.Join(", ", field.GainItems.Select(g => $"+{g.Amount} {g.GainType}"))
+                        : field.ActionDescription;
+                    var farmers = field.FarmerOwners.Count > 0
+                        ? "  farmers: " + string.Join(", ", field.FarmerOwners)
+                        : "";
+                    System.Console.WriteLine(
+                        $"      {side} ({field.FoodCost} food): [{effect}]{farmers}");
+                }
+            }
         }
     }
 
@@ -253,6 +284,8 @@ internal sealed class ConsoleRenderer
         CardActionActivatedEvent    x => $"{PlayerName(x.PlayerId, x)} card action field {x.FieldIndex} on '{x.CardId}': {x.ActionDescription}",
         CastlePlayExecutedEvent         x => FormatCastlePlay(x),
         TrainingGroundsUsedEvent        x => FormatTrainingGrounds(x),
+        FarmerPlacedEvent               x => FormatFarmerPlaced(x),
+        FarmEffectFiredEvent            x => FormatFarmEffect(x),
         AnyResourceChosenEvent  x => $"{PlayerName(x.PlayerId, x)} chose {x.Choice} from AnyResource token",
         ResourcesCollectedEvent  x => $"{PlayerName(x.PlayerId, x)} collected {x.Gained}",
         ClanCardAcquiredEvent    x => $"{PlayerName(x.PlayerId, x)} acquired clan card: {x.Card.Name}",
@@ -337,6 +370,34 @@ internal sealed class ConsoleRenderer
             _   => "no coin effect",
         };
         return $"{PlayerName(x.PlayerId, x)} placed [{x.DieValue}] at {location} ({coinEffect})";
+    }
+
+    private static string FormatFarmerPlaced(FarmerPlacedEvent x)
+    {
+        if (x.AreaIndex == -1)
+            return $"{PlayerName(x.PlayerId, x)} farm: skipped";
+
+        var field = $"{x.BridgeColor} {(x.IsInland ? "inland" : "outside")}";
+        var parts = new List<string> { $"{field} (-{x.FoodSpent} food)" };
+        if (x.ResourcesGained.Total > 0) parts.Add($"resources: {x.ResourcesGained}");
+        if (x.CoinsGained   > 0) parts.Add($"+{x.CoinsGained} coin(s)");
+        if (x.SealsGained   > 0) parts.Add($"+{x.SealsGained} seal(s)");
+        if (x.LanternGained > 0) parts.Add($"+{x.LanternGained} lantern(s)");
+        if (x.ActionTriggered is { } act) parts.Add($"action: {act}");
+        return $"{PlayerName(x.PlayerId, x)} farm: {string.Join(", ", parts)}";
+    }
+
+    private static string FormatFarmEffect(FarmEffectFiredEvent x)
+    {
+        var field = $"{x.BridgeColor} {(x.IsInland ? "inland" : "outside")}";
+        var parts = new List<string>();
+        if (x.ResourcesGained.Total > 0) parts.Add($"resources: {x.ResourcesGained}");
+        if (x.CoinsGained   > 0) parts.Add($"+{x.CoinsGained} coin(s)");
+        if (x.SealsGained   > 0) parts.Add($"+{x.SealsGained} seal(s)");
+        if (x.LanternGained > 0) parts.Add($"+{x.LanternGained} lantern(s)");
+        if (x.ActionTriggered is { } act) parts.Add($"action: {act}");
+        var gained = parts.Count > 0 ? string.Join(", ", parts) : "nothing";
+        return $"{PlayerName(x.PlayerId, x)} farm re-fire ({field}): {gained}";
     }
 
     // Helpers for FormatEvent — events don't carry the full state, so we use the short ID

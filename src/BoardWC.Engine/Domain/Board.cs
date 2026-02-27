@@ -21,6 +21,7 @@ internal sealed class Board
     private FloorCardDeck?  _groundDeck;
     private FloorCardDeck?  _midDeck;
     private TrainingGrounds? _trainingGrounds;
+    private FarmingLands?    _farmingLands;
     public int GroundFloorDeckRemaining => _groundDeck?.Remaining ?? 0;
     public int MidFloorDeckRemaining    => _midDeck?.Remaining   ?? 0;
 
@@ -34,6 +35,9 @@ internal sealed class Board
 
     public TrainingGrounds TrainingGrounds =>
         _trainingGrounds ?? throw new InvalidOperationException("Training grounds not yet set up.");
+
+    public FarmingLands FarmingLands =>
+        _farmingLands ?? throw new InvalidOperationException("Farming lands not yet set up.");
 
     public int TotalDiceRemaining => _bridges.Sum(b => b.DiceCount);
 
@@ -134,6 +138,24 @@ internal sealed class Board
         _trainingGrounds.SetupForRound(rng);
     }
 
+    /// <summary>
+    /// Load farming lands card decks and deal one card per field.
+    /// Called once at game start; farmers and cards persist across rounds.
+    /// </summary>
+    public void SetupFarmingLands(Random rng)
+    {
+        if (_farmingLands is null)
+        {
+            _farmingLands = FarmingLands.Load();
+            _farmingLands.SetupForGame(rng);
+        }
+        // No reset between rounds — farmers persist, cards are fixed.
+    }
+
+    /// <summary>Returns all 6 farm fields with their bridge color and inland/outside flag.</summary>
+    internal IEnumerable<(BridgeColor Color, bool IsInland, FarmField Field)> AllFarmFields() =>
+        FarmingLands.AllFields();
+
     private static IEnumerable<Token> CreateAllTokens() =>
         Enum.GetValues<BridgeColor>()
             .SelectMany(color => Enum.GetValues<TokenResource>()
@@ -158,6 +180,7 @@ internal sealed class Board
         new OutsideSnapshot(_outsideSlots.Select(s => s.ToSnapshot()).ToArray()),
         GroundFloorDeckRemaining,
         MidFloorDeckRemaining,
-        _trainingGrounds?.ToSnapshot() ?? new TrainingGroundsSnapshot([])
+        _trainingGrounds?.ToSnapshot() ?? new TrainingGroundsSnapshot([]),
+        _farmingLands?.ToSnapshot()    ?? new FarmingLandsSnapshot([])
     );
 }

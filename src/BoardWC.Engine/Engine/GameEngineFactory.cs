@@ -46,6 +46,7 @@ public static class GameEngineFactory
             new ChooseResourceHandler(),
             new CastlePlayHandler(),
             new TrainingGroundsHandler(),
+            new FarmHandler(),
             new PassHandler(),
         });
 }

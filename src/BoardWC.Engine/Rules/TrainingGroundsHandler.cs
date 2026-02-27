@@ -126,7 +126,7 @@ internal sealed class TrainingGroundsHandler : IActionHandler
                 break;
 
             case "Play farm":
-                // Deferred — no effect yet
+                player.PendingFarmActions++;
                 break;
         }
     }

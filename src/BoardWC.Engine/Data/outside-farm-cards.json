@@ -1,0 +1,80 @@
+{
+  "cards": [
+    {
+      "id": "farm_outside_01",
+      "foodCost": 0,
+      "gainItems": [{ "type": "Food", "amount": 1 }],
+      "actionDescription": "",
+      "actionCost": []
+    },
+    {
+      "id": "farm_outside_02",
+      "foodCost": 1,
+      "gainItems": [{ "type": "Food", "amount": 2 }],
+      "actionDescription": "",
+      "actionCost": []
+    },
+    {
+      "id": "farm_outside_03",
+      "foodCost": 1,
+      "gainItems": [{ "type": "Iron", "amount": 1 }],
+      "actionDescription": "",
+      "actionCost": []
+    },
+    {
+      "id": "farm_outside_04",
+      "foodCost": 0,
+      "gainItems": [{ "type": "Coin", "amount": 2 }],
+      "actionDescription": "",
+      "actionCost": []
+    },
+    {
+      "id": "farm_outside_05",
+      "foodCost": 1,
+      "gainItems": [{ "type": "ValueItem", "amount": 1 }],
+      "actionDescription": "",
+      "actionCost": []
+    },
+    {
+      "id": "farm_outside_06",
+      "foodCost": 1,
+      "gainItems": [{ "type": "Coin", "amount": 2 }],
+      "actionDescription": "",
+      "actionCost": []
+    },
+    {
+      "id": "farm_outside_07",
+      "foodCost": 1,
+      "gainItems": [],
+      "actionDescription": "Play training grounds",
+      "actionCost": []
+    },
+    {
+      "id": "farm_outside_08",
+      "foodCost": 0,
+      "gainItems": [{ "type": "Lantern", "amount": 1 }],
+      "actionDescription": "",
+      "actionCost": []
+    },
+    {
+      "id": "farm_outside_09",
+      "foodCost": 1,
+      "gainItems": [
+        { "type": "Food", "amount": 1 },
+        { "type": "Coin", "amount": 1 }
+      ],
+      "actionDescription": "",
+      "actionCost": []
+    },
+    {
+      "id": "farm_outside_10",
+      "foodCost": 2,
+      "gainItems": [
+        { "type": "Iron", "amount": 2 },
+        { "type": "Food", "amount": 1 }
+      ],
+      "actionDescription": "",
+      "actionCost": []
+    }
+  ]
+}

@@ -165,6 +165,40 @@ public sealed record TrainingGroundsUsedEvent(
     public string EventType => nameof(TrainingGroundsUsedEvent);
 }
 
+public sealed record FarmerPlacedEvent(
+    Guid GameId,
+    Guid PlayerId,
+    BridgeColor BridgeColor,
+    bool IsInland,            // false and BridgeColor ignored when skipped (AreaIndex == -1)
+    int AreaIndex,            // -1 = skipped
+    int FoodSpent,
+    ResourceBag ResourcesGained,
+    int CoinsGained,
+    int SealsGained,
+    int LanternGained,
+    string? ActionTriggered   // null if skipped or gain-only card
+) : IDomainEvent
+{
+    public DateTimeOffset OccurredAt { get; } = DateTimeOffset.UtcNow;
+    public string EventType => nameof(FarmerPlacedEvent);
+}
+
+public sealed record FarmEffectFiredEvent(
+    Guid GameId,
+    Guid PlayerId,
+    BridgeColor BridgeColor,
+    bool IsInland,
+    ResourceBag ResourcesGained,
+    int CoinsGained,
+    int SealsGained,
+    int LanternGained,
+    string? ActionTriggered
+) : IDomainEvent
+{
+    public DateTimeOffset OccurredAt { get; } = DateTimeOffset.UtcNow;
+    public string EventType => nameof(FarmEffectFiredEvent);
+}
+
 public sealed record CastlePlayExecutedEvent(
     Guid GameId,
     Guid PlayerId,
