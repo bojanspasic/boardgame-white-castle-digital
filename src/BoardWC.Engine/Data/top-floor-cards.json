@@ -1,0 +1,84 @@
+{
+  "cards": [
+    {
+      "id": "top_01",
+      "slots": [
+        {"gains": [{"type": "Food",  "amount": 3}]},
+        {"gains": [{"type": "Coin",  "amount": 3}]},
+        {"gains": [{"type": "MonarchialSeal", "amount": 1}]}
+      ]
+    },
+    {
+      "id": "top_02",
+      "slots": [
+        {"gains": [{"type": "Iron",    "amount": 3}]},
+        {"gains": [{"type": "Coin",    "amount": 2}]},
+        {"gains": [{"type": "Lantern", "amount": 1}]}
+      ]
+    },
+    {
+      "id": "top_03",
+      "slots": [
+        {"gains": [{"type": "ValueItem", "amount": 3}]},
+        {"gains": [{"type": "Food",      "amount": 2}]},
+        {"gains": [{"type": "Coin",      "amount": 2}]}
+      ]
+    },
+    {
+      "id": "top_04",
+      "slots": [
+        {"gains": [{"type": "Food", "amount": 2}, {"type": "Iron", "amount": 1}]},
+        {"gains": [{"type": "MonarchialSeal", "amount": 1}]},
+        {"gains": [{"type": "Lantern", "amount": 1}]}
+      ]
+    },
+    {
+      "id": "top_05",
+      "slots": [
+        {"gains": [{"type": "Food",      "amount": 3}]},
+        {"gains": [{"type": "Iron",      "amount": 2}]},
+        {"gains": [{"type": "ValueItem", "amount": 2}]}
+      ]
+    },
+    {
+      "id": "top_06",
+      "slots": [
+        {"gains": [{"type": "Coin", "amount": 4}]},
+        {"gains": [{"type": "Food", "amount": 2}]},
+        {"gains": [{"type": "MonarchialSeal", "amount": 1}]}
+      ]
+    },
+    {
+      "id": "top_07",
+      "slots": [
+        {"gains": [{"type": "Iron", "amount": 2}, {"type": "ValueItem", "amount": 1}]},
+        {"gains": [{"type": "Coin",    "amount": 3}]},
+        {"gains": [{"type": "Lantern", "amount": 1}]}
+      ]
+    },
+    {
+      "id": "top_08",
+      "slots": [
+        {"gains": [{"type": "ValueItem", "amount": 3}]},
+        {"gains": [{"type": "Coin",      "amount": 3}]},
+        {"gains": [{"type": "MonarchialSeal", "amount": 1}]}
+      ]
+    },
+    {
+      "id": "top_09",
+      "slots": [
+        {"gains": [{"type": "Food", "amount": 2}]},
+        {"gains": [{"type": "Iron", "amount": 2}]},
+        {"gains": [{"type": "Coin", "amount": 4}]}
+      ]
+    },
+    {
+      "id": "top_10",
+      "slots": [
+        {"gains": [{"type": "Food",    "amount": 3}]},
+        {"gains": [{"type": "MonarchialSeal", "amount": 1}]},
+        {"gains": [{"type": "Lantern", "amount": 1}]}
+      ]
+    }
+  ]
+}

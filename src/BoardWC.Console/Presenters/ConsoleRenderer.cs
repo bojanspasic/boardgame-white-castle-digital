@@ -111,6 +111,19 @@ internal sealed class ConsoleRenderer
         System.Console.WriteLine("  Castle:");
         var gateInfo = string.Join("  ", state.Players.Select(p => $"{p.Name}:{p.CourtiersAtGate}"));
         System.Console.WriteLine($"    Gate: {gateInfo}");
+        // Top floor — courtier card slots
+        var topFloor = state.Board.Castle.TopFloor;
+        if (topFloor.Slots.Count > 0)
+        {
+            System.Console.WriteLine($"    Top Floor [{topFloor.CardId}] (courtier slots):");
+            foreach (var slot in topFloor.Slots)
+            {
+                var gains    = string.Join(", ", slot.Gains.Select(g => $"+{g.Amount} {g.GainType}"));
+                var occupant = slot.OccupantName is null ? "(empty)" : $"[{slot.OccupantName}]";
+                System.Console.WriteLine($"      Slot {slot.SlotIndex}: {gains,-20} {occupant}");
+            }
+        }
+
         var floorNames = new[] { "  Ground(0) val=3", "  Mid(1)    val=4" };
         for (int f = 0; f < state.Board.Castle.Floors.Count; f++)
         {
@@ -286,6 +299,7 @@ internal sealed class ConsoleRenderer
         TrainingGroundsUsedEvent        x => FormatTrainingGrounds(x),
         FarmerPlacedEvent               x => FormatFarmerPlaced(x),
         FarmEffectFiredEvent            x => FormatFarmEffect(x),
+        TopFloorSlotFilledEvent         x => FormatTopFloorSlot(x),
         AnyResourceChosenEvent  x => $"{PlayerName(x.PlayerId, x)} chose {x.Choice} from AnyResource token",
         ResourcesCollectedEvent  x => $"{PlayerName(x.PlayerId, x)} collected {x.Gained}",
         ClanCardAcquiredEvent    x => $"{PlayerName(x.PlayerId, x)} acquired clan card: {x.Card.Name}",
@@ -398,6 +412,16 @@ internal sealed class ConsoleRenderer
         if (x.ActionTriggered is { } act) parts.Add($"action: {act}");
         var gained = parts.Count > 0 ? string.Join(", ", parts) : "nothing";
         return $"{PlayerName(x.PlayerId, x)} farm re-fire ({field}): {gained}";
+    }
+
+    private static string FormatTopFloorSlot(TopFloorSlotFilledEvent x)
+    {
+        var parts = new List<string> { $"slot {x.SlotIndex}" };
+        if (x.ResourcesGained.Total > 0) parts.Add($"resources: {x.ResourcesGained}");
+        if (x.CoinsGained   > 0) parts.Add($"+{x.CoinsGained} coin(s)");
+        if (x.SealsGained   > 0) parts.Add($"+{x.SealsGained} seal(s)");
+        if (x.LanternGained > 0) parts.Add($"+{x.LanternGained} lantern(s)");
+        return $"{PlayerName(x.PlayerId, x)} top floor: {string.Join(", ", parts)}";
     }
 
     // Helpers for FormatEvent — events don't carry the full state, so we use the short ID

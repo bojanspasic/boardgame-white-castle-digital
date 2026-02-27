@@ -22,6 +22,7 @@ internal sealed class Board
     private FloorCardDeck?  _midDeck;
     private TrainingGrounds? _trainingGrounds;
     private FarmingLands?    _farmingLands;
+    private TopFloorRoom?    _topFloorRoom;
     public int GroundFloorDeckRemaining => _groundDeck?.Remaining ?? 0;
     public int MidFloorDeckRemaining    => _midDeck?.Remaining   ?? 0;
 
@@ -38,6 +39,9 @@ internal sealed class Board
 
     public FarmingLands FarmingLands =>
         _farmingLands ?? throw new InvalidOperationException("Farming lands not yet set up.");
+
+    public TopFloorRoom TopFloorRoom =>
+        _topFloorRoom ?? throw new InvalidOperationException("Top floor not yet set up.");
 
     public int TotalDiceRemaining => _bridges.Sum(b => b.DiceCount);
 
@@ -156,6 +160,19 @@ internal sealed class Board
     internal IEnumerable<(BridgeColor Color, bool IsInland, FarmField Field)> AllFarmFields() =>
         FarmingLands.AllFields();
 
+    /// <summary>
+    /// Load top floor card pool and draw one card for the game.
+    /// Called once at game start; card and slot occupants persist for the whole game.
+    /// </summary>
+    public void SetupTopFloorCard(Random rng)
+    {
+        if (_topFloorRoom is null)
+        {
+            _topFloorRoom = TopFloorRoom.Load();
+            _topFloorRoom.SetupForGame(rng);
+        }
+    }
+
     private static IEnumerable<Token> CreateAllTokens() =>
         Enum.GetValues<BridgeColor>()
             .SelectMany(color => Enum.GetValues<TokenResource>()
@@ -175,7 +192,8 @@ internal sealed class Board
             _castleRooms
                 .Select(row => (IReadOnlyList<DicePlaceholderSnapshot>)
                     row.Select(r => r.ToSnapshot()).ToArray())
-                .ToArray()),
+                .ToArray(),
+            _topFloorRoom?.ToSnapshot() ?? new TopFloorRoomSnapshot(string.Empty, [])),
         new WellSnapshot(_well.ToSnapshot()),
         new OutsideSnapshot(_outsideSlots.Select(s => s.ToSnapshot()).ToArray()),
         GroundFloorDeckRemaining,

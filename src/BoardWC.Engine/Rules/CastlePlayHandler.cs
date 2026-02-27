@@ -58,6 +58,39 @@ internal sealed class CastlePlayHandler : IActionHandler
                 player.Resources = player.Resources.Add(ResourceType.ValueItem, -viCost);
                 ApplyAdvance(player, a.From, a.Levels);
                 events.Add(new CastlePlayExecutedEvent(state.GameId, player.Id, false, a.From, a.Levels));
+
+                // When a courtier reaches the top floor, try to claim an empty card slot
+                bool reachedTop = (a.From == CourtierPosition.GroundFloor && a.Levels == 2)
+                               || (a.From == CourtierPosition.MidFloor    && a.Levels == 1);
+                if (reachedTop && state.Board.TopFloorRoom.TryTakeSlot(
+                        player.Name, out int slotIndex, out var slotGains))
+                {
+                    var resources   = new ResourceBag();
+                    int coins       = 0;
+                    int seals       = 0;
+                    int lantern     = 0;
+
+                    foreach (var item in slotGains)
+                    {
+                        switch (item.Type)
+                        {
+                            case "Food":          resources = resources.Add(ResourceType.Food,      item.Amount); break;
+                            case "Iron":          resources = resources.Add(ResourceType.Iron,      item.Amount); break;
+                            case "ValueItem":     resources = resources.Add(ResourceType.ValueItem, item.Amount); break;
+                            case "Coin":          coins   += item.Amount; break;
+                            case "MonarchialSeal": seals  += item.Amount; break;
+                            case "Lantern":       lantern += item.Amount; break;
+                        }
+                    }
+
+                    player.Resources       = (player.Resources + resources).Clamp(7);
+                    player.Coins          += coins;
+                    player.MonarchialSeals = Math.Min(player.MonarchialSeals + seals, 5);
+                    player.LanternScore   += lantern;
+
+                    events.Add(new TopFloorSlotFilledEvent(
+                        state.GameId, player.Id, slotIndex, resources, coins, seals, lantern));
+                }
                 break;
 
             case CastleSkipAction:

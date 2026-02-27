@@ -210,3 +210,17 @@ public sealed record CastlePlayExecutedEvent(
     public DateTimeOffset OccurredAt { get; } = DateTimeOffset.UtcNow;
     public string EventType => nameof(CastlePlayExecutedEvent);
 }
+
+public sealed record TopFloorSlotFilledEvent(
+    Guid GameId,
+    Guid PlayerId,
+    int SlotIndex,
+    ResourceBag ResourcesGained,
+    int CoinsGained,
+    int SealsGained,
+    int LanternGained
+) : IDomainEvent
+{
+    public DateTimeOffset OccurredAt { get; } = DateTimeOffset.UtcNow;
+    public string EventType => nameof(TopFloorSlotFilledEvent);
+}

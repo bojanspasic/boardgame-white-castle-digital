@@ -78,8 +78,19 @@ public sealed record DicePlaceholderSnapshot(
     RoomCardSnapshot? Card
 );
 
+// ── Top floor courtier room snapshots ────────────────────────────────────────
+
+public sealed record TopFloorSlotSnapshot(
+    int SlotIndex,
+    IReadOnlyList<CardGainItemSnapshot> Gains,
+    string? OccupantName   // null = empty
+);
+
+public sealed record TopFloorRoomSnapshot(string CardId, IReadOnlyList<TopFloorSlotSnapshot> Slots);
+
 public sealed record CastleSnapshot(
-    IReadOnlyList<IReadOnlyList<DicePlaceholderSnapshot>> Floors
+    IReadOnlyList<IReadOnlyList<DicePlaceholderSnapshot>> Floors,
+    TopFloorRoomSnapshot TopFloor
 );
 
 public sealed record WellSnapshot(DicePlaceholderSnapshot Placeholder);
