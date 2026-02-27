@@ -13,13 +13,16 @@ internal sealed record ParseResult(bool Success, IGameAction? Action, string? Er
 /// Maps free-text console commands to typed IGameAction objects.
 ///
 /// Commands:
-///   bridge red|black|white  high|low          → TakeDieFromBridgeAction
-///   place  castle <floor> <room>              → PlaceDieAction(CastleRoomTarget)
-///   place  well                               → PlaceDieAction(WellTarget)
-///   place  outside <0|1>                      → PlaceDieAction(OutsideSlotTarget)
-///   pass                                      → PassAction
-///   start                                     → StartGameAction
-///   help                                      → shows help text
+///   bridge red|black|white  high|low              → TakeDieFromBridgeAction
+///   place  castle <floor> <room>                  → PlaceDieAction(CastleRoomTarget)
+///   place  well                                   → PlaceDieAction(WellTarget)
+///   place  outside <0|1>                          → PlaceDieAction(OutsideSlotTarget)
+///   castle skip                                   → CastleSkipAction
+///   castle place                                  → CastlePlaceCourtierAction (2 coins)
+///   castle move <gate|ground|mid> <1|2>           → CastleAdvanceCourtierAction (2 or 5 VI)
+///   pass                                          → PassAction
+///   start                                         → StartGameAction
+///   help                                          → shows help text
 /// </summary>
 internal sealed class ConsoleInputParser
 {
@@ -33,13 +36,14 @@ internal sealed class ConsoleInputParser
 
         return parts[0] switch
         {
-            "bridge" => ParseBridge(parts, playerId),
-            "place"  => ParsePlace(parts, playerId),
-            "choose" => ParseChoose(parts, playerId),
-            "pass"   => ParseResult.Ok(new PassAction(playerId)),
-            "start"  => ParseResult.Ok(new StartGameAction()),
-            "help"   => ParseResult.Err(HelpText()),
-            _        => ParseResult.Err($"Unknown command '{parts[0]}'. Type 'help'."),
+            "bridge"  => ParseBridge(parts, playerId),
+            "place"   => ParsePlace(parts, playerId),
+            "choose"  => ParseChoose(parts, playerId),
+            "castle"  => ParseCastle(parts, playerId),
+            "pass"    => ParseResult.Ok(new PassAction(playerId)),
+            "start"   => ParseResult.Ok(new StartGameAction()),
+            "help"    => ParseResult.Err(HelpText()),
+            _         => ParseResult.Err($"Unknown command '{parts[0]}'. Type 'help'."),
         };
     }
 
@@ -100,6 +104,51 @@ internal sealed class ConsoleInputParser
         };
     }
 
+    /// <summary>
+    /// castle skip
+    /// castle place
+    /// castle move gate|ground|mid 1|2
+    /// </summary>
+    private static ParseResult ParseCastle(string[] parts, Guid playerId)
+    {
+        if (parts.Length < 2)
+            return ParseResult.Err("Usage: castle skip | place | move <gate|ground|mid> <1|2>");
+
+        return parts[1] switch
+        {
+            "skip"  => ParseResult.Ok(new CastleSkipAction(playerId)),
+            "place" => ParseResult.Ok(new CastlePlaceCourtierAction(playerId)),
+            "move"  => ParseCastleMove(parts, playerId),
+            _       => ParseResult.Err($"Unknown castle sub-command '{parts[1]}'. Use: skip, place, move."),
+        };
+    }
+
+    private static ParseResult ParseCastleMove(string[] parts, Guid playerId)
+    {
+        if (parts.Length < 4)
+            return ParseResult.Err("Usage: castle move <gate|ground|mid> <1|2>");
+
+        if (!TryParseCourtierPosition(parts[2], out var from))
+            return ParseResult.Err($"Unknown position '{parts[2]}'. Use: gate, ground, mid.");
+
+        if (!int.TryParse(parts[3], out var levels) || levels < 1 || levels > 2)
+            return ParseResult.Err("Advance levels must be 1 or 2.");
+
+        return ParseResult.Ok(new CastleAdvanceCourtierAction(playerId, from, levels));
+    }
+
+    private static bool TryParseCourtierPosition(string s, out CourtierPosition result)
+    {
+        result = s switch
+        {
+            "gate"   => CourtierPosition.Gate,
+            "ground" => CourtierPosition.GroundFloor,
+            "mid"    => CourtierPosition.MidFloor,
+            _        => default,
+        };
+        return s is "gate" or "ground" or "mid";
+    }
+
     private static ParseResult ParsePlaceOutside(string[] parts, Guid playerId)
     {
         if (parts.Length < 3)
@@ -124,16 +173,19 @@ internal sealed class ConsoleInputParser
         """
 
         Commands:
-          bridge <red|black|white> <high|low>        — take a die from a bridge
-          place castle <floor(0-1)> <room(0-2)>      — place die in castle room
-          place well                                 — place die at the well
-          place outside <0|1>                        — place die at an outside slot
-          choose <food|iron|valueitem>               — choose resource from AnyResource token (well)
-          pass                                       — pass your turn
-          start                                      — start the game (from Setup phase)
-          help                                       — show this message
+          bridge <red|black|white> <high|low>              — take a die from a bridge
+          place castle <floor(0-1)> <room(0-2)>            — place die in castle room
+          place well                                       — place die at the well
+          place outside <0|1>                              — place die at an outside slot
+          choose <food|iron|valueitem>                     — choose resource (well AnyResource token)
+          castle skip                                      — skip all remaining castle play options
+          castle place                                     — place courtier at gate (2 coins)
+          castle move <gate|ground|mid> <1|2>              — advance courtier (2 VI / 5 VI)
+          pass                                             — pass your turn
+          start                                            — start the game (from Setup phase)
+          help                                             — show this message
 
-        Castle: floor 0 = ground (3 rooms, value 3), floor 1 = mid (2 rooms, value 4)
+        Castle: floor 0 = ground (3 rooms, val=3), floor 1 = mid (2 rooms, val=4)
         Well:   value 1, unlimited capacity
         Outside: value 5, 2 slots
         Earn coins when die > slot value; spend coins when die < slot value.

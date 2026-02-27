@@ -110,6 +110,12 @@ internal sealed class PlaceDieHandler : IActionHandler
                 {
                     events.Add(new CardActionActivatedEvent(
                         state.GameId, player.Id, card.Id, i, actionField.Description));
+
+                    if (actionField.Description == "Play castle")
+                    {
+                        player.CastlePlaceRemaining++;
+                        player.CastleAdvanceRemaining++;
+                    }
                 }
             }
         }

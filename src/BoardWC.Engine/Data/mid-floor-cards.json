@@ -36,7 +36,7 @@
         "cost": [
           { "type": "Coin", "amount": 1 }
         ],
-        "description": "Description of what the player may do"
+        "description": "Play castle"
       }
     },
     {
@@ -59,7 +59,7 @@
         "cost": [
           { "type": "MonarchialSeal", "amount": 1 }
         ],
-        "description": "Description of what the player may do"
+        "description": "Play training grounds"
       },
       "field2": [
         { "type": "Lantern", "amount": 2 }

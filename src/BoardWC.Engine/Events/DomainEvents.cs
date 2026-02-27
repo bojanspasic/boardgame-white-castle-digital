@@ -1,3 +1,4 @@
+using BoardWC.Engine.Actions;
 using BoardWC.Engine.Domain;
 
 namespace BoardWC.Engine.Events;
@@ -146,4 +147,16 @@ public sealed record CardActionActivatedEvent(
 {
     public DateTimeOffset OccurredAt { get; } = DateTimeOffset.UtcNow;
     public string EventType => nameof(CardActionActivatedEvent);
+}
+
+public sealed record CastlePlayExecutedEvent(
+    Guid GameId,
+    Guid PlayerId,
+    bool PlacedAtGate,
+    CourtierPosition? AdvancedFrom,
+    int LevelsAdvanced
+) : IDomainEvent
+{
+    public DateTimeOffset OccurredAt { get; } = DateTimeOffset.UtcNow;
+    public string EventType => nameof(CastlePlayExecutedEvent);
 }

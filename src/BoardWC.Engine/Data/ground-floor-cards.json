@@ -14,7 +14,7 @@
         "cost": [
           { "type": "Coin", "amount": 2 }
         ],
-        "description": "Description of what the player may do"
+        "description": "Play castle"
       }
     },
     {
@@ -31,7 +31,7 @@
         "cost": [
           { "type": "MonarchialSeal", "amount": 1 }
         ],
-        "description": "Description of what the player may do"
+        "description": "Play training grounds"
       }
     },
     {
@@ -44,7 +44,7 @@
         { "type": "Lantern", "amount": 2 }
       ],
       "action": {
-        "description": "Description of what the player may do"
+        "description": "Play farm"
       }
     },
     {
@@ -58,7 +58,7 @@
         { "type": "Coin", "amount": 2 }
       ],
       "action": {
-        "description": "Description of what the player may do"
+        "description": "Play castle"
       }
     },
     {
@@ -74,7 +74,7 @@
         "cost": [
           { "type": "Coin", "amount": 1 }
         ],
-        "description": "Description of what the player may do"
+        "description": "Play training grounds"
       }
     },
     {
@@ -91,7 +91,7 @@
         "cost": [
           { "type": "MonarchialSeal", "amount": 1 }
         ],
-        "description": "Description of what the player may do"
+        "description": "Play farm"
       }
     },
     {
@@ -105,7 +105,7 @@
         { "type": "ValueItem", "amount": 1 }
       ],
       "action": {
-        "description": "Description of what the player may do"
+        "description": "Play castle"
       }
     },
     {
@@ -121,7 +121,7 @@
         "cost": [
           { "type": "Coin", "amount": 2 }
         ],
-        "description": "Description of what the player may do"
+        "description": "Play training grounds"
       }
     },
     {
@@ -136,7 +136,7 @@
         { "type": "Iron", "amount": 1 }
       ],
       "action": {
-        "description": "Description of what the player may do"
+        "description": "Play farm"
       }
     }
   ]

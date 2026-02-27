@@ -44,6 +44,7 @@ public static class GameEngineFactory
             new TakeDieFromBridgeHandler(),
             new PlaceDieHandler(),
             new ChooseResourceHandler(),
+            new CastlePlayHandler(),
             new PassHandler(),
         });
 }

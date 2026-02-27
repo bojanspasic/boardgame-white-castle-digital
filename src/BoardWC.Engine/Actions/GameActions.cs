@@ -29,3 +29,23 @@ public sealed record ChooseResourceAction(
     Guid PlayerId,
     ResourceType Choice
 ) : IGameAction;
+
+/// <summary>
+/// "From" positions for courtier advancement.
+/// Gate is the entry point; courtiers can advance up to MidFloor via this enum.
+/// TopFloor is the destination only (no further advancement possible).
+/// </summary>
+public enum CourtierPosition { Gate, GroundFloor, MidFloor }
+
+/// <summary>Place one courtier from hand to the gate (costs 2 coins).</summary>
+public sealed record CastlePlaceCourtierAction(Guid PlayerId) : IGameAction;
+
+/// <summary>Advance one courtier up the castle (costs 2 VI for 1 level, 5 VI for 2 levels).</summary>
+public sealed record CastleAdvanceCourtierAction(
+    Guid PlayerId,
+    CourtierPosition From,
+    int Levels
+) : IGameAction;
+
+/// <summary>Skip all remaining pending castle play options (place and/or advance).</summary>
+public sealed record CastleSkipAction(Guid PlayerId) : IGameAction;

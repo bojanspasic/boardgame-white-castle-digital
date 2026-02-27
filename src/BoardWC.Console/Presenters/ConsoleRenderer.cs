@@ -1,3 +1,4 @@
+using BoardWC.Engine.Actions;
 using BoardWC.Engine.Domain;
 using BoardWC.Engine.Events;
 
@@ -36,6 +37,15 @@ internal sealed class ConsoleRenderer
         if (p.PendingAnyResourceChoices > 0)
             System.Console.WriteLine(
                 $"  [Pending resource choice ({p.PendingAnyResourceChoices} remaining) — type 'choose food|iron|valueitem']");
+        // Show hint if player has pending castle actions
+        if (p.CastlePlaceRemaining > 0 || p.CastleAdvanceRemaining > 0)
+        {
+            var opts = new List<string> { "skip" };
+            if (p.CastlePlaceRemaining > 0)  opts.Add("place (2 coins)");
+            if (p.CastleAdvanceRemaining > 0) opts.Add("move <gate|ground|mid> <1|2> (2/5 VI)");
+            System.Console.WriteLine(
+                $"  [Pending castle play — available: {string.Join(", ", opts)} — type 'castle <option>']");
+        }
         System.Console.Write($"[{p.Name}] > ");
     }
 
@@ -85,6 +95,8 @@ internal sealed class ConsoleRenderer
 
         // Castle
         System.Console.WriteLine("  Castle:");
+        var gateInfo = string.Join("  ", state.Players.Select(p => $"{p.Name}:{p.CourtiersAtGate}"));
+        System.Console.WriteLine($"    Gate: {gateInfo}");
         var floorNames = new[] { "  Ground(0) val=3", "  Mid(1)    val=4" };
         for (int f = 0; f < state.Board.Castle.Floors.Count; f++)
         {
@@ -185,7 +197,8 @@ internal sealed class ConsoleRenderer
                 $"  {p.Name,-16} " +
                 $"Fd:{r.Food,2} Fe:{r.Iron,2} VI:{r.ValueItem,2} " +
                 $"Coins:{p.Coins,3} Seals:{p.MonarchialSeals} " +
-                $"S:{p.SoldiersAvailable} C:{p.CourtiersAvailable} F:{p.FarmersAvailable} " +
+                $"S:{p.SoldiersAvailable} F:{p.FarmersAvailable} " +
+                $"Courtiers: hand={p.CourtiersAvailable} gate={p.CourtiersAtGate} grnd={p.CourtiersOnGroundFloor} mid={p.CourtiersOnMidFloor} top={p.CourtiersOnTopFloor}  " +
                 $"Lanterns:{p.LanternScore} " +
                 $"Cards:{p.ClanCards.Count}" +
                 (p.IsAI ? " [AI]" : ""));
@@ -211,6 +224,7 @@ internal sealed class ConsoleRenderer
         WellEffectAppliedEvent      x => FormatWellEffect(x),
         CardFieldGainActivatedEvent x => FormatCardFieldGain(x),
         CardActionActivatedEvent    x => $"{PlayerName(x.PlayerId, x)} card action field {x.FieldIndex} on '{x.CardId}': {x.ActionDescription}",
+        CastlePlayExecutedEvent     x => FormatCastlePlay(x),
         AnyResourceChosenEvent  x => $"{PlayerName(x.PlayerId, x)} chose {x.Choice} from AnyResource token",
         ResourcesCollectedEvent  x => $"{PlayerName(x.PlayerId, x)} collected {x.Gained}",
         ClanCardAcquiredEvent    x => $"{PlayerName(x.PlayerId, x)} acquired clan card: {x.Card.Name}",
@@ -240,6 +254,29 @@ internal sealed class ConsoleRenderer
         if (x.LanternGained > 0) parts.Add($"+{x.LanternGained} lantern(s)");
         var gained = parts.Count > 0 ? string.Join(", ", parts) : "nothing";
         return $"{PlayerName(x.PlayerId, x)} card field {x.FieldIndex} gain: {gained}";
+    }
+
+    private static string FormatCastlePlay(CastlePlayExecutedEvent x)
+    {
+        if (!x.PlacedAtGate && x.AdvancedFrom is null)
+            return $"{PlayerName(x.PlayerId, x)} castle play: skipped";
+
+        var parts = new List<string>();
+        if (x.PlacedAtGate)
+            parts.Add("placed courtier at gate (-2 coins)");
+        if (x.AdvancedFrom is { } from)
+        {
+            var fromStr = from switch
+            {
+                CourtierPosition.Gate        => "gate",
+                CourtierPosition.GroundFloor => "ground",
+                CourtierPosition.MidFloor    => "mid",
+                _                            => "?",
+            };
+            int viCost = x.LevelsAdvanced == 1 ? 2 : 5;
+            parts.Add($"advanced courtier from {fromStr} {x.LevelsAdvanced} level(s) (-{viCost} VI)");
+        }
+        return $"{PlayerName(x.PlayerId, x)} castle play: {string.Join(" + ", parts)}";
     }
 
     private static string FormatPlaced(DiePlacedEvent x)

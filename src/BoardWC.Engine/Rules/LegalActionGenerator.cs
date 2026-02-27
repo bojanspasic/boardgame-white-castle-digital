@@ -31,6 +31,22 @@ internal static class LegalActionGenerator
             return actions.AsReadOnly();
         }
 
+        // Player must resolve pending castle actions before acting
+        if (player.CastlePlaceRemaining > 0 || player.CastleAdvanceRemaining > 0)
+        {
+            actions.Add(new CastleSkipAction(playerId)); // always offered
+
+            if (player.CastlePlaceRemaining > 0
+                && player.CourtiersAvailable > 0 && player.Coins >= 2)
+                actions.Add(new CastlePlaceCourtierAction(playerId));
+
+            if (player.CastleAdvanceRemaining > 0)
+                foreach (var (from, lvl) in ValidAdvances(player))
+                    actions.Add(new CastleAdvanceCourtierAction(playerId, from, lvl));
+
+            return actions.AsReadOnly();
+        }
+
         // Player has taken a die and must place it before doing anything else
         if (player.DiceInHand.Count > 0)
         {
@@ -87,5 +103,26 @@ internal static class LegalActionGenerator
         actions.Add(new PassAction(playerId));
 
         return actions.AsReadOnly();
+    }
+
+    private static IEnumerable<(CourtierPosition From, int Levels)> ValidAdvances(Domain.Player player)
+    {
+        int vi = player.Resources.ValueItem;
+
+        if (player.CourtiersAtGate > 0)
+        {
+            if (vi >= 2) yield return (CourtierPosition.Gate, 1);
+            if (vi >= 5) yield return (CourtierPosition.Gate, 2);
+        }
+        if (player.CourtiersOnGroundFloor > 0)
+        {
+            if (vi >= 2) yield return (CourtierPosition.GroundFloor, 1);
+            if (vi >= 5) yield return (CourtierPosition.GroundFloor, 2);
+        }
+        if (player.CourtiersOnMidFloor > 0)
+        {
+            if (vi >= 2) yield return (CourtierPosition.MidFloor, 1);
+            // MidFloor + 2 is invalid (exceeds top floor)
+        }
     }
 }

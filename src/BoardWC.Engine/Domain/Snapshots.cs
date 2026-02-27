@@ -26,6 +26,12 @@ public sealed record PlayerSnapshot(
     int CourtiersAvailable,
     int FarmersAvailable,
     int PendingAnyResourceChoices,
+    int CastlePlaceRemaining,
+    int CastleAdvanceRemaining,
+    int CourtiersAtGate,
+    int CourtiersOnGroundFloor,
+    int CourtiersOnMidFloor,
+    int CourtiersOnTopFloor,
     IReadOnlyList<ClanCardSnapshot> ClanCards,
     IReadOnlyList<DieSnapshot> DiceInHand
 );
