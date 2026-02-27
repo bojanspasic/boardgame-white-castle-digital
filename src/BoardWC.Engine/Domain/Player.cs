@@ -35,8 +35,6 @@ internal sealed class Player
     internal int CourtiersOnMidFloor { get; set; }
     internal int CourtiersOnTopFloor { get; set; }
 
-    internal List<ClanCard> ClanCards { get; } = new();
-
     /// <summary>Dice the player has taken from bridges this round.</summary>
     internal List<Die> DiceInHand { get; } = new();
 
@@ -46,7 +44,6 @@ internal sealed class Player
         MonarchialSeals, SoldiersAvailable, CourtiersAvailable, FarmersAvailable,
         PendingAnyResourceChoices, PendingTrainingGroundsActions, PendingFarmActions, CastlePlaceRemaining, CastleAdvanceRemaining,
         CourtiersAtGate, CourtiersOnGroundFloor, CourtiersOnMidFloor, CourtiersOnTopFloor,
-        ClanCards.Select(c => c.ToSnapshot()).ToList().AsReadOnly(),
         DiceInHand.Select(d => d.ToSnapshot()).ToList().AsReadOnly()
     );
 }

@@ -52,16 +52,6 @@ public sealed record ResourcesCollectedEvent(
     public string EventType => nameof(ResourcesCollectedEvent);
 }
 
-public sealed record ClanCardAcquiredEvent(
-    Guid GameId,
-    Guid PlayerId,
-    ClanCardSnapshot Card
-) : IDomainEvent
-{
-    public DateTimeOffset OccurredAt { get; } = DateTimeOffset.UtcNow;
-    public string EventType => nameof(ClanCardAcquiredEvent);
-}
-
 public sealed record LanternsGainedEvent(
     Guid GameId,
     Guid PlayerId,

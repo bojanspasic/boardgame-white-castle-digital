@@ -90,7 +90,6 @@ Each player tracks:
 - **Coins**: earned/spent when placing dice
 - **Monarchial Seals**: separate currency (max 5); +1 gained each time a die is placed at the well
 - **Lantern score**: victory points from lanterns
-- **Clan cards**: collected cards with VP
 - **Dice in hand**: die taken from bridge awaiting placement
 - **PendingAnyResourceChoices**: unresolved AnyResource token choices from the well
 - **Personnel**: 5 Soldiers, 5 Courtiers, 5 Farmers — placement rules TBD

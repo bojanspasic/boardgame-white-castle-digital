@@ -8,11 +8,9 @@ internal static class ScoreCalculator
         state.Players
             .Select(p =>
             {
-                int lanterns  = p.LanternScore;
-                int clanCards = p.ClanCards.Sum(c => c.VictoryPoints);
-                int total     = lanterns + clanCards;
+                int lanterns = p.LanternScore;
 
-                return new PlayerScore(p.Id, p.Name, total, lanterns, clanCards);
+                return new PlayerScore(p.Id, p.Name, lanterns, lanterns);
             })
             .OrderByDescending(s => s.Total)
             .ToList()

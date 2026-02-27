@@ -5,7 +5,7 @@
 
 ## Overview
 2–4 players compete to earn the most victory points over 3 rounds by placing dice on the
-board and earning coins, lanterns, clan cards, resources, and monarchial seals.
+board and earning coins, lanterns, resources, and monarchial seals.
 
 ---
 
@@ -167,7 +167,6 @@ The game lasts **3 rounds** (configurable in engine).
 
 Calculated at game end:
 - **Lantern score** — accumulated lanterns
-- **Clan card VP** — sum of victory points on acquired clan cards
 
 ---
 

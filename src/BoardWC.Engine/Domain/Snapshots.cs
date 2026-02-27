@@ -9,8 +9,7 @@ public sealed record GameStateSnapshot(
     int MaxRounds,
     int ActivePlayerIndex,
     IReadOnlyList<PlayerSnapshot> Players,
-    BoardSnapshot Board,
-    CardRowSnapshot ClanCardRow
+    BoardSnapshot Board
 );
 
 public sealed record PlayerSnapshot(
@@ -34,7 +33,6 @@ public sealed record PlayerSnapshot(
     int CourtiersOnGroundFloor,
     int CourtiersOnMidFloor,
     int CourtiersOnTopFloor,
-    IReadOnlyList<ClanCardSnapshot> ClanCards,
     IReadOnlyList<DieSnapshot> DiceInHand
 );
 
@@ -118,17 +116,6 @@ public sealed record RoomCardSnapshot(
     string? Layout
 );
 
-// ── Clan card snapshots ───────────────────────────────────────────────────────
-
-public sealed record ClanCardSnapshot(
-    Guid CardId,
-    string Name,
-    string Effect,
-    int VictoryPoints
-);
-
-public sealed record CardRowSnapshot(IReadOnlyList<ClanCardSnapshot> VisibleCards);
-
 // ── Training grounds snapshots ────────────────────────────────────────────────
 
 public sealed record TgAreaSnapshot(
@@ -158,6 +145,5 @@ public sealed record PlayerScore(
     Guid PlayerId,
     string PlayerName,
     int Total,
-    int LanternPoints,
-    int ClanCardPoints
+    int LanternPoints
 );

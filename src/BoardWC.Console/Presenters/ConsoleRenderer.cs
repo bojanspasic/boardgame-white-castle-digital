@@ -13,7 +13,6 @@ internal sealed class ConsoleRenderer
         RenderBridges(state);
         RenderPlacementAreas(state);
         RenderPlayers(state);
-        RenderClanCards(state);
         System.Console.WriteLine();
     }
 
@@ -74,7 +73,7 @@ internal sealed class ConsoleRenderer
         foreach (var s in scores)
             System.Console.WriteLine(
                 $"  {s.PlayerName,-16} {s.Total,4} pts  " +
-                $"(Lanterns:{s.LanternPoints} Cards:{s.ClanCardPoints})");
+                $"(Lanterns:{s.LanternPoints})");
     }
 
     public void Error(string msg) =>
@@ -270,18 +269,9 @@ internal sealed class ConsoleRenderer
                 $"Coins:{p.Coins,3} Seals:{p.MonarchialSeals} " +
                 $"S:{p.SoldiersAvailable} F:{p.FarmersAvailable} " +
                 $"Courtiers: hand={p.CourtiersAvailable} gate={p.CourtiersAtGate} grnd={p.CourtiersOnGroundFloor} mid={p.CourtiersOnMidFloor} top={p.CourtiersOnTopFloor}  " +
-                $"Lanterns:{p.LanternScore} " +
-                $"Cards:{p.ClanCards.Count}" +
+                $"Lanterns:{p.LanternScore}" +
                 (p.IsAI ? " [AI]" : ""));
         }
-    }
-
-    private static void RenderClanCards(GameStateSnapshot state)
-    {
-        if (state.ClanCardRow.VisibleCards.Count == 0) return;
-        System.Console.WriteLine("\nCLAN CARDS AVAILABLE:");
-        foreach (var c in state.ClanCardRow.VisibleCards)
-            System.Console.WriteLine($"  {c.Name,-16} ({c.VictoryPoints} VP) — {c.Effect}");
     }
 
     private static string PlayerName(Guid id, GameStateSnapshot state) =>
@@ -302,7 +292,6 @@ internal sealed class ConsoleRenderer
         TopFloorSlotFilledEvent         x => FormatTopFloorSlot(x),
         AnyResourceChosenEvent  x => $"{PlayerName(x.PlayerId, x)} chose {x.Choice} from AnyResource token",
         ResourcesCollectedEvent  x => $"{PlayerName(x.PlayerId, x)} collected {x.Gained}",
-        ClanCardAcquiredEvent    x => $"{PlayerName(x.PlayerId, x)} acquired clan card: {x.Card.Name}",
         LanternsGainedEvent      x => $"{PlayerName(x.PlayerId, x)} gained {x.Amount} lantern(s)",
         PlayerPassedEvent        x => $"{PlayerName(x.PlayerId, x)} passed",
         RoundEndedEvent          x => $"=== End of Round {x.RoundNumber} ===",

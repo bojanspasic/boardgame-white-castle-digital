@@ -10,7 +10,6 @@ internal sealed class GameState
 
     internal List<Player> Players { get; }
     internal Board Board { get; }
-    internal ClanCardDeck ClanDeck { get; }
     internal Random Rng { get; } = new();
 
     public Player ActivePlayer => Players[ActivePlayerIndex];
@@ -20,7 +19,6 @@ internal sealed class GameState
         Players   = players;
         MaxRounds = maxRounds;
         Board     = new Board();
-        ClanDeck  = new ClanCardDeck();
     }
 
     /// <summary>Advance to the next player in rotation.</summary>
@@ -34,7 +32,6 @@ internal sealed class GameState
         MaxRounds,
         ActivePlayerIndex,
         Players.Select(p => p.ToSnapshot()).ToList().AsReadOnly(),
-        Board.ToSnapshot(),
-        ClanDeck.ToSnapshot()
+        Board.ToSnapshot()
     );
 }
