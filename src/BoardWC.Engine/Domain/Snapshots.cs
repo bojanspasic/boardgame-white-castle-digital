@@ -26,6 +26,7 @@ public sealed record PlayerSnapshot(
     int CourtiersAvailable,
     int FarmersAvailable,
     int PendingAnyResourceChoices,
+    int PendingTrainingGroundsActions,
     int CastlePlaceRemaining,
     int CastleAdvanceRemaining,
     int CourtiersAtGate,
@@ -42,7 +43,8 @@ public sealed record BoardSnapshot(
     WellSnapshot Well,
     OutsideSnapshot Outside,
     int GroundFloorDeckRemaining,
-    int MidFloorDeckRemaining
+    int MidFloorDeckRemaining,
+    TrainingGroundsSnapshot TrainingGrounds
 )
 {
     public int TotalDiceRemaining => Bridges.Sum(b =>
@@ -113,6 +115,18 @@ public sealed record ClanCardSnapshot(
 );
 
 public sealed record CardRowSnapshot(IReadOnlyList<ClanCardSnapshot> VisibleCards);
+
+// ── Training grounds snapshots ────────────────────────────────────────────────
+
+public sealed record TgAreaSnapshot(
+    int AreaIndex,
+    int IronCost,
+    IReadOnlyList<CardGainItemSnapshot> ResourceGain,
+    string ActionDescription,
+    IReadOnlyList<string> SoldierOwners
+);
+
+public sealed record TrainingGroundsSnapshot(IReadOnlyList<TgAreaSnapshot> Areas);
 
 public sealed record PlayerScore(
     Guid PlayerId,

@@ -10,6 +10,7 @@
   <ItemGroup>
     <EmbeddedResource Include="Data\ground-floor-cards.json" />
     <EmbeddedResource Include="Data\mid-floor-cards.json" />
+    <EmbeddedResource Include="Data\training-grounds-tokens.json" />
   </ItemGroup>
 
 </Project>

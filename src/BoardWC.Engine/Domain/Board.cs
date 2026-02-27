@@ -18,8 +18,9 @@ internal sealed class Board
     private readonly DicePlaceholder[] _outsideSlots =
         [new DicePlaceholder(5), new DicePlaceholder(5)];
 
-    private FloorCardDeck? _groundDeck;
-    private FloorCardDeck? _midDeck;
+    private FloorCardDeck?  _groundDeck;
+    private FloorCardDeck?  _midDeck;
+    private TrainingGrounds? _trainingGrounds;
     public int GroundFloorDeckRemaining => _groundDeck?.Remaining ?? 0;
     public int MidFloorDeckRemaining    => _midDeck?.Remaining   ?? 0;
 
@@ -30,6 +31,9 @@ internal sealed class Board
 
     public DicePlaceholder                Well         => _well;
     public IReadOnlyList<DicePlaceholder> OutsideSlots => _outsideSlots;
+
+    public TrainingGrounds TrainingGrounds =>
+        _trainingGrounds ?? throw new InvalidOperationException("Training grounds not yet set up.");
 
     public int TotalDiceRemaining => _bridges.Sum(b => b.DiceCount);
 
@@ -120,6 +124,16 @@ internal sealed class Board
             if (_midDeck.Deal() is { } c) _castleRooms[1][r].SetCard(c);
     }
 
+    /// <summary>
+    /// Load training grounds token pool (first call) and draw 4 tokens for this round.
+    /// Call at game start and at the start of each subsequent round.
+    /// </summary>
+    public void SetupTrainingGrounds(Random rng)
+    {
+        _trainingGrounds ??= TrainingGrounds.Load();
+        _trainingGrounds.SetupForRound(rng);
+    }
+
     private static IEnumerable<Token> CreateAllTokens() =>
         Enum.GetValues<BridgeColor>()
             .SelectMany(color => Enum.GetValues<TokenResource>()
@@ -143,6 +157,7 @@ internal sealed class Board
         new WellSnapshot(_well.ToSnapshot()),
         new OutsideSnapshot(_outsideSlots.Select(s => s.ToSnapshot()).ToArray()),
         GroundFloorDeckRemaining,
-        MidFloorDeckRemaining
+        MidFloorDeckRemaining,
+        _trainingGrounds?.ToSnapshot() ?? new TrainingGroundsSnapshot([])
     );
 }

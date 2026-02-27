@@ -1,0 +1,69 @@
+{
+  "tokens": [
+    {
+      "id": "tg_01",
+      "resourceSide": [{ "type": "Food", "amount": 2 }],
+      "actionSide": "Play castle"
+    },
+    {
+      "id": "tg_02",
+      "resourceSide": [{ "type": "Iron", "amount": 2 }],
+      "actionSide": "Play castle"
+    },
+    {
+      "id": "tg_03",
+      "resourceSide": [{ "type": "ValueItem", "amount": 2 }],
+      "actionSide": "Play castle"
+    },
+    {
+      "id": "tg_04",
+      "resourceSide": [{ "type": "Coin", "amount": 3 }],
+      "actionSide": "Gain 1 monarchial seal"
+    },
+    {
+      "id": "tg_05",
+      "resourceSide": [{ "type": "MonarchialSeal", "amount": 1 }],
+      "actionSide": "Gain 3 coins"
+    },
+    {
+      "id": "tg_06",
+      "resourceSide": [
+        { "type": "Food", "amount": 1 },
+        { "type": "Iron", "amount": 1 }
+      ],
+      "actionSide": "Gain 1 lantern"
+    },
+    {
+      "id": "tg_07",
+      "resourceSide": [
+        { "type": "Iron", "amount": 1 },
+        { "type": "ValueItem", "amount": 1 }
+      ],
+      "actionSide": "Play farm"
+    },
+    {
+      "id": "tg_08",
+      "resourceSide": [
+        { "type": "Food", "amount": 1 },
+        { "type": "ValueItem", "amount": 1 }
+      ],
+      "actionSide": "Play castle"
+    },
+    {
+      "id": "tg_09",
+      "resourceSide": [
+        { "type": "Food", "amount": 2 },
+        { "type": "Coin", "amount": 1 }
+      ],
+      "actionSide": "Gain 1 lantern"
+    },
+    {
+      "id": "tg_10",
+      "resourceSide": [
+        { "type": "Iron", "amount": 2 },
+        { "type": "Food", "amount": 1 }
+      ],
+      "actionSide": "Gain 3 coins"
+    }
+  ]
+}

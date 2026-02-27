@@ -20,6 +20,8 @@ internal sealed record ParseResult(bool Success, IGameAction? Action, string? Er
 ///   castle skip                                   → CastleSkipAction
 ///   castle place                                  → CastlePlaceCourtierAction (2 coins)
 ///   castle move <gate|ground|mid> <1|2>           → CastleAdvanceCourtierAction (2 or 5 VI)
+///   train <0|1|2>                                 → TrainingGroundsPlaceSoldierAction
+///   train skip                                    → TrainingGroundsSkipAction
 ///   pass                                          → PassAction
 ///   start                                         → StartGameAction
 ///   help                                          → shows help text
@@ -40,6 +42,7 @@ internal sealed class ConsoleInputParser
             "place"   => ParsePlace(parts, playerId),
             "choose"  => ParseChoose(parts, playerId),
             "castle"  => ParseCastle(parts, playerId),
+            "train"   => ParseTrain(parts, playerId),
             "pass"    => ParseResult.Ok(new PassAction(playerId)),
             "start"   => ParseResult.Ok(new StartGameAction()),
             "help"    => ParseResult.Err(HelpText()),
@@ -137,6 +140,20 @@ internal sealed class ConsoleInputParser
         return ParseResult.Ok(new CastleAdvanceCourtierAction(playerId, from, levels));
     }
 
+    private static ParseResult ParseTrain(string[] parts, Guid playerId)
+    {
+        if (parts.Length < 2)
+            return ParseResult.Err("Usage: train skip | train <0|1|2>");
+
+        if (parts[1] == "skip")
+            return ParseResult.Ok(new TrainingGroundsSkipAction(playerId));
+
+        if (!int.TryParse(parts[1], out var area) || area < 0 || area > 2)
+            return ParseResult.Err("Usage: train <0|1|2>  or  train skip");
+
+        return ParseResult.Ok(new TrainingGroundsPlaceSoldierAction(playerId, area));
+    }
+
     private static bool TryParseCourtierPosition(string s, out CourtierPosition result)
     {
         result = s switch
@@ -181,6 +198,8 @@ internal sealed class ConsoleInputParser
           castle skip                                      — skip all remaining castle play options
           castle place                                     — place courtier at gate (2 coins)
           castle move <gate|ground|mid> <1|2>              — advance courtier (2 VI / 5 VI)
+          train <0|1|2>                                    — place soldier in training grounds area (1/3/5 iron)
+          train skip                                       — skip training grounds
           pass                                             — pass your turn
           start                                            — start the game (from Setup phase)
           help                                             — show this message

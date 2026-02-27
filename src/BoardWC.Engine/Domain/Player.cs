@@ -18,6 +18,9 @@ internal sealed class Player
     /// <summary>Number of unresolved AnyResource token choices from the well.</summary>
     internal int PendingAnyResourceChoices { get; set; }
 
+    /// <summary>Remaining soldier placements from pending "Play training grounds" actions.</summary>
+    internal int PendingTrainingGroundsActions { get; set; }
+
     /// <summary>Remaining "place courtier at gate" uses from pending "Play castle" actions.</summary>
     internal int CastlePlaceRemaining { get; set; }
 
@@ -38,7 +41,7 @@ internal sealed class Player
         Id, Name, Color, IsAI,
         Resources, LanternScore, Coins,
         MonarchialSeals, SoldiersAvailable, CourtiersAvailable, FarmersAvailable,
-        PendingAnyResourceChoices, CastlePlaceRemaining, CastleAdvanceRemaining,
+        PendingAnyResourceChoices, PendingTrainingGroundsActions, CastlePlaceRemaining, CastleAdvanceRemaining,
         CourtiersAtGate, CourtiersOnGroundFloor, CourtiersOnMidFloor, CourtiersOnTopFloor,
         ClanCards.Select(c => c.ToSnapshot()).ToList().AsReadOnly(),
         DiceInHand.Select(d => d.ToSnapshot()).ToList().AsReadOnly()

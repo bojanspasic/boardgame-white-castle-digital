@@ -149,6 +149,22 @@ public sealed record CardActionActivatedEvent(
     public string EventType => nameof(CardActionActivatedEvent);
 }
 
+public sealed record TrainingGroundsUsedEvent(
+    Guid GameId,
+    Guid PlayerId,
+    int AreaIndex,           // -1 = skipped
+    int IronSpent,
+    ResourceBag ResourcesGained,
+    int CoinsGained,
+    int SealsGained,
+    int LanternGained,
+    string? ActionTriggered  // null if skipped or area has no action side
+) : IDomainEvent
+{
+    public DateTimeOffset OccurredAt { get; } = DateTimeOffset.UtcNow;
+    public string EventType => nameof(TrainingGroundsUsedEvent);
+}
+
 public sealed record CastlePlayExecutedEvent(
     Guid GameId,
     Guid PlayerId,

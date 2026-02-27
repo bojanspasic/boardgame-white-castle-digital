@@ -116,6 +116,10 @@ internal sealed class PlaceDieHandler : IActionHandler
                         player.CastlePlaceRemaining++;
                         player.CastleAdvanceRemaining++;
                     }
+                    else if (actionField.Description == "Play training grounds")
+                    {
+                        player.PendingTrainingGroundsActions++;
+                    }
                 }
             }
         }

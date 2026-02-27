@@ -21,6 +21,7 @@ internal sealed class StartGameHandler : IActionHandler
         state.Board.RollAllDice(state.Players.Count, state.Rng);
         state.Board.PlaceTokens(state.Rng);
         state.Board.PlaceCards(state.Rng);
+        state.Board.SetupTrainingGrounds(state.Rng);
         events.Add(new GameStartedEvent(state.GameId));
     }
 }

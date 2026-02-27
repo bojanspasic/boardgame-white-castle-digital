@@ -46,6 +46,14 @@ internal sealed class ConsoleRenderer
             System.Console.WriteLine(
                 $"  [Pending castle play — available: {string.Join(", ", opts)} — type 'castle <option>']");
         }
+        // Show hint if player has pending training grounds actions
+        if (p.PendingTrainingGroundsActions > 0)
+        {
+            var tg = state.Board.TrainingGrounds.Areas;
+            var available = tg.Select(a => $"{a.AreaIndex}({a.IronCost}Fe)");
+            System.Console.WriteLine(
+                $"  [Pending training grounds — areas: {string.Join(", ", available)}, skip — type 'train <0|1|2|skip>']");
+        }
         System.Console.Write($"[{p.Name}] > ");
     }
 
@@ -134,6 +142,25 @@ internal sealed class ConsoleRenderer
             System.Console.Write($"  slot{s}:{top}");
         }
         System.Console.WriteLine();
+
+        // Training grounds
+        System.Console.WriteLine("  Training Grounds:");
+        foreach (var area in state.Board.TrainingGrounds.Areas)
+        {
+            var resPart = area.ResourceGain.Count > 0
+                ? "[Res] " + string.Join(", ", area.ResourceGain.Select(g => $"+{g.Amount} {g.GainType}"))
+                : "";
+            var actPart = !string.IsNullOrEmpty(area.ActionDescription)
+                ? $"[Action] {area.ActionDescription}"
+                : "";
+            var effectStr = string.Join("  +  ", new[] { resPart, actPart }.Where(s => s.Length > 0));
+            if (string.IsNullOrEmpty(effectStr)) effectStr = "(not set)";
+            var soldiers = area.SoldierOwners.Count > 0
+                ? "  soldiers: " + string.Join(", ", area.SoldierOwners)
+                : "";
+            System.Console.WriteLine(
+                $"    Area {area.AreaIndex} ({area.IronCost} iron): {effectStr}{soldiers}");
+        }
     }
 
     private static string FormatToken(TokenSnapshot t)
@@ -224,7 +251,8 @@ internal sealed class ConsoleRenderer
         WellEffectAppliedEvent      x => FormatWellEffect(x),
         CardFieldGainActivatedEvent x => FormatCardFieldGain(x),
         CardActionActivatedEvent    x => $"{PlayerName(x.PlayerId, x)} card action field {x.FieldIndex} on '{x.CardId}': {x.ActionDescription}",
-        CastlePlayExecutedEvent     x => FormatCastlePlay(x),
+        CastlePlayExecutedEvent         x => FormatCastlePlay(x),
+        TrainingGroundsUsedEvent        x => FormatTrainingGrounds(x),
         AnyResourceChosenEvent  x => $"{PlayerName(x.PlayerId, x)} chose {x.Choice} from AnyResource token",
         ResourcesCollectedEvent  x => $"{PlayerName(x.PlayerId, x)} collected {x.Gained}",
         ClanCardAcquiredEvent    x => $"{PlayerName(x.PlayerId, x)} acquired clan card: {x.Card.Name}",
@@ -277,6 +305,20 @@ internal sealed class ConsoleRenderer
             parts.Add($"advanced courtier from {fromStr} {x.LevelsAdvanced} level(s) (-{viCost} VI)");
         }
         return $"{PlayerName(x.PlayerId, x)} castle play: {string.Join(" + ", parts)}";
+    }
+
+    private static string FormatTrainingGrounds(TrainingGroundsUsedEvent x)
+    {
+        if (x.AreaIndex == -1)
+            return $"{PlayerName(x.PlayerId, x)} training grounds: skipped";
+
+        var parts = new List<string> { $"area {x.AreaIndex} (-{x.IronSpent} iron)" };
+        if (x.ResourcesGained.Total > 0) parts.Add($"resources: {x.ResourcesGained}");
+        if (x.CoinsGained   > 0) parts.Add($"+{x.CoinsGained} coin(s)");
+        if (x.SealsGained   > 0) parts.Add($"+{x.SealsGained} seal(s)");
+        if (x.LanternGained > 0) parts.Add($"+{x.LanternGained} lantern(s)");
+        if (x.ActionTriggered is { } act) parts.Add($"action: {act}");
+        return $"{PlayerName(x.PlayerId, x)} training grounds: {string.Join(", ", parts)}";
     }
 
     private static string FormatPlaced(DiePlacedEvent x)

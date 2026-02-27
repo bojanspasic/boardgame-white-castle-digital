@@ -31,6 +31,19 @@ internal static class LegalActionGenerator
             return actions.AsReadOnly();
         }
 
+        // Player must resolve pending training grounds actions before acting
+        if (player.PendingTrainingGroundsActions > 0)
+        {
+            actions.Add(new TrainingGroundsSkipAction(playerId));
+            var tgAreas = state.Board.TrainingGrounds.Areas;
+            for (int i = 0; i < tgAreas.Length; i++)
+            {
+                if (player.SoldiersAvailable > 0 && player.Resources.Iron >= tgAreas[i].IronCost)
+                    actions.Add(new TrainingGroundsPlaceSoldierAction(playerId, i));
+            }
+            return actions.AsReadOnly();
+        }
+
         // Player must resolve pending castle actions before acting
         if (player.CastlePlaceRemaining > 0 || player.CastleAdvanceRemaining > 0)
         {

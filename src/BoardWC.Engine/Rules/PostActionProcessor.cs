@@ -15,6 +15,9 @@ internal static class PostActionProcessor
         // Active player has pending AnyResource choices to resolve — hold the turn
         if (state.ActivePlayer.PendingAnyResourceChoices > 0) return;
 
+        // Active player has pending training grounds actions to resolve — hold the turn
+        if (state.ActivePlayer.PendingTrainingGroundsActions > 0) return;
+
         // Active player has pending castle actions to resolve — hold the turn
         if (state.ActivePlayer.CastlePlaceRemaining > 0 ||
             state.ActivePlayer.CastleAdvanceRemaining > 0) return;
@@ -42,8 +45,9 @@ internal static class PostActionProcessor
         {
             state.CurrentRound++;
             state.ActivePlayerIndex = 0;
-            // Roll fresh dice for the new round
+            // Roll fresh dice and re-draw training grounds tokens for the new round
             state.Board.RollAllDice(state.Players.Count, state.Rng);
+            state.Board.SetupTrainingGrounds(state.Rng);
         }
     }
 }

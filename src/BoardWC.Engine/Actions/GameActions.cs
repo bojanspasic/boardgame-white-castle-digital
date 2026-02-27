@@ -49,3 +49,12 @@ public sealed record CastleAdvanceCourtierAction(
 
 /// <summary>Skip all remaining pending castle play options (place and/or advance).</summary>
 public sealed record CastleSkipAction(Guid PlayerId) : IGameAction;
+
+/// <summary>Place a soldier in one of the three training grounds areas, paying iron.</summary>
+public sealed record TrainingGroundsPlaceSoldierAction(
+    Guid PlayerId,
+    int AreaIndex   // 0, 1, or 2
+) : IGameAction;
+
+/// <summary>Skip the pending training grounds action.</summary>
+public sealed record TrainingGroundsSkipAction(Guid PlayerId) : IGameAction;
