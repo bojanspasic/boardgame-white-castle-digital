@@ -29,6 +29,7 @@ public sealed record PlayerSnapshot(
     int PendingFarmActions,
     int CastlePlaceRemaining,
     int CastleAdvanceRemaining,
+    int PendingOutsideActivationSlot,
     int CourtiersAtGate,
     int CourtiersOnGroundFloor,
     int CourtiersOnMidFloor,

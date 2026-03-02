@@ -31,6 +31,22 @@ internal static class LegalActionGenerator
             return actions.AsReadOnly();
         }
 
+        // Player must resolve pending outside slot activation choice before acting
+        if (player.PendingOutsideActivationSlot >= 0)
+        {
+            if (player.PendingOutsideActivationSlot == 0)
+            {
+                actions.Add(new ChooseOutsideActivationAction(playerId, OutsideActivation.Farm));
+                actions.Add(new ChooseOutsideActivationAction(playerId, OutsideActivation.Castle));
+            }
+            else
+            {
+                actions.Add(new ChooseOutsideActivationAction(playerId, OutsideActivation.TrainingGrounds));
+                actions.Add(new ChooseOutsideActivationAction(playerId, OutsideActivation.Castle));
+            }
+            return actions.AsReadOnly();
+        }
+
         // Player must resolve pending farm actions before acting
         if (player.PendingFarmActions > 0)
         {

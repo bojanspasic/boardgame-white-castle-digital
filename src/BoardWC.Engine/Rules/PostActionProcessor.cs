@@ -12,6 +12,9 @@ internal static class PostActionProcessor
         // Active player has taken a die but hasn't placed it yet — hold the turn
         if (state.ActivePlayer.DiceInHand.Count > 0) return;
 
+        // Active player placed at an outside slot — must choose activation
+        if (state.ActivePlayer.PendingOutsideActivationSlot >= 0) return;
+
         // Active player has pending AnyResource choices to resolve — hold the turn
         if (state.ActivePlayer.PendingAnyResourceChoices > 0) return;
 

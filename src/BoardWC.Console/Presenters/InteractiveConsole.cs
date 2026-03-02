@@ -63,6 +63,11 @@ internal sealed class InteractiveConsole
         if (player.PendingFarmActions > 0)
             return RunDetail(state, "FARMING LANDS", BuildFarmOptions(state, legal), allowEsc: false)!;
 
+        // Outside activation choice pending — no Esc
+        if (player.PendingOutsideActivationSlot >= 0)
+            return RunDetail(state, "OUTSIDE \u2014 CHOOSE ACTIVATION",
+                BuildOutsideActivationOptions(legal), allowEsc: false)!;
+
         // Normal turn — full overview
         return RunOverview(state, legal);
     }
@@ -461,10 +466,32 @@ internal sealed class InteractiveConsole
             var delta      = die.Value - compareVal;
             bool full      = !ph.UnlimitedCapacity && ph.PlacedDice.Count >= (pCount >= 3 ? 2 : 1);
             string detail  = full ? "\u2192 full" : $"\u2192 {CoinDeltaStr(delta)}";
-            options.Add(new ActionEntry(
-                $"Outside Slot {s}  val={ph.BaseValue}", detail, action != null, action));
+            var slotLabel  = s == 0 ? "Outside Slot 0  (Farm or Castle)  val=5"
+                                    : "Outside Slot 1  (TG or Castle)    val=5";
+            options.Add(new ActionEntry(slotLabel, detail, action != null, action));
         }
 
+        return options;
+    }
+
+    // ── Build Options: Outside Activation Choice ──────────────────────────
+
+    private static List<ActionEntry> BuildOutsideActivationOptions(
+        IReadOnlyList<IGameAction> legal)
+    {
+        var options = new List<ActionEntry>();
+        options.Add(Header("Choose which area to activate:"));
+        foreach (var act in legal.OfType<ChooseOutsideActivationAction>())
+        {
+            var (label, detail) = act.Choice switch
+            {
+                OutsideActivation.Farm            => ("Play Farm",             "Place a farmer (or skip)"),
+                OutsideActivation.Castle          => ("Play Castle",           "Place/advance a courtier (or skip)"),
+                OutsideActivation.TrainingGrounds => ("Play Training Grounds", "Place a soldier (or skip)"),
+                _                                 => ("?", ""),
+            };
+            options.Add(new ActionEntry(label, detail, true, act));
+        }
         return options;
     }
 
@@ -578,9 +605,10 @@ internal sealed class InteractiveConsole
         var options = new List<ActionEntry>();
         for (int s = 0; s < state.Board.Outside.Slots.Count; s++)
         {
-            var action = legal.OfType<PlaceDieAction>()
+            var action    = legal.OfType<PlaceDieAction>()
                 .FirstOrDefault(a => a.Target is OutsideSlotTarget t && t.SlotIndex == s);
-            options.Add(new ActionEntry($"Slot {s}", null, action != null, action));
+            var slotLabel = s == 0 ? "Slot 0  (Farm or Castle)" : "Slot 1  (TG or Castle)";
+            options.Add(new ActionEntry(slotLabel, null, action != null, action));
         }
         return options;
     }
@@ -636,9 +664,9 @@ internal sealed class InteractiveConsole
     private static string OutsideSummary(GameStateSnapshot state)
     {
         var slots = state.Board.Outside.Slots;
-        var parts = slots.Select((s, i) =>
-            $"slot{i}:{(s.PlacedDice.Count > 0 ? $"[{s.PlacedDice[^1].Value}]" : "[ ]")}");
-        return string.Join("  ", parts) + "  val=5";
+        string Slot(DicePlaceholderSnapshot s, int i, string tag) =>
+            $"slot{i}({tag}):{(s.PlacedDice.Count > 0 ? $"[{s.PlacedDice[^1].Value}]" : "[ ]")}";
+        return $"{Slot(slots[0], 0, "Farm/Castle")}  {Slot(slots[1], 1, "TG/Castle")}  val=5";
     }
 
     private static string TrainingSummary(GameStateSnapshot state) =>

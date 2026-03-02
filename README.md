@@ -16,6 +16,10 @@ By specifying the rules, I led Claude to shape the game properly. First impressi
 
 Claude responds pretty well to hard-set rules. CLAUDE.md requires that gamerules.md are updated as we go, so the knowledge is preserved. So far so good. Will check the coverage and actual tests down the line.
 
+# cleaned up garbage behvavior
+
+In the first pass I decided to let Claude implement the rules as it knows it. It turned to be completely wrong. After several itreations of adding and changing rules, I decided to instruct Claude to remove the remaining wrong rules, which it did in one pass.
+
 # refining the console ui
 
 Since my goal is to dewelop a resuable game engine library, I never exactly specified how the throwable console UI should look like and I let Claude decide. After several iterations it became cluttered, which is expected, since I paid no attention to it. But, since I need to actually be able to test the dehavior myself, I ended up with unusable UI. I instruced Claude to rebuild it and after 3 iterations got what I want.

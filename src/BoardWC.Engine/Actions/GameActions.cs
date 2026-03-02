@@ -68,3 +68,12 @@ public sealed record PlaceFarmerAction(
 
 /// <summary>Skip the pending farm action.</summary>
 public sealed record FarmSkipAction(Guid PlayerId) : IGameAction;
+
+/// <summary>Which area to activate after placing a die at an outside slot.</summary>
+public enum OutsideActivation { Farm, Castle, TrainingGrounds }
+
+/// <summary>Resolve the activation choice after placing a die in an outside slot.</summary>
+public sealed record ChooseOutsideActivationAction(
+    Guid PlayerId,
+    OutsideActivation Choice
+) : IGameAction;

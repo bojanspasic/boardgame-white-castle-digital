@@ -214,3 +214,14 @@ public sealed record TopFloorSlotFilledEvent(
     public DateTimeOffset OccurredAt { get; } = DateTimeOffset.UtcNow;
     public string EventType => nameof(TopFloorSlotFilledEvent);
 }
+
+public sealed record OutsideActivationChosenEvent(
+    Guid GameId,
+    Guid PlayerId,
+    int SlotIndex,
+    OutsideActivation Choice
+) : IDomainEvent
+{
+    public DateTimeOffset OccurredAt { get; } = DateTimeOffset.UtcNow;
+    public string EventType => nameof(OutsideActivationChosenEvent);
+}

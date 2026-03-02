@@ -30,6 +30,9 @@ internal sealed class Player
     /// <summary>Remaining "advance courtier" uses from pending "Play castle" actions.</summary>
     internal int CastleAdvanceRemaining { get; set; }
 
+    /// <summary>-1 = no pending choice; 0 = slot 0 (Farm/Castle); 1 = slot 1 (TG/Castle).</summary>
+    internal int PendingOutsideActivationSlot { get; set; } = -1;
+
     internal int CourtiersAtGate { get; set; }
     internal int CourtiersOnGroundFloor { get; set; }
     internal int CourtiersOnMidFloor { get; set; }
@@ -43,6 +46,7 @@ internal sealed class Player
         Resources, LanternScore, Coins,
         MonarchialSeals, SoldiersAvailable, CourtiersAvailable, FarmersAvailable,
         PendingAnyResourceChoices, PendingTrainingGroundsActions, PendingFarmActions, CastlePlaceRemaining, CastleAdvanceRemaining,
+        PendingOutsideActivationSlot,
         CourtiersAtGate, CourtiersOnGroundFloor, CourtiersOnMidFloor, CourtiersOnTopFloor,
         DiceInHand.Select(d => d.ToSnapshot()).ToList().AsReadOnly()
     );

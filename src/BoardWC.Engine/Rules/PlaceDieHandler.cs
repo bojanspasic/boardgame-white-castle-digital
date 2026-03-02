@@ -128,6 +128,10 @@ internal sealed class PlaceDieHandler : IActionHandler
             }
         }
 
+        // Outside slot — player must choose which activation to trigger
+        if (a.Target is OutsideSlotTarget outsideTarget)
+            player.PendingOutsideActivationSlot = outsideTarget.SlotIndex;
+
         // Well token effects — apply when die is placed in the well
         if (a.Target is WellTarget)
         {
