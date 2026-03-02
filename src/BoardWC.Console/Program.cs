@@ -1,4 +1,3 @@
-using BoardWC.Console.Input;
 using BoardWC.Console.Presenters;
 using BoardWC.Engine.Actions;
 using BoardWC.Engine.AI;
@@ -17,16 +16,13 @@ var players = new[]
 
 var engine   = GameEngineFactory.Create(players, aiStrategy, maxRounds: 3);
 var renderer = new ConsoleRenderer();
-var parser   = new ConsoleInputParser();
+var ui       = new InteractiveConsole();
 
 // ── Start the game ─────────────────────────────────────────────────────────
 
 var startResult = engine.ProcessAction(new StartGameAction());
 if (startResult is ActionResult.Success startOk)
-{
-    renderer.Render(startOk.NewState);
-    renderer.RenderEvents(startOk.Events);
-}
+    ui.SetLastEvents(startOk.Events);
 
 // ── Main game loop ─────────────────────────────────────────────────────────
 
@@ -37,6 +33,7 @@ while (!engine.IsGameOver)
 
     if (active.IsAI)
     {
+        System.Console.Clear();
         System.Console.WriteLine($"\n  [AI — {active.Name}] thinking...");
         System.Threading.Thread.Sleep(600);
 
@@ -46,41 +43,33 @@ while (!engine.IsGameOver)
 
         if (aiResult is ActionResult.Success aiOk)
         {
-            renderer.RenderEvents(aiOk.Events);
-            renderer.Render(aiOk.NewState);
+            ui.SetLastEvents(aiOk.Events);
+            System.Threading.Thread.Sleep(1500);
         }
         else if (aiResult is ActionResult.Failure aiErr)
         {
             renderer.Error($"AI error: {aiErr.Reason}");
             break;
         }
-
         continue;
     }
 
     // ── Human turn ──────────────────────────────────────────────────────────
-    renderer.RenderPrompt(state);
 
-    var raw = System.Console.ReadLine() ?? string.Empty;
-    var parsed = parser.Parse(raw, state);
-
-    if (!parsed.Success)
-    {
-        renderer.Error(parsed.ErrorMessage!);
-        continue;
-    }
-
-    var result = engine.ProcessAction(parsed.Action!);
+    var action = ui.Run(state, engine);
+    var result = engine.ProcessAction(action);
 
     switch (result)
     {
         case ActionResult.Success ok:
-            renderer.RenderEvents(ok.Events);
-            renderer.Render(ok.NewState);
+            ui.SetLastEvents(ok.Events);
+            System.Threading.Thread.Sleep(1500);
             break;
 
         case ActionResult.Failure fail:
+            // Should rarely happen since we only offer legal actions
             renderer.Error(fail.Reason);
+            System.Threading.Thread.Sleep(1500);
             break;
     }
 }

@@ -277,7 +277,7 @@ internal sealed class ConsoleRenderer
     private static string PlayerName(Guid id, GameStateSnapshot state) =>
         state.Players.FirstOrDefault(p => p.Id == id)?.Name ?? "?";
 
-    private static string FormatEvent(IDomainEvent e) => e switch
+    internal static string FormatEvent(IDomainEvent e) => e switch
     {
         DieTakenFromBridgeEvent x => $"{PlayerName(x.PlayerId, x)} took [{x.DieValue}] from {x.BridgeColor} bridge ({x.Position})",
         LanternEffectFiredEvent x => $"{PlayerName(x.PlayerId, x)} triggered the Lantern Effect!",
