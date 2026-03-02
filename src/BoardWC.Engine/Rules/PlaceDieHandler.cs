@@ -23,13 +23,29 @@ internal sealed class PlaceDieHandler : IActionHandler
         if (player.DiceInHand.Count == 0)
             return ValidationResult.Fail("No die in hand to place.");
 
+        var die = player.DiceInHand[0];
+
+        // Personal domain — validated and handled entirely here (not via Resolve)
+        if (a.Target is PersonalDomainTarget pdv)
+        {
+            if (pdv.RowIndex < 0 || pdv.RowIndex >= player.PersonalDomainRows.Length)
+                return ValidationResult.Fail("Invalid personal domain row index.");
+            var pdRow = player.PersonalDomainRows[pdv.RowIndex];
+            if (pdRow.PlacedDie is not null)
+                return ValidationResult.Fail("This personal domain row already has a die this round.");
+            if (die.Color != pdRow.Config.DieColor)
+                return ValidationResult.Fail($"This row requires a {pdRow.Config.DieColor} die.");
+            int pdDelta = die.Value - pdRow.Config.CompareValue;
+            if (pdDelta < 0 && player.Coins < -pdDelta)
+                return ValidationResult.Fail($"Not enough coins. Need {-pdDelta}, have {player.Coins}.");
+            return ValidationResult.Ok();
+        }
+
         var placeholder = Resolve(a.Target, state.Board);
         if (placeholder is null)
             return ValidationResult.Fail("Invalid placement target.");
         if (!placeholder.CanAccept(state.Players.Count))
             return ValidationResult.Fail("That placement slot is full.");
-
-        var die = player.DiceInHand[0];
 
         // Castle rooms only accept dice whose color matches at least one room token
         if (a.Target is CastleRoomTarget)
@@ -49,9 +65,16 @@ internal sealed class PlaceDieHandler : IActionHandler
 
     public void Apply(IGameAction action, GameState state, List<IDomainEvent> events)
     {
-        var a    = (PlaceDieAction)action;
+        var a      = (PlaceDieAction)action;
         var player = state.Players.First(p => p.Id == a.PlayerId);
         var die    = player.DiceInHand[0];
+
+        // Personal domain placement — handled entirely here, does not use Resolve()
+        if (a.Target is PersonalDomainTarget pda)
+        {
+            ApplyPersonalDomain(pda, player, die, state, events);
+            return;
+        }
 
         var placeholder  = Resolve(a.Target, state.Board)!;
         int compareValue = placeholder.GetCompareValue(state.Players.Count);
@@ -161,6 +184,41 @@ internal sealed class PlaceDieHandler : IActionHandler
                 state.GameId, player.Id, 1, resourcesGained, coinsGained, pendingChoices));
         }
     }
+
+    private static void ApplyPersonalDomain(
+        PersonalDomainTarget target, Player player, Die die,
+        GameState state, List<IDomainEvent> events)
+    {
+        var row   = player.PersonalDomainRows[target.RowIndex];
+        int delta = die.Value - row.Config.CompareValue;
+
+        player.Coins += delta;
+        row.PlacedDie = die;
+        player.DiceInHand.RemoveAt(0);
+
+        events.Add(new DiePlacedEvent(state.GameId, player.Id, target, die.Value, delta));
+
+        // Default gain always applies
+        var gained = new ResourceBag().Add(row.Config.DefaultGainType, row.Config.DefaultGainAmount);
+
+        // Uncovered spots (left-to-right): count = 5 − FigureAvailable
+        int uncovered = GetUncoveredCount(player, row.Config.FigureType);
+        for (int i = 0; i < uncovered; i++)
+            gained = gained.Add(row.Config.SpotGains[i].Type, row.Config.SpotGains[i].Amount);
+
+        player.Resources = (player.Resources + gained).Clamp(7);
+
+        events.Add(new PersonalDomainActivatedEvent(
+            state.GameId, player.Id, target.RowIndex, row.Config.DieColor, uncovered, gained));
+    }
+
+    private static int GetUncoveredCount(Player player, string figureType) => figureType switch
+    {
+        "Courtier" => 5 - player.CourtiersAvailable,
+        "Farmer"   => 5 - player.FarmersAvailable,
+        "Soldier"  => 5 - player.SoldiersAvailable,
+        _          => 0
+    };
 
     private static DicePlaceholder? Resolve(PlacementTarget target, Board board) =>
         target switch

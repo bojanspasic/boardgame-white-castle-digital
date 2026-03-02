@@ -1,0 +1,43 @@
+{
+  "rows": [
+    {
+      "dieColor": "Red",
+      "compareValue": 6,
+      "figureType": "Courtier",
+      "defaultGain": { "type": "Iron", "amount": 1 },
+      "spots": [
+        { "type": "Iron", "amount": 1 },
+        { "type": "Iron", "amount": 1 },
+        { "type": "Iron", "amount": 1 },
+        { "type": "Iron", "amount": 1 },
+        { "type": "Iron", "amount": 1 }
+      ]
+    },
+    {
+      "dieColor": "White",
+      "compareValue": 6,
+      "figureType": "Farmer",
+      "defaultGain": { "type": "ValueItem", "amount": 1 },
+      "spots": [
+        { "type": "ValueItem", "amount": 1 },
+        { "type": "ValueItem", "amount": 1 },
+        { "type": "ValueItem", "amount": 1 },
+        { "type": "ValueItem", "amount": 1 },
+        { "type": "ValueItem", "amount": 1 }
+      ]
+    },
+    {
+      "dieColor": "Black",
+      "compareValue": 6,
+      "figureType": "Soldier",
+      "defaultGain": { "type": "Food", "amount": 1 },
+      "spots": [
+        { "type": "Food", "amount": 1 },
+        { "type": "Food", "amount": 1 },
+        { "type": "Food", "amount": 1 },
+        { "type": "Food", "amount": 1 },
+        { "type": "Food", "amount": 1 }
+      ]
+    }
+  ]
+}

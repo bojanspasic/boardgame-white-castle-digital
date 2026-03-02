@@ -21,6 +21,8 @@ public static class GameEngineFactory
         if (players.Count < 2 || players.Count > 4)
             throw new ArgumentException("White Castle requires 2–4 players.", nameof(players));
 
+        var rowConfigs = PersonalDomainRowConfig.Load();
+
         var domainPlayers = players
             .Select(p => new Player
             {
@@ -28,6 +30,7 @@ public static class GameEngineFactory
                 Name  = p.Name,
                 Color = p.Color,
                 IsAI  = p.IsAI,
+                PersonalDomainRows = rowConfigs.Select(c => new PersonalDomainRow(c)).ToArray(),
             })
             .ToList();
 

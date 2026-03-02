@@ -14,6 +14,7 @@
     <EmbeddedResource Include="Data\inland-farm-cards.json" />
     <EmbeddedResource Include="Data\outside-farm-cards.json" />
     <EmbeddedResource Include="Data\top-floor-cards.json" />
+    <EmbeddedResource Include="Data\personal-domain-rows.json" />
   </ItemGroup>
 
 </Project>

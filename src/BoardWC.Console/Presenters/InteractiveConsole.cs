@@ -358,6 +358,14 @@ internal sealed class InteractiveConsole
             : BuildFarmInfoOptions(state);
         areas.Add(new AreaEntry("Farming Lands", FarmSummary(state), true, null, farmOptions));
 
+        // Personal Domain — always selectable for inspection
+        areas.Add(new AreaEntry(
+            "Personal Domain",
+            PersonalDomainSummary(state),
+            true,
+            null,
+            BuildPersonalDomainInfoOptions(state)));
+
         return areas;
     }
 
@@ -469,6 +477,27 @@ internal sealed class InteractiveConsole
             var slotLabel  = s == 0 ? "Outside Slot 0  (Farm or Castle)  val=5"
                                     : "Outside Slot 1  (TG or Castle)    val=5";
             options.Add(new ActionEntry(slotLabel, detail, action != null, action));
+        }
+
+        // Personal Domain rows
+        options.Add(Header("Personal Domain:"));
+        for (int r = 0; r < player.PersonalDomainRows.Count; r++)
+        {
+            var row   = player.PersonalDomainRows[r];
+            var pdAct = legal.OfType<PlaceDieAction>()
+                .FirstOrDefault(a => a.Target is PersonalDomainTarget t && t.RowIndex == r);
+            int uncov = row.Spots.Count(s => s.IsUncovered);
+            bool full = row.PlacedDie is not null;
+            string gain = FormatPdGain(row, uncov);
+
+            string rowLabel = full
+                ? $"{row.DieColor} ({row.FigureType})  val={row.CompareValue}  [die placed]"
+                : $"{row.DieColor} ({row.FigureType})  val={row.CompareValue}  [{gain}]";
+            string rowDetail = pdAct is not null
+                ? $"\u2192 {CoinDeltaStr(die.Value - row.CompareValue)}"
+                : full ? "\u2192 full" : $"\u2192 need {row.DieColor} die";
+
+            options.Add(new ActionEntry(rowLabel, rowDetail, pdAct != null, pdAct));
         }
 
         return options;
@@ -676,6 +705,27 @@ internal sealed class InteractiveConsole
     private static string FarmSummary(GameStateSnapshot state) =>
         $"{state.Board.FarmingLands.Fields.Count} fields";
 
+    private static string PersonalDomainSummary(GameStateSnapshot state)
+    {
+        var player = state.Players[state.ActivePlayerIndex];
+        var parts  = player.PersonalDomainRows.Select(row =>
+        {
+            int uncov   = row.Spots.Count(s => s.IsUncovered);
+            string die  = row.PlacedDie is not null ? $"[{row.PlacedDie.Value}]" : "[ ]";
+            string gain = FormatPdGain(row, uncov);
+            return $"{row.DieColor.ToString()[..1]}({row.FigureType[..2]}){die}\u2192{gain}";
+        });
+        return string.Join("  ", parts);
+    }
+
+    private static string FormatPdGain(PersonalDomainRowSnapshot row, int uncoveredCount)
+    {
+        var parts = new List<string> { $"+{row.DefaultGainAmount} {row.DefaultGainType}" };
+        for (int i = 0; i < uncoveredCount; i++)
+            parts.Add($"+{row.Spots[i].GainAmount} {row.Spots[i].GainType}");
+        return string.Join(", ", parts);
+    }
+
     // ── Navigation helpers ────────────────────────────────────────────────
 
     private static int FirstSelectable<T>(IReadOnlyList<T> list, Func<T, bool> pred)
@@ -874,6 +924,30 @@ internal sealed class InteractiveConsole
             var farmers = field.FarmerOwners.Count > 0
                 ? string.Join(", ", field.FarmerOwners) : "none";
             options.Add(InfoRow($"Farmers: {farmers}"));
+        }
+        return options;
+    }
+
+    // ── Info views: Personal Domain ───────────────────────────────────────
+
+    private static List<ActionEntry> BuildPersonalDomainInfoOptions(GameStateSnapshot state)
+    {
+        var options = new List<ActionEntry>();
+        var player  = state.Players[state.ActivePlayerIndex];
+
+        foreach (var row in player.PersonalDomainRows)
+        {
+            int uncov  = row.Spots.Count(s => s.IsUncovered);
+            string die = row.PlacedDie is not null ? $"  die=[{row.PlacedDie.Value}]" : "";
+            options.Add(Header($"{row.DieColor} ({row.FigureType})  val={row.CompareValue}{die}"));
+            options.Add(InfoRow($"Default gain: +{row.DefaultGainAmount} {row.DefaultGainType}"));
+            options.Add(InfoRow($"Spots ({uncov}/{row.Spots.Count} uncovered):"));
+            for (int i = 0; i < row.Spots.Count; i++)
+            {
+                var spot = row.Spots[i];
+                var status = spot.IsUncovered ? "uncovered" : "covered";
+                options.Add(InfoRow($"  Spot {i}: +{spot.GainAmount} {spot.GainType}  [{status}]"));
+            }
         }
         return options;
     }

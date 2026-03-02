@@ -135,6 +135,17 @@ internal static class LegalActionGenerator
                     actions.Add(new PlaceDieAction(playerId, new OutsideSlotTarget(s)));
             }
 
+            // Personal domain rows (die color must match; row must be empty this round)
+            for (int r = 0; r < player.PersonalDomainRows.Length; r++)
+            {
+                var row = player.PersonalDomainRows[r];
+                if (row.PlacedDie is not null) continue;
+                if (die.Color != row.Config.DieColor) continue;
+                int delta = die.Value - row.Config.CompareValue;
+                if (delta >= 0 || player.Coins >= -delta)
+                    actions.Add(new PlaceDieAction(playerId, new PersonalDomainTarget(r)));
+            }
+
             return actions.AsReadOnly();
         }
 

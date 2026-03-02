@@ -225,3 +225,16 @@ public sealed record OutsideActivationChosenEvent(
     public DateTimeOffset OccurredAt { get; } = DateTimeOffset.UtcNow;
     public string EventType => nameof(OutsideActivationChosenEvent);
 }
+
+public sealed record PersonalDomainActivatedEvent(
+    Guid GameId,
+    Guid PlayerId,
+    int RowIndex,
+    BridgeColor DieColor,
+    int UncoveredSpots,
+    ResourceBag ResourcesGained
+) : IDomainEvent
+{
+    public DateTimeOffset OccurredAt { get; } = DateTimeOffset.UtcNow;
+    public string EventType => nameof(PersonalDomainActivatedEvent);
+}

@@ -11,3 +11,6 @@ public sealed record WellTarget : PlacementTarget;
 
 /// <summary>One of the two outside slots (index 0 or 1), compare value 5.</summary>
 public sealed record OutsideSlotTarget(int SlotIndex) : PlacementTarget;
+
+/// <summary>A row on the active player's personal domain (index 0–2), compare value from config.</summary>
+public sealed record PersonalDomainTarget(int RowIndex) : PlacementTarget;

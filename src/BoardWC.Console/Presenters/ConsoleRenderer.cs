@@ -290,6 +290,7 @@ internal sealed class ConsoleRenderer
         FarmerPlacedEvent               x => FormatFarmerPlaced(x),
         FarmEffectFiredEvent            x => FormatFarmEffect(x),
         TopFloorSlotFilledEvent         x => FormatTopFloorSlot(x),
+        PersonalDomainActivatedEvent x => FormatPersonalDomainActivated(x),
         AnyResourceChosenEvent  x => $"{PlayerName(x.PlayerId, x)} chose {x.Choice} from AnyResource token",
         ResourcesCollectedEvent  x => $"{PlayerName(x.PlayerId, x)} collected {x.Gained}",
         LanternsGainedEvent      x => $"{PlayerName(x.PlayerId, x)} gained {x.Amount} lantern(s)",
@@ -357,14 +358,22 @@ internal sealed class ConsoleRenderer
         return $"{PlayerName(x.PlayerId, x)} training grounds: {string.Join(", ", parts)}";
     }
 
+    private static string FormatPersonalDomainActivated(PersonalDomainActivatedEvent x)
+    {
+        var gained = x.ResourcesGained.Total > 0 ? $"resources: {x.ResourcesGained}" : "nothing";
+        return $"{PlayerName(x.PlayerId, x)} personal domain row {x.RowIndex} ({x.DieColor}): " +
+               $"{gained}  ({x.UncoveredSpots} uncovered spots)";
+    }
+
     private static string FormatPlaced(DiePlacedEvent x)
     {
         var location = x.Target switch
         {
-            CastleRoomTarget  c => $"castle floor {c.Floor} room {c.RoomIndex}",
-            WellTarget          => "the well",
-            OutsideSlotTarget o => $"outside slot {o.SlotIndex}",
-            _                   => "unknown",
+            CastleRoomTarget      c => $"castle floor {c.Floor} room {c.RoomIndex}",
+            WellTarget              => "the well",
+            OutsideSlotTarget     o => $"outside slot {o.SlotIndex}",
+            PersonalDomainTarget  p => $"personal domain row {p.RowIndex}",
+            _                       => "unknown",
         };
         var coinEffect = x.CoinDelta switch
         {

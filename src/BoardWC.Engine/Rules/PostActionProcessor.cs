@@ -45,6 +45,11 @@ internal static class PostActionProcessor
 
         state.Board.ClearPlacementAreas();
 
+        // Clear personal domain placed dice so rows are available again next round
+        foreach (var p in state.Players)
+            foreach (var row in p.PersonalDomainRows)
+                row.ClearForRound();
+
         if (state.CurrentRound >= state.MaxRounds)
         {
             state.CurrentPhase = Phase.GameOver;

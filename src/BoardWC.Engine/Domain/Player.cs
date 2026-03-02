@@ -41,6 +41,9 @@ internal sealed class Player
     /// <summary>Dice the player has taken from bridges this round.</summary>
     internal List<Die> DiceInHand { get; } = new();
 
+    /// <summary>The three personal domain rows (Red/Courtier, White/Farmer, Black/Soldier).</summary>
+    internal PersonalDomainRow[] PersonalDomainRows { get; set; } = [];
+
     public PlayerSnapshot ToSnapshot() => new(
         Id, Name, Color, IsAI,
         Resources, LanternScore, Coins,
@@ -48,6 +51,15 @@ internal sealed class Player
         PendingAnyResourceChoices, PendingTrainingGroundsActions, PendingFarmActions, CastlePlaceRemaining, CastleAdvanceRemaining,
         PendingOutsideActivationSlot,
         CourtiersAtGate, CourtiersOnGroundFloor, CourtiersOnMidFloor, CourtiersOnTopFloor,
-        DiceInHand.Select(d => d.ToSnapshot()).ToList().AsReadOnly()
+        DiceInHand.Select(d => d.ToSnapshot()).ToList().AsReadOnly(),
+        PersonalDomainRows.Select(r => r.ToSnapshot(UncoveredCount(r.Config.FigureType))).ToList().AsReadOnly()
     );
+
+    private int UncoveredCount(string figureType) => figureType switch
+    {
+        "Courtier" => 5 - CourtiersAvailable,
+        "Farmer"   => 5 - FarmersAvailable,
+        "Soldier"  => 5 - SoldiersAvailable,
+        _          => 0
+    };
 }

@@ -34,7 +34,8 @@ public sealed record PlayerSnapshot(
     int CourtiersOnGroundFloor,
     int CourtiersOnMidFloor,
     int CourtiersOnTopFloor,
-    IReadOnlyList<DieSnapshot> DiceInHand
+    IReadOnlyList<DieSnapshot> DiceInHand,
+    IReadOnlyList<PersonalDomainRowSnapshot> PersonalDomainRows
 );
 
 public sealed record BoardSnapshot(
@@ -141,6 +142,22 @@ public sealed record FarmFieldSnapshot(
 );
 
 public sealed record FarmingLandsSnapshot(IReadOnlyList<FarmFieldSnapshot> Fields);
+
+// ── Personal domain snapshots ─────────────────────────────────────────────────
+
+public sealed record PersonalDomainSpotSnapshot(
+    ResourceType GainType,
+    int GainAmount,
+    bool IsUncovered);
+
+public sealed record PersonalDomainRowSnapshot(
+    BridgeColor DieColor,
+    int CompareValue,
+    string FigureType,
+    ResourceType DefaultGainType,
+    int DefaultGainAmount,
+    IReadOnlyList<PersonalDomainSpotSnapshot> Spots,
+    DieSnapshot? PlacedDie);
 
 public sealed record PlayerScore(
     Guid PlayerId,

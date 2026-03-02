@@ -78,25 +78,53 @@ In the console, use: `choose food`, `choose iron`, or `choose valueitem`.
 
 ## Personal Domains
 
-Each player has a personal domain that stores their resources and personnel.
+Each player has their own **personal domain** — a dedicated player board that tracks everything
+belonging to that player. It is divided into two sections:
 
-### Resources
-Three types: **Food**, **Iron**, **Value Item**.
-- Maximum **7** of each resource per player.
-- How resources are earned: **[DEFERRED]**
+### Resource Storage
+Three resource types, each stored in their own space on the personal domain:
+- **Food** — maximum 7
+- **Iron** — maximum 7
+- **Value Item** — maximum 7
 
-### Monarchial Seals
-- A separate earnable currency distinct from coins.
-- Maximum **5** seals per player.
-- How seals are earned: **[DEFERRED]**
+Additional tracked values (not resources, but stored on personal domain):
+- **Coins** — no cap (earned/spent during placement)
+- **Monarchial Seals** — maximum 5 (earned by placing dice in the Well)
+- **Lantern score** — victory points accumulated over the game
 
-### Personnel
-Each player starts with:
-- 5 **Soldiers**
-- 5 **Courtiers**
-- 5 **Farmers**
+### Personnel Area
+The personal domain has a dedicated space for each type of personnel figure.
+Each player begins the game with all figures on their personal domain:
+- **5 Soldiers** — deployed to Training Grounds
+- **5 Courtiers** — deployed to the Castle (Gate → Ground → Mid → Top floor)
+- **5 Farmers** — deployed to Farming Lands
 
-Placement rules for personnel: **[DEFERRED]**
+When a figure is deployed to the board (via Play Castle, Play Training Grounds, or Play Farm),
+it moves from the personal domain to the corresponding board area.
+The count of figures remaining on the personal domain determines how many more can be deployed
+(`SoldiersAvailable`, `CourtiersAvailable`, `FarmersAvailable`).
+
+Figures are **not returned** to the personal domain when cleared at round end — they stay on the
+board area where they were placed for the remainder of the game.
+
+### Die Placement Rows (personal domain board)
+
+The personal domain also contains three **die placement rows**, one per figure type.
+Each row is associated with a specific die color and a compare value of **6**.
+
+| Row | Die color | Figure type | Default gain | Spot gain (×5) |
+|-----|-----------|-------------|--------------|----------------|
+| 0   | Red       | Courtier    | +1 Iron      | Iron           |
+| 1   | White     | Farmer      | +1 Value Item | Value Item    |
+| 2   | Black     | Soldier     | +1 Food      | Food           |
+
+**Mechanics:**
+- Each spot in a row starts **covered** by a figure. Figures are removed **left-to-right** as they are
+  deployed to the board (each deployment uncovers one spot, revealing its resource gain).
+- A player may place a die of the matching color into a row (spending or earning coins vs. compare value 6).
+- **Effect on placement**: default gain + all **uncovered spot** gains (left-to-right) are granted immediately.
+- **One die per row per round** — no stacking. Placed dice are cleared at round end.
+- The row configuration (gains, compare value) is loaded from `personal-domain-rows.json` and can be changed there.
 
 ---
 
