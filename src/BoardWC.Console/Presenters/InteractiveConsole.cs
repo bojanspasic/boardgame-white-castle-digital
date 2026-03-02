@@ -562,29 +562,64 @@ internal sealed class InteractiveConsole
 
         // Advance options
         var advances = legal.OfType<CastleAdvanceCourtierAction>().ToList();
-        var allAdvances = new[]
+        int vi = player.Resources.ValueItem;
+
+        // Room-entering advances: enumerate one entry per room (player picks which room to enter)
+        var roomAdvances = new[]
         {
-            (CourtierPosition.Gate,        1, "Gate \u2192 Ground",  2),
-            (CourtierPosition.Gate,        2, "Gate \u2192 Mid",     5),
-            (CourtierPosition.GroundFloor, 1, "Ground \u2192 Mid",   2),
-            (CourtierPosition.GroundFloor, 2, "Ground \u2192 Top",   5),
-            (CourtierPosition.MidFloor,    1, "Mid \u2192 Top",      2),
+            (From: CourtierPosition.Gate,        Levels: 1, Label: "Gate \u2192 Ground",  ViCost: 2, FloorIdx: 0, RoomCount: 3),
+            (From: CourtierPosition.Gate,        Levels: 2, Label: "Gate \u2192 Mid",     ViCost: 5, FloorIdx: 1, RoomCount: 2),
+            (From: CourtierPosition.GroundFloor, Levels: 1, Label: "Ground \u2192 Mid",   ViCost: 2, FloorIdx: 1, RoomCount: 2),
         };
-        foreach (var (from, levels, label, viCost) in allAdvances)
+        foreach (var adv in roomAdvances)
         {
-            var action  = advances.FirstOrDefault(a => a.From == from && a.Levels == levels);
-            int atFrom  = from switch
+            int atFrom = adv.From switch
             {
                 CourtierPosition.Gate        => player.CourtiersAtGate,
+                CourtierPosition.GroundFloor => player.CourtiersOnGroundFloor,
+                _                            => 0,
+            };
+            string? why = atFrom <= 0 ? $"no courtiers at {adv.From}"
+                : vi < adv.ViCost ? $"need {adv.ViCost} VI"
+                : null;
+            string hdr = why is not null
+                ? $"Advance {adv.Label}  (\u2212{adv.ViCost} VI)  [{why}]:"
+                : $"Advance {adv.Label}  (\u2212{adv.ViCost} VI)  \u2014 pick a room:";
+            options.Add(Header(hdr));
+
+            for (int r = 0; r < adv.RoomCount; r++)
+            {
+                var roomCard = adv.FloorIdx < state.Board.Castle.Floors.Count
+                               && r < state.Board.Castle.Floors[adv.FloorIdx].Count
+                    ? state.Board.Castle.Floors[adv.FloorIdx][r].Card
+                    : null;
+                string cardDesc = roomCard is not null ? roomCard.Name : "(no card)";
+                var action = advances.FirstOrDefault(
+                    a => a.From == adv.From && a.Levels == adv.Levels && a.RoomIndex == r);
+                options.Add(new ActionEntry($"  Room {r}: {cardDesc}", null, action != null, action));
+            }
+        }
+
+        // Top-floor advances: no room choice
+        var topAdvances = new[]
+        {
+            (From: CourtierPosition.GroundFloor, Levels: 2, Label: "Ground \u2192 Top", ViCost: 5),
+            (From: CourtierPosition.MidFloor,    Levels: 1, Label: "Mid \u2192 Top",    ViCost: 2),
+        };
+        foreach (var adv in topAdvances)
+        {
+            var action = advances.FirstOrDefault(a => a.From == adv.From && a.Levels == adv.Levels);
+            int atFrom = adv.From switch
+            {
                 CourtierPosition.GroundFloor => player.CourtiersOnGroundFloor,
                 CourtierPosition.MidFloor    => player.CourtiersOnMidFloor,
                 _                            => 0,
             };
-            string? why = atFrom <= 0 ? $"no courtiers at {from}"
-                : player.Resources.ValueItem < viCost ? $"need {viCost} VI"
+            string? why = atFrom <= 0 ? $"no courtiers at {adv.From}"
+                : vi < adv.ViCost ? $"need {adv.ViCost} VI"
                 : null;
             options.Add(new ActionEntry(
-                $"Advance from {label}  (\u2212{viCost} VI)",
+                $"Advance {adv.Label}  (\u2212{adv.ViCost} VI)",
                 why is null ? null : $"[{why}]",
                 action != null, action));
         }
@@ -745,6 +780,30 @@ internal sealed class InteractiveConsole
         for (int i = 0; i < uncoveredCount; i++)
             parts.Add($"+{row.Spots[i].GainAmount} {row.Spots[i].GainType}");
         return string.Join(", ", parts);
+    }
+
+    /// <summary>
+    /// Returns the formatted field description for a personal domain card at the given row (0–2).
+    /// Ground-floor cards (Layout=null): field[rowIndex].
+    /// DoubleTop: field[0] spans rows 0+1, field[1] is row 2.
+    /// DoubleBottom: field[0] is row 0, field[1] spans rows 1+2.
+    /// </summary>
+    private static string PdCardFieldForRow(RoomCardSnapshot card, int rowIndex)
+    {
+        int? fi = card.Layout switch
+        {
+            null           => rowIndex < card.Fields.Count ? rowIndex : (int?)null,
+            "DoubleTop"    => rowIndex <= 1 ? 0 : 1,
+            "DoubleBottom" => rowIndex == 0 ? 0 : 1,
+            _              => null,
+        };
+        if (fi is not { } fieldIdx || fieldIdx >= card.Fields.Count) return "";
+        var field = card.Fields[fieldIdx];
+        if (field.IsGain && field.Gains is { } gains)
+            return $"[{string.Join(", ", gains.Select(g => $"+{g.Amount} {g.GainType}"))}]";
+        if (!field.IsGain && field.ActionDescription is { } desc)
+            return $"[{desc}]";
+        return "";
     }
 
     // ── Navigation helpers ────────────────────────────────────────────────
@@ -966,7 +1025,7 @@ internal sealed class InteractiveConsole
         var options = new List<ActionEntry>();
         var player  = state.Players[state.ActivePlayerIndex];
 
-        // Compact side-by-side overview: 3 rows + seed card box
+        // Compact side-by-side overview: 3 rows + seed card box + PD card fields
         string[] cardLines = SeedCardLines(player.SeedCard?.ActionType);
         for (int r = 0; r < player.PersonalDomainRows.Count; r++)
         {
@@ -975,11 +1034,17 @@ internal sealed class InteractiveConsole
             string die  = row.PlacedDie is not null ? $"[{row.PlacedDie.Value}]" : "[ ]";
             string gain = FormatPdGain(row, uncov);
             string rowLine  = $"{row.DieColor,-7} ({row.FigureType,-8})  val={row.CompareValue}  {die}  {gain}";
+            var sb = new System.Text.StringBuilder(rowLine.PadRight(50));
             string cardLine = cardLines[r];
-            string overview = cardLine.Length > 0
-                ? $"{rowLine.PadRight(50)}  {cardLine}"
-                : rowLine;
-            options.Add(InfoRow(overview));
+            if (cardLine.Length > 0)
+                sb.Append($"  {cardLine}");
+            foreach (var pdCard in player.PersonalDomainCards)
+            {
+                string pdField = PdCardFieldForRow(pdCard, r);
+                if (pdField.Length > 0)
+                    sb.Append($"  {pdCard.Name}:{pdField}");
+            }
+            options.Add(InfoRow(sb.ToString()));
         }
 
         options.Add(Header(""));
@@ -997,6 +1062,25 @@ internal sealed class InteractiveConsole
                 var spot = row.Spots[i];
                 var status = spot.IsUncovered ? "uncovered" : "covered";
                 options.Add(InfoRow($"  Spot {i}: +{spot.GainAmount} {spot.GainType}  [{status}]"));
+            }
+        }
+
+        // Personal domain cards
+        if (player.PersonalDomainCards.Count > 0)
+        {
+            string[] rowLabels = ["Red/Courtier", "White/Farmer", "Black/Soldier"];
+            options.Add(Header(""));
+            options.Add(Header("Personal Domain Cards:"));
+            foreach (var pdCard in player.PersonalDomainCards)
+            {
+                string layoutDesc = pdCard.Layout ?? "3-field";
+                options.Add(InfoRow($"  {pdCard.Name}  ({layoutDesc})"));
+                for (int r = 0; r < 3; r++)
+                {
+                    string fieldDesc = PdCardFieldForRow(pdCard, r);
+                    if (fieldDesc.Length > 0)
+                        options.Add(InfoRow($"    Row {r} ({rowLabels[r]}): {fieldDesc}"));
+                }
             }
         }
 

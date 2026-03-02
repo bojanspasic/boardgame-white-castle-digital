@@ -50,6 +50,9 @@ internal sealed class Player
     /// <summary>Ordered list of chain entries; fires left-to-right whenever a Lantern gain triggers.</summary>
     internal List<LanternChainItem> LanternChain { get; } = new();
 
+    /// <summary>Room cards acquired from ground/mid floor castle rooms; fields activate on personal domain row placement.</summary>
+    internal List<RoomCard> PersonalDomainCards { get; } = new();
+
     public PlayerSnapshot ToSnapshot() => new(
         Id, Name, Color, IsAI,
         Resources, LanternScore, Coins,
@@ -60,7 +63,8 @@ internal sealed class Player
         DiceInHand.Select(d => d.ToSnapshot()).ToList().AsReadOnly(),
         PersonalDomainRows.Select(r => r.ToSnapshot(UncoveredCount(r.Config.FigureType))).ToList().AsReadOnly(),
         SeedCard?.ToSnapshot(),
-        LanternChain.Select(i => i.ToSnapshot()).ToList().AsReadOnly()
+        LanternChain.Select(i => i.ToSnapshot()).ToList().AsReadOnly(),
+        PersonalDomainCards.Select(c => c.ToSnapshot()).ToList().AsReadOnly()
     );
 
     private int UncoveredCount(string figureType) => figureType switch

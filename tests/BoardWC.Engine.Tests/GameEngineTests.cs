@@ -728,12 +728,13 @@ public class GameEngineTests
     {
         var engine = StartedGame();
         var alice  = engine.GetCurrentState().Players[0];
+        int sealsBefore = alice.MonarchialSeals; // may be >0 if seed card included a seal gain
 
         TakeAndPlaceAtWellForPlayer(engine, alice.Id);
         ResolveAllPendingChoices(engine, alice.Id);
 
         var aliceAfter = engine.GetCurrentState().Players.First(p => p.Id == alice.Id);
-        Assert.Equal(1, aliceAfter.MonarchialSeals);
+        Assert.Equal(sealsBefore + 1, aliceAfter.MonarchialSeals);
     }
 
     [Fact]

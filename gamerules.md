@@ -68,6 +68,37 @@ In the console, use: `choose food`, `choose iron`, or `choose valueitem`.
 
 **Effect when die placed in a castle room:** **[DEFERRED]**
 
+### Outside Slot Activation
+
+When a die is placed in an **outside slot**, the player must choose which action to activate:
+- **Slot 0** (left): Farm or Castle
+- **Slot 1** (right): Training Grounds or Castle
+
+After choosing, the chosen action triggers immediately (before the player's next turn).
+
+### Play Castle Action
+
+When a "Play Castle" action is triggered (from an outside slot, or from card field effects), the player receives:
+- **1 place-at-gate use** (`CastlePlaceRemaining++`)
+- **1 advance-courtier use** (`CastleAdvanceRemaining++`)
+
+The player must then resolve each use before acting further. For each use, they can:
+
+1. **Place a courtier at the gate** — costs 2 coins, moves a courtier from hand to `CourtiersAtGate`
+2. **Advance a courtier** — costs Value Items, moves a courtier one or two levels up the castle:
+   - **Gate → Ground floor** (1 level, −2 VI): player picks one of 3 rooms
+   - **Gate → Mid floor** (2 levels, −5 VI): player picks one of 2 rooms
+   - **Ground → Mid floor** (1 level, −2 VI): player picks one of 2 rooms
+   - **Ground → Top floor** (2 levels, −5 VI): no room choice
+   - **Mid → Top floor** (1 level, −2 VI): no room choice
+3. **Skip** — forfeits all remaining castle uses
+
+**Card acquisition (when entering ground or mid floor):**
+- The player takes the **current card** from the chosen room
+- A replacement is dealt from the floor deck; if no replacement is available, no card is taken
+- The taken card's **back** goes into the lantern chain
+- The taken card is placed in the player's **personal domain** (see Personal Domain Cards)
+
 ### Gate **[DEFERRED]**
 
 ### Training Grounds **[DEFERRED]**
@@ -116,7 +147,10 @@ that fire whenever the Lantern Effect triggers.
 - When seeding completes (a player picks their seed pair), the **resource seed card** is flipped
   and its back gain is added as the first entry in the chain.
   - Resource seed card backs: one resource (Food, Iron, or Value Item), quantity 1.
-- Additional cards can be added to the chain later (mechanic TBD).
+- When a courtier enters a **ground floor** or **mid floor** castle room (see Castle section),
+  the room card is taken and its back gain is added to the chain:
+  - Ground floor card backs: one Coin
+  - Mid floor card backs: one VictoryPoint
 
 **Activation:**
 - Every time a Lantern gain fires (Low-die Lantern Effect, card field gains, castle/farm/TG effects),
@@ -147,8 +181,28 @@ Each row is associated with a specific die color and a compare value of **6**.
   deployed to the board (each deployment uncovers one spot, revealing its resource gain).
 - A player may place a die of the matching color into a row (spending or earning coins vs. compare value 6).
 - **Effect on placement**: default gain + all **uncovered spot** gains (left-to-right) are granted immediately.
+  In addition, each **personal domain card** the player has acquired fires the field that maps to this row (see below).
 - **One die per row per round** — no stacking. Placed dice are cleared at round end.
 - The row configuration (gains, compare value) is loaded from `personal-domain-rows.json` and can be changed there.
+
+### Personal Domain Cards
+
+When a courtier is advanced into a **ground floor** or **mid floor** castle room, the player takes the
+room's current card and places a replacement card from the floor deck.
+If no replacement is available, the courtier still advances but no card is taken.
+
+- The taken card's **back** is added to the player's lantern chain.
+- The taken card is placed in the player's **personal domain** (displayed to the right of the dice rows).
+
+**Field → row mapping** (determines which field fires when a die is placed in each personal domain row):
+
+| Card type | Layout | Row 0 (Red/Courtier) | Row 1 (White/Farmer) | Row 2 (Black/Soldier) |
+|-----------|--------|----------------------|----------------------|------------------------|
+| Ground floor | 3-field | field[0] | field[1] | field[2] |
+| Mid floor | DoubleTop | field[0] | field[0] | field[1] |
+| Mid floor | DoubleBottom | field[0] | field[1] | field[1] |
+
+Fields can be **gain fields** (grant resources/coins/seals/lanterns) or **action fields** (trigger Play Castle / Play Farm / Play Training Grounds).
 
 ---
 

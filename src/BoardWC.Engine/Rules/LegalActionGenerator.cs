@@ -109,8 +109,8 @@ internal static class LegalActionGenerator
                 actions.Add(new CastlePlaceCourtierAction(playerId));
 
             if (player.CastleAdvanceRemaining > 0)
-                foreach (var (from, lvl) in ValidAdvances(player))
-                    actions.Add(new CastleAdvanceCourtierAction(playerId, from, lvl));
+                foreach (var (from, lvl, roomIdx) in ValidAdvances(player))
+                    actions.Add(new CastleAdvanceCourtierAction(playerId, from, lvl, roomIdx));
 
             return actions.AsReadOnly();
         }
@@ -184,23 +184,34 @@ internal static class LegalActionGenerator
         return actions.AsReadOnly();
     }
 
-    private static IEnumerable<(CourtierPosition From, int Levels)> ValidAdvances(Domain.Player player)
+    private static IEnumerable<(CourtierPosition From, int Levels, int RoomIndex)> ValidAdvances(Domain.Player player)
     {
         int vi = player.Resources.ValueItem;
 
         if (player.CourtiersAtGate > 0)
         {
-            if (vi >= 2) yield return (CourtierPosition.Gate, 1);
-            if (vi >= 5) yield return (CourtierPosition.Gate, 2);
+            // Gate + 1 → GroundFloor: player picks one of 3 ground-floor rooms
+            if (vi >= 2)
+                for (int r = 0; r < 3; r++)
+                    yield return (CourtierPosition.Gate, 1, r);
+            // Gate + 2 → MidFloor: player picks one of 2 mid-floor rooms
+            if (vi >= 5)
+                for (int r = 0; r < 2; r++)
+                    yield return (CourtierPosition.Gate, 2, r);
         }
         if (player.CourtiersOnGroundFloor > 0)
         {
-            if (vi >= 2) yield return (CourtierPosition.GroundFloor, 1);
-            if (vi >= 5) yield return (CourtierPosition.GroundFloor, 2);
+            // GroundFloor + 1 → MidFloor: player picks one of 2 mid-floor rooms
+            if (vi >= 2)
+                for (int r = 0; r < 2; r++)
+                    yield return (CourtierPosition.GroundFloor, 1, r);
+            // GroundFloor + 2 → TopFloor: no room choice
+            if (vi >= 5) yield return (CourtierPosition.GroundFloor, 2, -1);
         }
         if (player.CourtiersOnMidFloor > 0)
         {
-            if (vi >= 2) yield return (CourtierPosition.MidFloor, 1);
+            // MidFloor + 1 → TopFloor: no room choice
+            if (vi >= 2) yield return (CourtierPosition.MidFloor, 1, -1);
             // MidFloor + 2 is invalid (exceeds top floor)
         }
     }

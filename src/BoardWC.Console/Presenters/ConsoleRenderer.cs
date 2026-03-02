@@ -295,6 +295,8 @@ internal sealed class ConsoleRenderer
         SeedCardActivatedEvent       x => $"{PlayerName(x.PlayerId, x)} seed card ({x.ActionType}) activated from personal domain row {x.RowIndex}",
         LanternChainItemAddedEvent   x => FormatLanternChainItemAdded(x),
         LanternChainActivatedEvent   x => FormatLanternChainActivated(x),
+        RoomCardAcquiredEvent               x => FormatRoomCardAcquired(x),
+        PersonalDomainCardFieldActivatedEvent x => FormatPdCardFieldActivated(x),
         AnyResourceChosenEvent  x => $"{PlayerName(x.PlayerId, x)} chose {x.Choice} from AnyResource token",
         ResourcesCollectedEvent  x => $"{PlayerName(x.PlayerId, x)} collected {x.Gained}",
         LanternsGainedEvent      x => $"{PlayerName(x.PlayerId, x)} gained {x.Amount} lantern(s)",
@@ -451,6 +453,23 @@ internal sealed class ConsoleRenderer
         if (x.VpGained > 0) parts.Add($"+{x.VpGained} VP");
         var gainStr = parts.Count > 0 ? string.Join(", ", parts) : "nothing";
         return $"{PlayerName(x.PlayerId, x)} lantern chain fired: {gainStr}";
+    }
+
+    private static string FormatRoomCardAcquired(RoomCardAcquiredEvent x)
+    {
+        string floor = x.Floor == 0 ? "ground floor" : "mid floor";
+        return $"{PlayerName(x.PlayerId, x)} acquired '{x.CardName}' from {floor} castle room";
+    }
+
+    private static string FormatPdCardFieldActivated(PersonalDomainCardFieldActivatedEvent x)
+    {
+        var parts = new List<string>();
+        if (x.ResourcesGained.Total > 0) parts.Add($"resources: {x.ResourcesGained}");
+        if (x.CoinsGained > 0)  parts.Add($"+{x.CoinsGained} coin(s)");
+        if (x.SealsGained > 0)  parts.Add($"+{x.SealsGained} seal(s)");
+        if (x.LanternGained > 0) parts.Add($"+{x.LanternGained} lantern(s)");
+        var gainStr = parts.Count > 0 ? string.Join(", ", parts) : "action triggered";
+        return $"{PlayerName(x.PlayerId, x)} PD card '{x.CardId}' field {x.FieldIndex}: {gainStr}";
     }
 
     // Helpers for FormatEvent — events don't carry the full state, so we use the short ID

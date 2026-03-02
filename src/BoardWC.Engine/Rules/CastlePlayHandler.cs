@@ -59,6 +59,43 @@ internal sealed class CastlePlayHandler : IActionHandler
                 ApplyAdvance(player, a.From, a.Levels);
                 events.Add(new CastlePlayExecutedEvent(state.GameId, player.Id, false, a.From, a.Levels));
 
+                // When entering ground or mid floor, take the room card and add to personal domain
+                bool enteringGroundFloor = a.From == CourtierPosition.Gate        && a.Levels == 1;
+                bool enteringMidFloor    = (a.From == CourtierPosition.Gate        && a.Levels == 2)
+                                        || (a.From == CourtierPosition.GroundFloor && a.Levels == 1);
+
+                if (a.RoomIndex >= 0 && (enteringGroundFloor || enteringMidFloor))
+                {
+                    int floorIdx    = enteringGroundFloor ? 0 : 1;
+                    var room        = state.Board.GetCastleRoom(floorIdx, a.RoomIndex);
+                    var replacement = enteringGroundFloor
+                        ? state.Board.TryDealGroundReplacement()
+                        : state.Board.TryDealMidReplacement();
+
+                    if (replacement is not null && room.Card is { } takenCard)
+                    {
+                        room.SetCard(replacement);
+                        player.PersonalDomainCards.Add(takenCard);
+                        events.Add(new RoomCardAcquiredEvent(
+                            state.GameId, player.Id, takenCard.Id, takenCard.Name, floorIdx));
+
+                        if (takenCard.Back is { } back)
+                        {
+                            var chainItem = new LanternChainItem
+                            {
+                                SourceCardId   = takenCard.Id,
+                                SourceCardType = enteringGroundFloor ? "GroundFloor" : "MidFloor",
+                                Gains          = [new LanternChainGain(back.GainType, back.Amount)],
+                            };
+                            player.LanternChain.Add(chainItem);
+                            events.Add(new LanternChainItemAddedEvent(
+                                state.GameId, player.Id,
+                                chainItem.SourceCardId, chainItem.SourceCardType,
+                                chainItem.Gains.Select(g => (g.Type.ToString(), g.Amount)).ToList().AsReadOnly()));
+                        }
+                    }
+                }
+
                 // When a courtier reaches the top floor, try to claim an empty card slot
                 bool reachedTop = (a.From == CourtierPosition.GroundFloor && a.Levels == 2)
                                || (a.From == CourtierPosition.MidFloor    && a.Levels == 1);

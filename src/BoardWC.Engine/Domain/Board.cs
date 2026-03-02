@@ -59,6 +59,12 @@ internal sealed class Board
     public DicePlaceholder GetCastleRoom(int floor, int room) => _castleRooms[floor][room];
     public DicePlaceholder GetOutsideSlot(int slot)           => _outsideSlots[slot];
 
+    /// <summary>Deal the next card from the ground-floor deck as a replacement; returns null if deck is empty.</summary>
+    public RoomCard? TryDealGroundReplacement() => _groundDeck?.Deal();
+
+    /// <summary>Deal the next card from the mid-floor deck as a replacement; returns null if deck is empty.</summary>
+    public RoomCard? TryDealMidReplacement() => _midDeck?.Deal();
+
     /// <summary>Roll and arrange dice on all bridges for a new round.</summary>
     public void RollAllDice(int playerCount, Random rng)
     {

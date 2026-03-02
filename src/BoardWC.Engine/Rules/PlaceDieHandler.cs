@@ -230,6 +230,62 @@ internal sealed class PlaceDieHandler : IActionHandler
             events.Add(new SeedCardActivatedEvent(
                 state.GameId, player.Id, seedCard.Id, seedCard.ActionType.ToString(), target.RowIndex));
         }
+
+        // Activate personal domain card fields — each acquired card may grant gains on this row
+        foreach (var pdCard in player.PersonalDomainCards)
+        {
+            int? fi = GetFieldIndexForRow(pdCard, target.RowIndex);
+            if (fi is not { } fieldIdx || fieldIdx >= pdCard.Fields.Count) continue;
+
+            var field = pdCard.Fields[fieldIdx];
+
+            if (field is GainCardField gf)
+            {
+                var res = new ResourceBag();
+                int coins = 0, seals = 0, lantern = 0;
+
+                foreach (var item in gf.Gains)
+                {
+                    switch (item.Type)
+                    {
+                        case CardGainType.Food:           res = res.Add(ResourceType.Food,      item.Amount); break;
+                        case CardGainType.Iron:           res = res.Add(ResourceType.Iron,      item.Amount); break;
+                        case CardGainType.ValueItem:      res = res.Add(ResourceType.ValueItem, item.Amount); break;
+                        case CardGainType.Coin:           coins   += item.Amount; break;
+                        case CardGainType.MonarchialSeal: seals   += item.Amount; break;
+                        case CardGainType.Lantern:        lantern += item.Amount; break;
+                    }
+                }
+
+                player.Resources       = (player.Resources + res).Clamp(7);
+                player.Coins          += coins;
+                player.MonarchialSeals = Math.Min(player.MonarchialSeals + seals, 5);
+                LanternHelper.Apply(player, lantern, state.GameId, events);
+
+                events.Add(new PersonalDomainCardFieldActivatedEvent(
+                    state.GameId, player.Id, pdCard.Id, fieldIdx,
+                    res, coins, seals, lantern));
+            }
+            else if (field is ActionCardField af)
+            {
+                switch (af.Description)
+                {
+                    case "Play castle":
+                        player.CastlePlaceRemaining++;
+                        player.CastleAdvanceRemaining++;
+                        break;
+                    case "Play training grounds":
+                        player.PendingTrainingGroundsActions++;
+                        break;
+                    case "Play farm":
+                        player.PendingFarmActions++;
+                        break;
+                }
+                events.Add(new PersonalDomainCardFieldActivatedEvent(
+                    state.GameId, player.Id, pdCard.Id, fieldIdx,
+                    new ResourceBag(), 0, 0, 0));
+            }
+        }
     }
 
     private static int GetUncoveredCount(Player player, string figureType) => figureType switch
@@ -239,6 +295,22 @@ internal sealed class PlaceDieHandler : IActionHandler
         "Soldier"  => 5 - player.SoldiersAvailable,
         _          => 0
     };
+
+    /// <summary>
+    /// Returns which field index of <paramref name="card"/> applies when a die is placed
+    /// in <paramref name="rowIndex"/> (0=Red/Courtier, 1=White/Farmer, 2=Black/Soldier).
+    /// Ground-floor cards (Layout=null, 3 fields): field[rowIndex].
+    /// Mid-floor DoubleTop (2 fields): field[0] spans rows 0+1, field[1] is row 2.
+    /// Mid-floor DoubleBottom (2 fields): field[0] is row 0, field[1] spans rows 1+2.
+    /// </summary>
+    private static int? GetFieldIndexForRow(RoomCard card, int rowIndex) =>
+        card.Layout switch
+        {
+            null           => rowIndex < card.Fields.Count ? rowIndex : (int?)null,
+            "DoubleTop"    => rowIndex <= 1 ? 0 : 1,
+            "DoubleBottom" => rowIndex == 0 ? 0 : 1,
+            _              => null,
+        };
 
     private static DicePlaceholder? Resolve(PlacementTarget target, Board board) =>
         target switch

@@ -41,10 +41,12 @@ public enum CourtierPosition { Gate, GroundFloor, MidFloor }
 public sealed record CastlePlaceCourtierAction(Guid PlayerId) : IGameAction;
 
 /// <summary>Advance one courtier up the castle (costs 2 VI for 1 level, 5 VI for 2 levels).</summary>
+/// <param name="RoomIndex">Which room to enter when landing on ground (0–2) or mid (0–1) floor; -1 when going directly to top floor.</param>
 public sealed record CastleAdvanceCourtierAction(
     Guid PlayerId,
     CourtierPosition From,
-    int Levels
+    int Levels,
+    int RoomIndex = -1
 ) : IGameAction;
 
 /// <summary>Skip all remaining pending castle play options (place and/or advance).</summary>

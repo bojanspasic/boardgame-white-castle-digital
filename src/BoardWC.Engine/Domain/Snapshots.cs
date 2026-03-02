@@ -38,7 +38,8 @@ public sealed record PlayerSnapshot(
     IReadOnlyList<DieSnapshot> DiceInHand,
     IReadOnlyList<PersonalDomainRowSnapshot> PersonalDomainRows,
     SeedActionCardSnapshot? SeedCard,
-    IReadOnlyList<LanternChainItemSnapshot> LanternChain
+    IReadOnlyList<LanternChainItemSnapshot> LanternChain,
+    IReadOnlyList<RoomCardSnapshot> PersonalDomainCards
 );
 
 public sealed record BoardSnapshot(

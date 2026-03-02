@@ -290,3 +290,30 @@ public sealed record LanternChainActivatedEvent(
     public DateTimeOffset OccurredAt { get; } = DateTimeOffset.UtcNow;
     public string EventType => nameof(LanternChainActivatedEvent);
 }
+
+public sealed record RoomCardAcquiredEvent(
+    Guid GameId,
+    Guid PlayerId,
+    string CardId,
+    string CardName,
+    int Floor   // 0 = ground floor, 1 = mid floor
+) : IDomainEvent
+{
+    public DateTimeOffset OccurredAt { get; } = DateTimeOffset.UtcNow;
+    public string EventType => nameof(RoomCardAcquiredEvent);
+}
+
+public sealed record PersonalDomainCardFieldActivatedEvent(
+    Guid GameId,
+    Guid PlayerId,
+    string CardId,
+    int FieldIndex,
+    ResourceBag ResourcesGained,
+    int CoinsGained,
+    int SealsGained,
+    int LanternGained
+) : IDomainEvent
+{
+    public DateTimeOffset OccurredAt { get; } = DateTimeOffset.UtcNow;
+    public string EventType => nameof(PersonalDomainCardFieldActivatedEvent);
+}

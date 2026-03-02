@@ -94,11 +94,12 @@ Each player tracks:
 - **PendingAnyResourceChoices**: unresolved AnyResource token choices from the well
 - **Personnel**: 5 Soldiers, 5 Courtiers, 5 Farmers — placement rules TBD
 - **LanternChain**: ordered list of `LanternChainItem` entries; fires left-to-right whenever a Lantern gain triggers (see `LanternHelper`)
+- **PersonalDomainCards**: room cards acquired from ground/mid castle floors; each card's fields activate whenever a die is placed in the corresponding personal domain row
 
 ## Common Commands
 ```bash
 dotnet build                                      # build all projects
-dotnet test                                       # run 45 unit tests
+dotnet test                                       # run 66 unit tests
 dotnet run --project src/BoardWC.Console          # play in console
 ```
 
@@ -151,11 +152,29 @@ help                                  — show command list
 | Console input | `src/BoardWC.Console/Input/ConsoleInputParser.cs` |
 | Tests | `tests/BoardWC.Engine.Tests/GameEngineTests.cs` |
 
+## Castle Courtier System
+When a "Play castle" action triggers, the player may:
+1. **Place a courtier at the gate** (costs 2 coins, courtier from hand → `CourtiersAtGate`)
+2. **Advance a courtier** (costs 2 VI for 1 level, 5 VI for 2 levels):
+   - **Gate → Ground floor**: player picks one of 3 rooms; acquires that room's card, deck provides replacement
+   - **Gate → Mid floor**: player picks one of 2 rooms; acquires that room's card
+   - **Ground → Mid floor**: player picks one of 2 rooms; acquires that room's card
+   - **Ground → Top floor** or **Mid → Top floor**: no room choice (RoomIndex = -1)
+   - If no replacement card available in deck: courtier still advances but no card is taken
+3. **Skip** all remaining castle options
+
+`CastleAdvanceCourtierAction` has `int RoomIndex = -1` (default = top floor, no card).
+
+### Personal Domain Card Field Mapping
+When a room card is acquired and a die later placed in a personal domain row, that card's field fires:
+| Card type | Layout | Row 0 (Red/Courtier) | Row 1 (White/Farmer) | Row 2 (Black/Soldier) |
+|-----------|--------|----------------------|----------------------|------------------------|
+| Ground floor | null (3 fields) | field[0] | field[1] | field[2] |
+| Mid floor | DoubleTop | field[0] | field[0] | field[1] |
+| Mid floor | DoubleBottom | field[0] | field[1] | field[1] |
+
 ## Deferred / Not Yet Implemented
 - Gate of the castle (skip for now)
 - Top castle level (1 room — die cannot be placed here; purpose TBD)
-- Training grounds
-- Farming lands
 - Monarchial Seals additional earn mechanics (beyond well placement)
-- Personnel placement (Soldiers, Courtiers, Farmers)
 - Token gameplay effect when a die is placed in a **castle room** (well effect is implemented)
