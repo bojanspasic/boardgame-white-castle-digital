@@ -95,6 +95,9 @@ Each player tracks:
 - **Personnel**: 5 Soldiers, 5 Courtiers, 5 Farmers — placement rules TBD
 - **LanternChain**: ordered list of `LanternChainItem` entries; fires left-to-right whenever a Lantern gain triggers (see `LanternHelper`)
 - **PersonalDomainCards**: room cards acquired from ground/mid castle floors; each card's fields activate whenever a die is placed in the corresponding personal domain row
+- **Influence**: separate currency gained from card fields (`CardGainType.Influence`); tracked as `player.Influence`; displayed in player summary
+- **PendingInfluenceGain / PendingInfluenceSealCost**: set when an influence gain crosses a threshold; player must decide to pay seals or forfeit the gain (resolved by `ChooseInfluencePayHandler`)
+- **InfluenceGainOrder**: set to `GameState.InfluenceGainCounter++` each time the player actually gains influence; used at round end to break ties in first-player order
 
 ## Common Commands
 ```bash
@@ -122,7 +125,7 @@ help                                  — show command list
 - `TokenResource`: Food, Iron, ValueItem, AnyResource, Coin
 - `PlayerColor`: White, Black, Red, Blue
 - `Phase`: Setup, WorkerPlacement, EndOfRound, GameOver
-- `CardGainType`: Food, Iron, ValueItem, Coin, MonarchialSeal, Lantern, AnyResource, **Influence** (deferred), **VictoryPoint** (deferred — maps to `LanternScore += vp`)
+- `CardGainType`: Food, Iron, ValueItem, Coin, MonarchialSeal, Lantern, AnyResource, **VictoryPoint** (maps to `LanternScore += vp` directly, no chain), **Influence** (routed through `InfluenceHelper.Apply()`; may create pending state)
 
 ## Coding Conventions
 - Domain classes are `internal sealed class`; records used for value objects.
@@ -148,6 +151,7 @@ help                                  — show command list
 | Legal moves | `src/BoardWC.Engine/Rules/LegalActionGenerator.cs` |
 | Turn/round logic | `src/BoardWC.Engine/Rules/PostActionProcessor.cs` |
 | Lantern chain helper | `src/BoardWC.Engine/Rules/LanternHelper.cs` |
+| Influence threshold helper | `src/BoardWC.Engine/Rules/InfluenceHelper.cs` |
 | Console renderer | `src/BoardWC.Console/Presenters/ConsoleRenderer.cs` |
 | Console input | `src/BoardWC.Console/Input/ConsoleInputParser.cs` |
 | Tests | `tests/BoardWC.Engine.Tests/GameEngineTests.cs` |

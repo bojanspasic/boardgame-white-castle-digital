@@ -13,12 +13,14 @@ internal sealed class FarmCard(
     string id,
     int foodCost,
     IReadOnlyList<FarmGainItem> gainItems,
-    string actionDescription)
+    string actionDescription,
+    int victoryPoints)
 {
     internal string                    Id                { get; } = id;
     internal int                       FoodCost          { get; } = foodCost;
     internal IReadOnlyList<FarmGainItem> GainItems       { get; } = gainItems;
     internal string                    ActionDescription { get; } = actionDescription;
+    internal int                       VictoryPoints     { get; } = victoryPoints;
 }
 
 // ── Field ─────────────────────────────────────────────────────────────────────
@@ -37,6 +39,7 @@ internal sealed class FarmField(FarmCard card)
         Card.FoodCost,
         Card.GainItems.Select(g => new CardGainItemSnapshot(g.Type, g.Amount)).ToList().AsReadOnly(),
         Card.ActionDescription,
+        Card.VictoryPoints,
         _farmerOwners.ToList().AsReadOnly());
 }
 
@@ -133,7 +136,8 @@ internal sealed class FarmingLands
                 g.GetProperty("amount").GetInt32()))
             .ToList()
             .AsReadOnly();
-        return new FarmCard(id, foodCost, gainItems, actionDesc);
+        var vp = el.TryGetProperty("victoryPoints", out var vpEl) ? vpEl.GetInt32() : 0;
+        return new FarmCard(id, foodCost, gainItems, actionDesc, vp);
     }
 
     private static int ColorIndex(BridgeColor color) => color switch

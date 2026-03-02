@@ -48,6 +48,7 @@ public static class GameEngineFactory
             new TakeDieFromBridgeHandler(),
             new PlaceDieHandler(),
             new ChooseResourceHandler(),
+            new ChooseInfluencePayHandler(),
             new OutsideActivationHandler(),
             new CastlePlayHandler(),
             new TrainingGroundsHandler(),

@@ -32,6 +32,10 @@ internal sealed class ConsoleRenderer
             var die = p.DiceInHand[0];
             System.Console.WriteLine($"  [Die in hand: {die.Color} {die.Value} — type 'place ...' to place it]");
         }
+        // Show hint if player has a pending influence threshold decision
+        if (p.PendingInfluenceGain > 0)
+            System.Console.WriteLine(
+                $"  [Pending influence gain: +{p.PendingInfluenceGain} Influence costs {p.PendingInfluenceSealCost} seal(s) — pay or refuse]");
         // Show hint if player has pending AnyResource choices
         if (p.PendingAnyResourceChoices > 0)
             System.Console.WriteLine(
@@ -67,13 +71,16 @@ internal sealed class ConsoleRenderer
     public void RenderFinalScores(IReadOnlyList<PlayerScore> scores)
     {
         System.Console.WriteLine();
-        System.Console.WriteLine("═══════════════════════════════════");
-        System.Console.WriteLine("          GAME OVER — SCORES       ");
-        System.Console.WriteLine("═══════════════════════════════════");
+        System.Console.WriteLine("═══════════════════════════════════════════════════════════════════");
+        System.Console.WriteLine("                       GAME OVER — SCORES                         ");
+        System.Console.WriteLine("═══════════════════════════════════════════════════════════════════");
+        System.Console.WriteLine($"  {"Player",-16} {"Total",5}  {"Lanterns",8}  {"Courtiers",9}  {"Coins",5}  {"Seals",5}  {"Resources",9}  {"Farm",4}");
+        System.Console.WriteLine("  " + new string('─', 63));
         foreach (var s in scores)
             System.Console.WriteLine(
-                $"  {s.PlayerName,-16} {s.Total,4} pts  " +
-                $"(Lanterns:{s.LanternPoints})");
+                $"  {s.PlayerName,-16} {s.Total,5}  {s.LanternPoints,8}  {s.CourtierPoints,9}  {s.CoinPoints,5}  {s.SealPoints,5}  {s.ResourcePoints,9}  {s.FarmPoints,4}");
+        System.Console.WriteLine();
+        System.Console.WriteLine($"  Winner: {scores[0].PlayerName}");
     }
 
     public void Error(string msg) =>
@@ -297,6 +304,8 @@ internal sealed class ConsoleRenderer
         LanternChainActivatedEvent   x => FormatLanternChainActivated(x),
         RoomCardAcquiredEvent               x => FormatRoomCardAcquired(x),
         PersonalDomainCardFieldActivatedEvent x => FormatPdCardFieldActivated(x),
+        InfluenceGainPendingEvent  x => $"{PlayerName(x.PlayerId, x)} influence pending: +{x.InfluenceGain} Inf  (costs {x.SealCost} seal(s))",
+        InfluenceGainResolvedEvent x => FormatInfluenceResolved(x),
         AnyResourceChosenEvent  x => $"{PlayerName(x.PlayerId, x)} chose {x.Choice} from AnyResource token",
         ResourcesCollectedEvent  x => $"{PlayerName(x.PlayerId, x)} collected {x.Gained}",
         LanternsGainedEvent      x => $"{PlayerName(x.PlayerId, x)} gained {x.Amount} lantern(s)",
@@ -320,9 +329,11 @@ internal sealed class ConsoleRenderer
     {
         var parts = new List<string>();
         if (x.ResourcesGained.Total > 0) parts.Add($"resources: {x.ResourcesGained}");
-        if (x.CoinsGained   > 0) parts.Add($"+{x.CoinsGained} coin(s)");
-        if (x.SealsGained   > 0) parts.Add($"+{x.SealsGained} seal(s)");
-        if (x.LanternGained > 0) parts.Add($"+{x.LanternGained} lantern(s)");
+        if (x.CoinsGained    > 0) parts.Add($"+{x.CoinsGained} coin(s)");
+        if (x.SealsGained    > 0) parts.Add($"+{x.SealsGained} seal(s)");
+        if (x.LanternGained  > 0) parts.Add($"+{x.LanternGained} lantern(s)");
+        if (x.VpGained       > 0) parts.Add($"+{x.VpGained} VP");
+        if (x.InfluenceGained > 0) parts.Add($"+{x.InfluenceGained} Influence");
         var gained = parts.Count > 0 ? string.Join(", ", parts) : "nothing";
         return $"{PlayerName(x.PlayerId, x)} card field {x.FieldIndex} gain: {gained}";
     }
@@ -465,11 +476,20 @@ internal sealed class ConsoleRenderer
     {
         var parts = new List<string>();
         if (x.ResourcesGained.Total > 0) parts.Add($"resources: {x.ResourcesGained}");
-        if (x.CoinsGained > 0)  parts.Add($"+{x.CoinsGained} coin(s)");
-        if (x.SealsGained > 0)  parts.Add($"+{x.SealsGained} seal(s)");
-        if (x.LanternGained > 0) parts.Add($"+{x.LanternGained} lantern(s)");
+        if (x.CoinsGained    > 0) parts.Add($"+{x.CoinsGained} coin(s)");
+        if (x.SealsGained    > 0) parts.Add($"+{x.SealsGained} seal(s)");
+        if (x.LanternGained  > 0) parts.Add($"+{x.LanternGained} lantern(s)");
+        if (x.VpGained       > 0) parts.Add($"+{x.VpGained} VP");
+        if (x.InfluenceGained > 0) parts.Add($"+{x.InfluenceGained} Influence");
         var gainStr = parts.Count > 0 ? string.Join(", ", parts) : "action triggered";
         return $"{PlayerName(x.PlayerId, x)} PD card '{x.CardId}' field {x.FieldIndex}: {gainStr}";
+    }
+
+    private static string FormatInfluenceResolved(InfluenceGainResolvedEvent x)
+    {
+        if (x.Accepted)
+            return $"{PlayerName(x.PlayerId, x)} paid {x.SealsPaid} seal(s) → gained +{x.InfluenceGain} Influence";
+        return $"{PlayerName(x.PlayerId, x)} refused influence gain (+{x.InfluenceGain} Influence lost)";
     }
 
     // Helpers for FormatEvent — events don't carry the full state, so we use the short ID

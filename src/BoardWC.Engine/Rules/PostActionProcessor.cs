@@ -29,6 +29,9 @@ internal static class PostActionProcessor
         // Active player placed at an outside slot — must choose activation
         if (state.ActivePlayer.PendingOutsideActivationSlot >= 0) return;
 
+        // Active player has a pending influence threshold decision — hold the turn
+        if (state.ActivePlayer.PendingInfluenceGain > 0) return;
+
         // Active player has pending AnyResource choices to resolve — hold the turn
         if (state.ActivePlayer.PendingAnyResourceChoices > 0) return;
 
@@ -73,11 +76,39 @@ internal static class PostActionProcessor
         else
         {
             state.CurrentRound++;
-            state.ActivePlayerIndex = 0;
+            state.ActivePlayerIndex = FirstPlayerByInfluence(state.Players);
             // Roll fresh dice and re-draw training grounds tokens for the new round
             state.Board.RollAllDice(state.Players.Count, state.Rng);
             state.Board.SetupTrainingGrounds(state.Rng);
         }
+    }
+
+    /// <summary>
+    /// Returns the index of the player who goes first in the next round.
+    /// Rule: player with the highest Influence score goes first.
+    /// Tiebreaker: among equally highest-influence players, the one who gained influence
+    /// most recently (<see cref="Player.InfluenceGainOrder"/> is highest) goes first.
+    /// Fallback: player 0 (preserves original order when no influence has been gained).
+    /// </summary>
+    private static int FirstPlayerByInfluence(List<Player> players)
+    {
+        int maxInfluence = 0;
+        for (int i = 0; i < players.Count; i++)
+            if (players[i].Influence > maxInfluence)
+                maxInfluence = players[i].Influence;
+
+        int bestIndex = 0;
+        int bestOrder = -1;
+        for (int i = 0; i < players.Count; i++)
+        {
+            var p = players[i];
+            if (p.Influence == maxInfluence && p.InfluenceGainOrder > bestOrder)
+            {
+                bestOrder = p.InfluenceGainOrder;
+                bestIndex = i;
+            }
+        }
+        return bestIndex;
     }
 
     private static void FireRoundEndFarmEffects(GameState state, List<IDomainEvent> events)

@@ -10,7 +10,8 @@
         { "type": "Coin", "amount": 1 }
       ],
       "field2": [
-        { "type": "Iron", "amount": 1 }
+        { "type": "Iron", "amount": 1 },
+        { "type": "VictoryPoint", "amount": 1 }
       ]
     },
     {
@@ -19,7 +20,8 @@
       "layout": "DoubleBottom",
       "back": { "type": "VictoryPoint", "amount": 1 },
       "field1": [
-        { "type": "MonarchialSeal", "amount": 1 }
+        { "type": "MonarchialSeal", "amount": 1 },
+        { "type": "Influence", "amount": 1 }
       ],
       "field2": [
         { "type": "ValueItem", "amount": 1 },
@@ -52,7 +54,8 @@
       ],
       "field2": [
         { "type": "Food", "amount": 2 },
-        { "type": "Iron", "amount": 1 }
+        { "type": "Iron", "amount": 1 },
+        { "type": "VictoryPoint", "amount": 2 }
       ]
     },
     {
@@ -67,7 +70,8 @@
         "description": "Play training grounds"
       },
       "field2": [
-        { "type": "Lantern", "amount": 2 }
+        { "type": "Lantern", "amount": 2 },
+        { "type": "Influence", "amount": 1 }
       ]
     },
     {
@@ -80,7 +84,8 @@
       ],
       "field2": [
         { "type": "Coin", "amount": 1 },
-        { "type": "MonarchialSeal", "amount": 1 }
+        { "type": "MonarchialSeal", "amount": 1 },
+        { "type": "Influence", "amount": 2 }
       ]
     }
   ]

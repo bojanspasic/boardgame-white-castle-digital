@@ -157,7 +157,7 @@ that fire whenever the Lantern Effect triggers.
   the chain activates **once** — every entry fires left-to-right and the player receives all chain gains.
 - Resource gains (Food/Iron/ValueItem) are capped at 7; Monarchial Seals capped at 5.
 - **VictoryPoint** chain entries increment `LanternScore` directly.
-- **Influence** chain entries are a no-op (mechanic deferred).
+- **Influence** chain entries increment the player's `Influence` counter.
 
 **Card backs (all cards have a back):**
 - Resource seed cards: one resource (Food/Iron/ValueItem)
@@ -263,16 +263,58 @@ A round ends when the total dice remaining across all bridges drops to **3 or fe
 At round end:
 1. All placed dice are cleared from castle rooms, well, and outside slots.
 2. New dice are rolled for all bridges.
-3. The next round begins.
+3. **First player for the next round** is determined by Influence (see below).
 
 The game lasts **3 rounds** (configurable in engine).
+
+### First Player Order
+
+At the start of each new round, the player with the **highest Influence score** goes first.
+
+**Tiebreaker:** if two or more players share the highest Influence score, the player who **most recently gained** any Influence goes first.
+
+**Fallback:** if no player has gained any Influence, player order starts from player 0 (original order).
 
 ---
 
 ## Victory Points
 
-Calculated at game end:
-- **Lantern score** — accumulated lanterns (includes VictoryPoint gains from the lantern chain)
+Calculated at game end across six categories:
+
+| Category | Rule |
+|----------|------|
+| **Lanterns** | Accumulated VP from lantern effects, VictoryPoint card field gains, and VictoryPoint chain entries |
+| **Courtiers** | Gate: 1 VP each · Ground floor: 3 VP each · Mid floor: 6 VP each · Top floor: 10 VP each |
+| **Coins** | 1 VP per 5 coins (floor division) |
+| **Seals** | 1 VP per 5 Monarchial Seals (floor division) |
+| **Resources** | Per resource type: 4–6 of a kind = 1 VP; 7 of a kind = 2 VP |
+| **Farm** | Sum of VP printed on each farm field card where the player has a farmer |
+
+The player with the highest total wins.
+
+## Influence
+
+Influence is a separate currency tracked per player (`Influence` counter). It is gained from card fields with `{"type":"Influence","amount":N}` gains on ground/mid floor cards. Influence is displayed on the player summary line.
+
+### Influence Thresholds
+
+Adding influence to a score that has reached (or would cross) certain thresholds requires a **Monarchial Seal payment**:
+
+| Threshold crossed | Additional seal cost |
+|-------------------|---------------------|
+| Reaching ≥ 5 influence | 1 seal |
+| Reaching ≥ 10 influence | 2 seals |
+| Reaching ≥ 15 influence | 3 seals |
+
+If a single gain crosses multiple thresholds (e.g., going from 4 to 11), the costs **accumulate** (1 + 2 = 3 seals).
+
+When a gain would cross a threshold:
+- The gain is **held pending** (`PendingInfluenceGain`, `PendingInfluenceSealCost` on the player).
+- The turn is held until the player resolves the choice.
+- **Pay**: player spends the required seals and gains the influence.
+- **Refuse**: the influence gain is lost entirely; no seals are spent.
+
+If a gain does **not** cross any threshold (e.g., player has 3 influence and gains 1), it is applied immediately with no prompt.
 
 ---
 

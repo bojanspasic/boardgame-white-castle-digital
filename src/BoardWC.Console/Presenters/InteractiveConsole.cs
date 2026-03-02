@@ -57,6 +57,13 @@ internal sealed class InteractiveConsole
             return RunDetail(state, title, BuildPlaceDieOptions(state, legal), allowEsc: false)!;
         }
 
+        // Influence threshold pending — player must pay seals or refuse — no Esc
+        if (player.PendingInfluenceGain > 0)
+        {
+            var title = $"INFLUENCE GAIN  \u2014  +{player.PendingInfluenceGain} Influence  (costs {player.PendingInfluenceSealCost} seal(s))";
+            return RunDetail(state, title, BuildChooseInfluenceOptions(player, legal), allowEsc: false)!;
+        }
+
         // AnyResource choice pending — no Esc
         if (player.PendingAnyResourceChoices > 0)
         {
@@ -271,12 +278,14 @@ internal sealed class InteractiveConsole
             var seedStr  = p.SeedCard is { } sc ? $"  Seed:{sc.ActionType}" : "";
             var allGains = p.LanternChain.SelectMany(i => i.Gains).Select(g => $"+{g.Amount} {g.GainType}");
             var chainStr = p.LanternChain.Count > 0 ? $"  Lantern:[{string.Join(", ", allGains)}]" : "";
+            var vpStr    = $"  VP:{p.LanternScore}";
+            var infStr   = p.Influence > 0 ? $"  Inf:{p.Influence}" : "";
             System.Console.ForegroundColor = isActive ? ConsoleColor.White : ConsoleColor.Gray;
             System.Console.WriteLine(
                 $"    {(isActive ? "*" : " ")}{p.Name,-16} " +
                 $"Fd:{r.Food,2} Fe:{r.Iron,2} VI:{r.ValueItem,2} " +
                 $"Coins:{p.Coins,3} Seals:{p.MonarchialSeals}" +
-                seedStr + chainStr +
+                vpStr + infStr + seedStr + chainStr +
                 (p.IsAI ? " [AI]" : ""));
             System.Console.ResetColor();
         }
@@ -712,6 +721,30 @@ internal sealed class InteractiveConsole
             Choose(ResourceType.Food,      "Food")!,
             Choose(ResourceType.Iron,      "Iron")!,
             Choose(ResourceType.ValueItem, "Value Item")!,
+        ];
+    }
+
+    // ── Build Options: Choose Influence Pay ───────────────────────────────
+
+    private static List<ActionEntry> BuildChooseInfluenceOptions(
+        PlayerSnapshot player,
+        IReadOnlyList<IGameAction> legal)
+    {
+        var payAction    = legal.OfType<ChooseInfluencePayAction>().FirstOrDefault(x => x.WillPay);
+        var refuseAction = legal.OfType<ChooseInfluencePayAction>().FirstOrDefault(x => !x.WillPay);
+        bool canAfford   = player.MonarchialSeals >= player.PendingInfluenceSealCost;
+        return
+        [
+            new ActionEntry(
+                $"Pay {player.PendingInfluenceSealCost} seal(s) → gain +{player.PendingInfluenceGain} Influence",
+                canAfford ? $"(have {player.MonarchialSeals} seal(s))" : $"[insufficient seals: have {player.MonarchialSeals}]",
+                payAction != null && canAfford,
+                payAction),
+            new ActionEntry(
+                $"Refuse — lose the +{player.PendingInfluenceGain} Influence gain",
+                null,
+                refuseAction != null,
+                refuseAction),
         ];
     }
 

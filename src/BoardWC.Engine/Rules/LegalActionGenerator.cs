@@ -42,6 +42,14 @@ internal static class LegalActionGenerator
         if (player is null || state.ActivePlayer.Id != playerId)
             return actions.AsReadOnly();
 
+        // Player must resolve a pending influence threshold payment before acting
+        if (player.PendingInfluenceGain > 0)
+        {
+            actions.Add(new ChooseInfluencePayAction(playerId, WillPay: true));
+            actions.Add(new ChooseInfluencePayAction(playerId, WillPay: false));
+            return actions.AsReadOnly();
+        }
+
         // Player must resolve pending AnyResource choices before acting
         if (player.PendingAnyResourceChoices > 0)
         {

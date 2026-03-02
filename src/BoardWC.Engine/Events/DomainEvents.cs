@@ -120,7 +120,9 @@ public sealed record CardFieldGainActivatedEvent(
     ResourceBag ResourcesGained,
     int CoinsGained,
     int SealsGained,
-    int LanternGained
+    int LanternGained,
+    int VpGained,
+    int InfluenceGained
 ) : IDomainEvent
 {
     public DateTimeOffset OccurredAt { get; } = DateTimeOffset.UtcNow;
@@ -311,9 +313,39 @@ public sealed record PersonalDomainCardFieldActivatedEvent(
     ResourceBag ResourcesGained,
     int CoinsGained,
     int SealsGained,
-    int LanternGained
+    int LanternGained,
+    int VpGained,
+    int InfluenceGained
 ) : IDomainEvent
 {
     public DateTimeOffset OccurredAt { get; } = DateTimeOffset.UtcNow;
     public string EventType => nameof(PersonalDomainCardFieldActivatedEvent);
+}
+
+/// <summary>
+/// Fired when an influence gain crosses a threshold (5, 10, or 15) and the player
+/// must decide whether to pay the Monarchial Seal cost.
+/// </summary>
+public sealed record InfluenceGainPendingEvent(
+    Guid GameId,
+    Guid PlayerId,
+    int InfluenceGain,
+    int SealCost
+) : IDomainEvent
+{
+    public DateTimeOffset OccurredAt { get; } = DateTimeOffset.UtcNow;
+    public string EventType => nameof(InfluenceGainPendingEvent);
+}
+
+/// <summary>Fired when the player resolves a pending influence gain (accepts or refuses).</summary>
+public sealed record InfluenceGainResolvedEvent(
+    Guid GameId,
+    Guid PlayerId,
+    int InfluenceGain,
+    int SealsPaid,
+    bool Accepted
+) : IDomainEvent
+{
+    public DateTimeOffset OccurredAt { get; } = DateTimeOffset.UtcNow;
+    public string EventType => nameof(InfluenceGainResolvedEvent);
 }

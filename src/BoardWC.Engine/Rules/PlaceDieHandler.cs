@@ -99,7 +99,7 @@ internal sealed class PlaceDieHandler : IActionHandler
                 if (card.Fields[i] is GainCardField gainField)
                 {
                     var resources = new ResourceBag();
-                    int coins = 0, seals = 0, lantern = 0;
+                    int coins = 0, seals = 0, lantern = 0, vp = 0, influence = 0;
 
                     foreach (var item in gainField.Gains)
                     {
@@ -117,6 +117,10 @@ internal sealed class PlaceDieHandler : IActionHandler
                                 seals += item.Amount; break;
                             case CardGainType.Lantern:
                                 lantern += item.Amount; break;
+                            case CardGainType.VictoryPoint:
+                                vp += item.Amount; break;
+                            case CardGainType.Influence:
+                                influence += item.Amount; break;
                         }
                     }
 
@@ -124,10 +128,12 @@ internal sealed class PlaceDieHandler : IActionHandler
                     player.Coins += coins;
                     player.MonarchialSeals = Math.Min(player.MonarchialSeals + seals, 5);
                     LanternHelper.Apply(player, lantern, state.GameId, events);
+                    player.LanternScore += vp;
+                    InfluenceHelper.Apply(player, influence, state, events);
 
                     events.Add(new CardFieldGainActivatedEvent(
                         state.GameId, player.Id, card.Id, i,
-                        resources, coins, seals, lantern));
+                        resources, coins, seals, lantern, vp, influence));
                 }
                 else if (card.Fields[i] is ActionCardField actionField)
                 {
@@ -242,7 +248,7 @@ internal sealed class PlaceDieHandler : IActionHandler
             if (field is GainCardField gf)
             {
                 var res = new ResourceBag();
-                int coins = 0, seals = 0, lantern = 0;
+                int coins = 0, seals = 0, lantern = 0, vp = 0, influence = 0;
 
                 foreach (var item in gf.Gains)
                 {
@@ -251,9 +257,11 @@ internal sealed class PlaceDieHandler : IActionHandler
                         case CardGainType.Food:           res = res.Add(ResourceType.Food,      item.Amount); break;
                         case CardGainType.Iron:           res = res.Add(ResourceType.Iron,      item.Amount); break;
                         case CardGainType.ValueItem:      res = res.Add(ResourceType.ValueItem, item.Amount); break;
-                        case CardGainType.Coin:           coins   += item.Amount; break;
-                        case CardGainType.MonarchialSeal: seals   += item.Amount; break;
-                        case CardGainType.Lantern:        lantern += item.Amount; break;
+                        case CardGainType.Coin:           coins     += item.Amount; break;
+                        case CardGainType.MonarchialSeal: seals     += item.Amount; break;
+                        case CardGainType.Lantern:        lantern   += item.Amount; break;
+                        case CardGainType.VictoryPoint:   vp        += item.Amount; break;
+                        case CardGainType.Influence:      influence += item.Amount; break;
                     }
                 }
 
@@ -261,10 +269,12 @@ internal sealed class PlaceDieHandler : IActionHandler
                 player.Coins          += coins;
                 player.MonarchialSeals = Math.Min(player.MonarchialSeals + seals, 5);
                 LanternHelper.Apply(player, lantern, state.GameId, events);
+                player.LanternScore += vp;
+                InfluenceHelper.Apply(player, influence, state, events);
 
                 events.Add(new PersonalDomainCardFieldActivatedEvent(
                     state.GameId, player.Id, pdCard.Id, fieldIdx,
-                    res, coins, seals, lantern));
+                    res, coins, seals, lantern, vp, influence));
             }
             else if (field is ActionCardField af)
             {
@@ -283,7 +293,7 @@ internal sealed class PlaceDieHandler : IActionHandler
                 }
                 events.Add(new PersonalDomainCardFieldActivatedEvent(
                     state.GameId, player.Id, pdCard.Id, fieldIdx,
-                    new ResourceBag(), 0, 0, 0));
+                    new ResourceBag(), 0, 0, 0, 0, 0));
             }
         }
     }

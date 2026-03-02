@@ -9,7 +9,21 @@ internal sealed class Player
 
     internal ResourceBag Resources { get; set; }
     internal int LanternScore { get; set; }
+    internal int Influence { get; set; }
     internal int Coins { get; set; }
+
+    /// <summary>Influence amount pending a threshold-payment decision; 0 = no pending gain.</summary>
+    internal int PendingInfluenceGain { get; set; }
+
+    /// <summary>Monarchial seals owed if the player accepts the pending influence gain.</summary>
+    internal int PendingInfluenceSealCost { get; set; }
+
+    /// <summary>
+    /// Value of <see cref="GameState.InfluenceGainCounter"/> when this player last gained influence.
+    /// Higher = more recent. Breaks ties in round-start player order.
+    /// </summary>
+    internal int InfluenceGainOrder { get; set; }
+
     internal int MonarchialSeals { get; set; }
     internal int SoldiersAvailable { get; set; } = 5;
     internal int CourtiersAvailable { get; set; } = 5;
@@ -55,10 +69,10 @@ internal sealed class Player
 
     public PlayerSnapshot ToSnapshot() => new(
         Id, Name, Color, IsAI,
-        Resources, LanternScore, Coins,
+        Resources, LanternScore, Influence, Coins,
         MonarchialSeals, SoldiersAvailable, CourtiersAvailable, FarmersAvailable,
         PendingAnyResourceChoices, PendingTrainingGroundsActions, PendingFarmActions, CastlePlaceRemaining, CastleAdvanceRemaining,
-        PendingOutsideActivationSlot,
+        PendingOutsideActivationSlot, PendingInfluenceGain, PendingInfluenceSealCost,
         CourtiersAtGate, CourtiersOnGroundFloor, CourtiersOnMidFloor, CourtiersOnTopFloor,
         DiceInHand.Select(d => d.ToSnapshot()).ToList().AsReadOnly(),
         PersonalDomainRows.Select(r => r.ToSnapshot(UncoveredCount(r.Config.FigureType))).ToList().AsReadOnly(),

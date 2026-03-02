@@ -5,56 +5,64 @@
       "foodCost": 0,
       "gainItems": [{ "type": "Food", "amount": 1 }],
       "actionDescription": "",
-      "actionCost": []
+      "actionCost": [],
+      "victoryPoints": 1
     },
     {
       "id": "farm_outside_02",
       "foodCost": 1,
       "gainItems": [{ "type": "Food", "amount": 2 }],
       "actionDescription": "",
-      "actionCost": []
+      "actionCost": [],
+      "victoryPoints": 1
     },
     {
       "id": "farm_outside_03",
       "foodCost": 1,
       "gainItems": [{ "type": "Iron", "amount": 1 }],
       "actionDescription": "",
-      "actionCost": []
+      "actionCost": [],
+      "victoryPoints": 1
     },
     {
       "id": "farm_outside_04",
       "foodCost": 0,
       "gainItems": [{ "type": "Coin", "amount": 2 }],
       "actionDescription": "",
-      "actionCost": []
+      "actionCost": [],
+      "victoryPoints": 1
     },
     {
       "id": "farm_outside_05",
       "foodCost": 1,
       "gainItems": [{ "type": "ValueItem", "amount": 1 }],
       "actionDescription": "",
-      "actionCost": []
+      "actionCost": [],
+      "victoryPoints": 1
     },
     {
       "id": "farm_outside_06",
       "foodCost": 1,
       "gainItems": [{ "type": "Coin", "amount": 2 }],
       "actionDescription": "",
-      "actionCost": []
+      "actionCost": [],
+      "victoryPoints": 1
     },
     {
       "id": "farm_outside_07",
       "foodCost": 1,
       "gainItems": [],
       "actionDescription": "Play training grounds",
-      "actionCost": []
+      "actionCost": [],
+      "victoryPoints": 2
     },
     {
       "id": "farm_outside_08",
       "foodCost": 0,
       "gainItems": [{ "type": "Lantern", "amount": 1 }],
       "actionDescription": "",
-      "actionCost": []
+      "actionCost": [],
+      "victoryPoints": 1
     },
     {
       "id": "farm_outside_09",
@@ -64,7 +72,8 @@
         { "type": "Coin", "amount": 1 }
       ],
       "actionDescription": "",
-      "actionCost": []
+      "actionCost": [],
+      "victoryPoints": 1
     },
     {
       "id": "farm_outside_10",
@@ -74,7 +83,8 @@
         { "type": "Food", "amount": 1 }
       ],
       "actionDescription": "",
-      "actionCost": []
+      "actionCost": [],
+      "victoryPoints": 2
     }
   ]
 }

@@ -85,3 +85,9 @@ public sealed record ChooseSeedPairAction(
     Guid PlayerId,
     int PairIndex
 ) : IGameAction;
+
+/// <summary>Accept or refuse a pending influence gain that crosses a Monarchial Seal threshold.</summary>
+public sealed record ChooseInfluencePayAction(
+    Guid PlayerId,
+    bool WillPay
+) : IGameAction;

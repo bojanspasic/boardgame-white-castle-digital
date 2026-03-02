@@ -13,6 +13,9 @@ internal sealed class GameState
     internal Random Rng { get; } = new();
     internal List<SeedCardPair> SeedCardPairs { get; } = new();
 
+    /// <summary>Monotonically increasing counter; bumped each time any player actually gains influence.</summary>
+    internal int InfluenceGainCounter { get; set; }
+
     public Player ActivePlayer => Players[ActivePlayerIndex];
 
     public GameState(List<Player> players, int maxRounds = 3)

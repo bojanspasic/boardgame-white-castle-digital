@@ -20,6 +20,7 @@ public sealed record PlayerSnapshot(
     bool IsAI,
     ResourceBag Resources,
     int LanternScore,
+    int Influence,
     int Coins,
     int MonarchialSeals,
     int SoldiersAvailable,
@@ -31,6 +32,8 @@ public sealed record PlayerSnapshot(
     int CastlePlaceRemaining,
     int CastleAdvanceRemaining,
     int PendingOutsideActivationSlot,
+    int PendingInfluenceGain,
+    int PendingInfluenceSealCost,
     int CourtiersAtGate,
     int CourtiersOnGroundFloor,
     int CourtiersOnMidFloor,
@@ -142,6 +145,7 @@ public sealed record FarmFieldSnapshot(
     int FoodCost,
     IReadOnlyList<CardGainItemSnapshot> GainItems,
     string ActionDescription,
+    int VictoryPoints,
     IReadOnlyList<string> FarmerOwners
 );
 
@@ -182,5 +186,10 @@ public sealed record PlayerScore(
     Guid PlayerId,
     string PlayerName,
     int Total,
-    int LanternPoints
+    int LanternPoints,
+    int CourtierPoints,
+    int CoinPoints,
+    int SealPoints,
+    int ResourcePoints,
+    int FarmPoints
 );
