@@ -47,6 +47,9 @@ internal sealed class Player
     /// <summary>The seed action card chosen at game start; activates on each personal domain placement.</summary>
     internal SeedActionCard? SeedCard { get; set; }
 
+    /// <summary>Ordered list of chain entries; fires left-to-right whenever a Lantern gain triggers.</summary>
+    internal List<LanternChainItem> LanternChain { get; } = new();
+
     public PlayerSnapshot ToSnapshot() => new(
         Id, Name, Color, IsAI,
         Resources, LanternScore, Coins,
@@ -56,7 +59,8 @@ internal sealed class Player
         CourtiersAtGate, CourtiersOnGroundFloor, CourtiersOnMidFloor, CourtiersOnTopFloor,
         DiceInHand.Select(d => d.ToSnapshot()).ToList().AsReadOnly(),
         PersonalDomainRows.Select(r => r.ToSnapshot(UncoveredCount(r.Config.FigureType))).ToList().AsReadOnly(),
-        SeedCard?.ToSnapshot()
+        SeedCard?.ToSnapshot(),
+        LanternChain.Select(i => i.ToSnapshot()).ToList().AsReadOnly()
     );
 
     private int UncoveredCount(string figureType) => figureType switch

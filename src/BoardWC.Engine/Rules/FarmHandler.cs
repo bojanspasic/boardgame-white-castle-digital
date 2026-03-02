@@ -70,7 +70,7 @@ internal sealed class FarmHandler : IActionHandler
         var (resourcesGained, coinsGained, sealsGained, lanternGained, actionTriggered) =
             ApplyCardEffect(card, player);
 
-        player.LanternScore    += lanternGained;
+        LanternHelper.Apply(player, lanternGained, state.GameId, events);
         player.PendingFarmActions--;
 
         events.Add(new FarmerPlacedEvent(

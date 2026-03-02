@@ -107,6 +107,30 @@ The count of figures remaining on the personal domain determines how many more c
 Figures are **not returned** to the personal domain when cleared at round end — they stay on the
 board area where they were placed for the remainder of the game.
 
+### Lantern Chain
+
+Each player's personal domain has a **Lantern Chain** area — an ordered list of card backs
+that fire whenever the Lantern Effect triggers.
+
+**Building the chain:**
+- When seeding completes (a player picks their seed pair), the **resource seed card** is flipped
+  and its back gain is added as the first entry in the chain.
+  - Resource seed card backs: one resource (Food, Iron, or Value Item), quantity 1.
+- Additional cards can be added to the chain later (mechanic TBD).
+
+**Activation:**
+- Every time a Lantern gain fires (Low-die Lantern Effect, card field gains, castle/farm/TG effects),
+  the chain activates **once** — every entry fires left-to-right and the player receives all chain gains.
+- Resource gains (Food/Iron/ValueItem) are capped at 7; Monarchial Seals capped at 5.
+- **VictoryPoint** chain entries increment `LanternScore` directly.
+- **Influence** chain entries are a no-op (mechanic deferred).
+
+**Card backs (all cards have a back):**
+- Resource seed cards: one resource (Food/Iron/ValueItem)
+- Action seed cards: one Influence (**deferred**)
+- Ground floor castle cards: one Coin
+- Mid floor castle cards: one VictoryPoint (**maps to LanternScore**)
+
 ### Die Placement Rows (personal domain board)
 
 The personal domain also contains three **die placement rows**, one per figure type.
@@ -194,7 +218,7 @@ The game lasts **3 rounds** (configurable in engine).
 ## Victory Points
 
 Calculated at game end:
-- **Lantern score** — accumulated lanterns
+- **Lantern score** — accumulated lanterns (includes VictoryPoint gains from the lantern chain)
 
 ---
 

@@ -97,7 +97,7 @@ internal static class PostActionProcessor
                     var (resources, coins, seals, lantern, action) =
                         FarmHandler.ApplyCardEffect(field.Card, owner);
 
-                    owner.LanternScore += lantern;
+                    LanternHelper.Apply(owner, lantern, state.GameId, events);
 
                     events.Add(new FarmEffectFiredEvent(
                         state.GameId, owner.Id,

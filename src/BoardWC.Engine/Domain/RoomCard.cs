@@ -4,7 +4,7 @@ namespace BoardWC.Engine.Domain;
 
 // ── Enums ─────────────────────────────────────────────────────────────────────
 
-internal enum CardGainType { Food, Iron, ValueItem, Coin, MonarchialSeal, Lantern, AnyResource }
+internal enum CardGainType { Food, Iron, ValueItem, Coin, MonarchialSeal, Lantern, AnyResource, Influence, VictoryPoint }
 internal enum CardCostType { Coin, MonarchialSeal }
 
 // ── Value objects ─────────────────────────────────────────────────────────────
@@ -55,6 +55,9 @@ internal sealed class RoomCard
 
     /// <summary>null for ground-floor cards; "DoubleTop" or "DoubleBottom" for mid-floor.</summary>
     public string? Layout { get; }
+
+    /// <summary>The gain on the card's back, added to the lantern chain when the card is placed there.</summary>
+    public (CardGainType GainType, int Amount)? Back { get; init; }
 
     internal RoomCard(string id, string name, IReadOnlyList<CardField> fields, string? layout = null)
     {
@@ -113,6 +116,7 @@ internal sealed class FloorCardDeck
     {
         var id   = el.GetProperty("id").GetString()!;
         var name = el.GetProperty("name").GetString()!;
+        var back = ParseBack(el);
 
         var fields = new CardField[]
         {
@@ -121,7 +125,7 @@ internal sealed class FloorCardDeck
             ParseActionField(el.GetProperty("action")),
         };
 
-        return new RoomCard(id, name, fields.AsReadOnly());
+        return new RoomCard(id, name, fields.AsReadOnly()) { Back = back };
     }
 
     // ── Mid floor: field1(i=0), field2(i=1), plus layout ─────────────────────
@@ -131,6 +135,7 @@ internal sealed class FloorCardDeck
         var id     = el.GetProperty("id").GetString()!;
         var name   = el.GetProperty("name").GetString()!;
         var layout = el.GetProperty("layout").GetString();
+        var back   = ParseBack(el);
 
         var fields = new CardField[]
         {
@@ -138,7 +143,15 @@ internal sealed class FloorCardDeck
             ParseAnyField(el.GetProperty("field2")),
         };
 
-        return new RoomCard(id, name, fields.AsReadOnly(), layout);
+        return new RoomCard(id, name, fields.AsReadOnly(), layout) { Back = back };
+    }
+
+    private static (CardGainType GainType, int Amount)? ParseBack(JsonElement el)
+    {
+        if (!el.TryGetProperty("back", out var backEl)) return null;
+        var gainType = Enum.Parse<CardGainType>(backEl.GetProperty("type").GetString()!);
+        var amount   = backEl.GetProperty("amount").GetInt32();
+        return (gainType, amount);
     }
 
     // ── Field parsers ─────────────────────────────────────────────────────────

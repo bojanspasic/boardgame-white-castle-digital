@@ -93,6 +93,7 @@ Each player tracks:
 - **Dice in hand**: die taken from bridge awaiting placement
 - **PendingAnyResourceChoices**: unresolved AnyResource token choices from the well
 - **Personnel**: 5 Soldiers, 5 Courtiers, 5 Farmers — placement rules TBD
+- **LanternChain**: ordered list of `LanternChainItem` entries; fires left-to-right whenever a Lantern gain triggers (see `LanternHelper`)
 
 ## Common Commands
 ```bash
@@ -120,6 +121,7 @@ help                                  — show command list
 - `TokenResource`: Food, Iron, ValueItem, AnyResource, Coin
 - `PlayerColor`: White, Black, Red, Blue
 - `Phase`: Setup, WorkerPlacement, EndOfRound, GameOver
+- `CardGainType`: Food, Iron, ValueItem, Coin, MonarchialSeal, Lantern, AnyResource, **Influence** (deferred), **VictoryPoint** (deferred — maps to `LanternScore += vp`)
 
 ## Coding Conventions
 - Domain classes are `internal sealed class`; records used for value objects.
@@ -144,6 +146,7 @@ help                                  — show command list
 | Placement targets | `src/BoardWC.Engine/Domain/PlacementTarget.cs` |
 | Legal moves | `src/BoardWC.Engine/Rules/LegalActionGenerator.cs` |
 | Turn/round logic | `src/BoardWC.Engine/Rules/PostActionProcessor.cs` |
+| Lantern chain helper | `src/BoardWC.Engine/Rules/LanternHelper.cs` |
 | Console renderer | `src/BoardWC.Console/Presenters/ConsoleRenderer.cs` |
 | Console input | `src/BoardWC.Console/Input/ConsoleInputParser.cs` |
 | Tests | `tests/BoardWC.Engine.Tests/GameEngineTests.cs` |

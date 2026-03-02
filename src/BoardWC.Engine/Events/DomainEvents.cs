@@ -265,3 +265,28 @@ public sealed record SeedCardActivatedEvent(
     public DateTimeOffset OccurredAt { get; } = DateTimeOffset.UtcNow;
     public string EventType => nameof(SeedCardActivatedEvent);
 }
+
+public sealed record LanternChainItemAddedEvent(
+    Guid GameId,
+    Guid PlayerId,
+    string SourceCardId,
+    string SourceCardType,
+    IReadOnlyList<(string GainType, int Amount)> Gains
+) : IDomainEvent
+{
+    public DateTimeOffset OccurredAt { get; } = DateTimeOffset.UtcNow;
+    public string EventType => nameof(LanternChainItemAddedEvent);
+}
+
+public sealed record LanternChainActivatedEvent(
+    Guid GameId,
+    Guid PlayerId,
+    ResourceBag Resources,
+    int Coins,
+    int Seals,
+    int VpGained
+) : IDomainEvent
+{
+    public DateTimeOffset OccurredAt { get; } = DateTimeOffset.UtcNow;
+    public string EventType => nameof(LanternChainActivatedEvent);
+}

@@ -291,8 +291,10 @@ internal sealed class ConsoleRenderer
         FarmEffectFiredEvent            x => FormatFarmEffect(x),
         TopFloorSlotFilledEvent         x => FormatTopFloorSlot(x),
         PersonalDomainActivatedEvent x => FormatPersonalDomainActivated(x),
-        SeedPairChosenEvent     x => FormatSeedPairChosen(x),
-        SeedCardActivatedEvent  x => $"{PlayerName(x.PlayerId, x)} seed card ({x.ActionType}) activated from personal domain row {x.RowIndex}",
+        SeedPairChosenEvent          x => FormatSeedPairChosen(x),
+        SeedCardActivatedEvent       x => $"{PlayerName(x.PlayerId, x)} seed card ({x.ActionType}) activated from personal domain row {x.RowIndex}",
+        LanternChainItemAddedEvent   x => FormatLanternChainItemAdded(x),
+        LanternChainActivatedEvent   x => FormatLanternChainActivated(x),
         AnyResourceChosenEvent  x => $"{PlayerName(x.PlayerId, x)} chose {x.Choice} from AnyResource token",
         ResourcesCollectedEvent  x => $"{PlayerName(x.PlayerId, x)} collected {x.Gained}",
         LanternsGainedEvent      x => $"{PlayerName(x.PlayerId, x)} gained {x.Amount} lantern(s)",
@@ -432,6 +434,23 @@ internal sealed class ConsoleRenderer
         if (x.SealsGained   > 0) parts.Add($"+{x.SealsGained} seal(s)");
         if (x.PendingAnyChoices > 0) parts.Add($"{x.PendingAnyChoices} any-resource choice(s) pending");
         return $"{PlayerName(x.PlayerId, x)} chose seed pair: {string.Join(", ", parts)}";
+    }
+
+    private static string FormatLanternChainItemAdded(LanternChainItemAddedEvent x)
+    {
+        var gains = string.Join(", ", x.Gains.Select(g => $"+{g.Amount} {g.GainType}"));
+        return $"{PlayerName(x.PlayerId, x)} lantern chain: added {x.SourceCardType} {x.SourceCardId} ({gains})";
+    }
+
+    private static string FormatLanternChainActivated(LanternChainActivatedEvent x)
+    {
+        var parts = new List<string>();
+        if (x.Resources.Total > 0) parts.Add($"resources: {x.Resources}");
+        if (x.Coins    > 0) parts.Add($"+{x.Coins} coin(s)");
+        if (x.Seals    > 0) parts.Add($"+{x.Seals} seal(s)");
+        if (x.VpGained > 0) parts.Add($"+{x.VpGained} VP");
+        var gainStr = parts.Count > 0 ? string.Join(", ", parts) : "nothing";
+        return $"{PlayerName(x.PlayerId, x)} lantern chain fired: {gainStr}";
     }
 
     // Helpers for FormatEvent — events don't carry the full state, so we use the short ID

@@ -70,5 +70,19 @@ internal sealed class ChooseSeedPairHandler : IActionHandler
             state.GameId, player.Id,
             pair.Action.Id, pair.Action.ActionType.ToString(),
             resourcesGained, coinsGained, sealsGained, pendingChoices));
+
+        // Flip the resource seed card and add its back to the lantern chain.
+        var back = pair.Resource.Back;
+        var chainItem = new LanternChainItem
+        {
+            SourceCardId   = pair.Resource.Id,
+            SourceCardType = "ResourceSeed",
+            Gains          = new[] { new LanternChainGain(back.Type, back.Amount) },
+        };
+        player.LanternChain.Add(chainItem);
+        events.Add(new LanternChainItemAddedEvent(
+            state.GameId, player.Id,
+            chainItem.SourceCardId, chainItem.SourceCardType,
+            chainItem.Gains.Select(g => (g.Type.ToString(), g.Amount)).ToList().AsReadOnly()));
     }
 }

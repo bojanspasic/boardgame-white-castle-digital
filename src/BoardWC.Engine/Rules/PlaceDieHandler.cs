@@ -123,7 +123,7 @@ internal sealed class PlaceDieHandler : IActionHandler
                     player.Resources = (player.Resources + resources).Clamp(7);
                     player.Coins += coins;
                     player.MonarchialSeals = Math.Min(player.MonarchialSeals + seals, 5);
-                    player.LanternScore += lantern;
+                    LanternHelper.Apply(player, lantern, state.GameId, events);
 
                     events.Add(new CardFieldGainActivatedEvent(
                         state.GameId, player.Id, card.Id, i,

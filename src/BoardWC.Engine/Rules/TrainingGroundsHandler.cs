@@ -94,7 +94,7 @@ internal sealed class TrainingGroundsHandler : IActionHandler
             ApplyNamedAction(area.ActionDescription, player, ref lanternGained);
         }
 
-        player.LanternScore += lanternGained;
+        LanternHelper.Apply(player, lanternGained, state.GameId, events);
         player.PendingTrainingGroundsActions--;
 
         events.Add(new TrainingGroundsUsedEvent(

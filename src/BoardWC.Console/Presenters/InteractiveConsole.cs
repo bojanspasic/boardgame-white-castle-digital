@@ -268,14 +268,15 @@ internal sealed class InteractiveConsole
             bool isActive = i == state.ActivePlayerIndex;
             var r        = p.Resources;
 
-            var seedStr = p.SeedCard is { } sc ? $"  Seed:{sc.ActionType}" : "";
+            var seedStr  = p.SeedCard is { } sc ? $"  Seed:{sc.ActionType}" : "";
+            var allGains = p.LanternChain.SelectMany(i => i.Gains).Select(g => $"+{g.Amount} {g.GainType}");
+            var chainStr = p.LanternChain.Count > 0 ? $"  Lantern:[{string.Join(", ", allGains)}]" : "";
             System.Console.ForegroundColor = isActive ? ConsoleColor.White : ConsoleColor.Gray;
             System.Console.WriteLine(
                 $"    {(isActive ? "*" : " ")}{p.Name,-16} " +
                 $"Fd:{r.Food,2} Fe:{r.Iron,2} VI:{r.ValueItem,2} " +
-                $"Coins:{p.Coins,3} Seals:{p.MonarchialSeals} " +
-                $"Lanterns:{p.LanternScore}" +
-                seedStr +
+                $"Coins:{p.Coins,3} Seals:{p.MonarchialSeals}" +
+                seedStr + chainStr +
                 (p.IsAI ? " [AI]" : ""));
             System.Console.ResetColor();
         }
@@ -998,6 +999,24 @@ internal sealed class InteractiveConsole
                 options.Add(InfoRow($"  Spot {i}: +{spot.GainAmount} {spot.GainType}  [{status}]"));
             }
         }
+
+        // Lantern chain
+        options.Add(Header(""));
+        options.Add(Header("Lantern Chain:"));
+        if (player.LanternChain.Count == 0)
+        {
+            options.Add(InfoRow("  (empty)"));
+        }
+        else
+        {
+            for (int i = 0; i < player.LanternChain.Count; i++)
+            {
+                var item  = player.LanternChain[i];
+                var gains = string.Join(", ", item.Gains.Select(g => $"+{g.Amount} {g.GainType}"));
+                options.Add(InfoRow($"  [{i + 1}] {item.SourceCardType,-14} {item.SourceCardId}  →  {gains}"));
+            }
+        }
+
         return options;
     }
 

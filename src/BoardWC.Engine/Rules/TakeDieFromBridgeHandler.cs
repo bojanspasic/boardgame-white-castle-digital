@@ -50,6 +50,9 @@ internal sealed class TakeDieFromBridgeHandler : IActionHandler
             state.GameId, player.Id, a.BridgeColor, a.DiePosition, die.Value));
 
         if (a.DiePosition == DiePosition.Low)
+        {
             events.Add(new LanternEffectFiredEvent(state.GameId, player.Id));
+            LanternHelper.Trigger(player, state.GameId, events);
+        }
     }
 }

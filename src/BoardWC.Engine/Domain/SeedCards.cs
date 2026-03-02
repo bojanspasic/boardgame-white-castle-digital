@@ -12,6 +12,7 @@ internal sealed class SeedActionCard
 {
     public string         Id         { get; init; } = "";
     public SeedActionType ActionType { get; init; }
+    public LanternChainGain Back     { get; init; } = null!;
 
     public SeedActionCardSnapshot ToSnapshot() => new(Id, ActionType.ToString());
 }
@@ -22,6 +23,7 @@ internal sealed class SeedResourceCard
 {
     public string                        Id    { get; init; } = "";
     public IReadOnlyList<SeedResourceGain> Gains { get; init; } = [];
+    public LanternChainGain              Back  { get; init; } = null!;
 
     public SeedResourceCardSnapshot ToSnapshot() => new(
         Id,
@@ -66,6 +68,9 @@ internal static class SeedCardDecks
             {
                 Id         = el.GetProperty("id").GetString()!,
                 ActionType = Enum.Parse<SeedActionType>(el.GetProperty("actionType").GetString()!),
+                Back       = new LanternChainGain(
+                    Enum.Parse<CardGainType>(el.GetProperty("back").GetProperty("type").GetString()!),
+                    el.GetProperty("back").GetProperty("amount").GetInt32()),
             })
             .ToList();
     }
@@ -91,6 +96,9 @@ internal static class SeedCardDecks
                               g.GetProperty("amount").GetInt32()))
                           .ToList()
                           .AsReadOnly(),
+                Back  = new LanternChainGain(
+                    Enum.Parse<CardGainType>(el.GetProperty("back").GetProperty("type").GetString()!),
+                    el.GetProperty("back").GetProperty("amount").GetInt32()),
             })
             .ToList();
     }

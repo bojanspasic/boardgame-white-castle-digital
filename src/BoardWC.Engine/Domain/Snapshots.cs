@@ -37,7 +37,8 @@ public sealed record PlayerSnapshot(
     int CourtiersOnTopFloor,
     IReadOnlyList<DieSnapshot> DiceInHand,
     IReadOnlyList<PersonalDomainRowSnapshot> PersonalDomainRows,
-    SeedActionCardSnapshot? SeedCard
+    SeedActionCardSnapshot? SeedCard,
+    IReadOnlyList<LanternChainItemSnapshot> LanternChain
 );
 
 public sealed record BoardSnapshot(
@@ -160,6 +161,14 @@ public sealed record PersonalDomainRowSnapshot(
     int DefaultGainAmount,
     IReadOnlyList<PersonalDomainSpotSnapshot> Spots,
     DieSnapshot? PlacedDie);
+
+// ── Lantern chain snapshots ───────────────────────────────────────────────────
+
+public sealed record LanternChainGainSnapshot(string GainType, int Amount);
+public sealed record LanternChainItemSnapshot(
+    string SourceCardId,
+    string SourceCardType,
+    IReadOnlyList<LanternChainGainSnapshot> Gains);
 
 // ── Seed card snapshots ───────────────────────────────────────────────────────
 
