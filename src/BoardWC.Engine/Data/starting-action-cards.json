@@ -1,0 +1,14 @@
+{
+  "cards": [
+    { "id": "ac-001", "actionType": "PlayCastle" },
+    { "id": "ac-002", "actionType": "PlayCastle" },
+    { "id": "ac-003", "actionType": "PlayCastle" },
+    { "id": "ac-004", "actionType": "PlayCastle" },
+    { "id": "ac-005", "actionType": "PlayFarm" },
+    { "id": "ac-006", "actionType": "PlayFarm" },
+    { "id": "ac-007", "actionType": "PlayFarm" },
+    { "id": "ac-008", "actionType": "PlayTrainingGrounds" },
+    { "id": "ac-009", "actionType": "PlayTrainingGrounds" },
+    { "id": "ac-010", "actionType": "PlayTrainingGrounds" }
+  ]
+}

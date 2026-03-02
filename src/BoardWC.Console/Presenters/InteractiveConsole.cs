@@ -36,6 +36,19 @@ internal sealed class InteractiveConsole
         var player = state.Players[state.ActivePlayerIndex];
         var legal  = engine.GetLegalActions(player.Id);
 
+        // Seed card selection phase — presented before normal game loop
+        if (state.CurrentPhase == Phase.SeedCardSelection)
+        {
+            if (player.PendingAnyResourceChoices > 0)
+            {
+                var title = $"CHOOSE RESOURCE  ({player.PendingAnyResourceChoices} remaining)";
+                return RunDetail(state, title, BuildChooseResourceOptions(legal), allowEsc: false)!;
+            }
+            return RunDetail(state,
+                $"SEED CARD SELECTION  \u2014  {player.Name}'s Turn",
+                BuildSeedPairOptions(state, legal), allowEsc: false)!;
+        }
+
         // Die in hand — must place, no Esc
         if (player.DiceInHand.Count > 0)
         {
@@ -255,12 +268,14 @@ internal sealed class InteractiveConsole
             bool isActive = i == state.ActivePlayerIndex;
             var r        = p.Resources;
 
+            var seedStr = p.SeedCard is { } sc ? $"  Seed:{sc.ActionType}" : "";
             System.Console.ForegroundColor = isActive ? ConsoleColor.White : ConsoleColor.Gray;
             System.Console.WriteLine(
                 $"    {(isActive ? "*" : " ")}{p.Name,-16} " +
                 $"Fd:{r.Food,2} Fe:{r.Iron,2} VI:{r.ValueItem,2} " +
                 $"Coins:{p.Coins,3} Seals:{p.MonarchialSeals} " +
                 $"Lanterns:{p.LanternScore}" +
+                seedStr +
                 (p.IsAI ? " [AI]" : ""));
             System.Console.ResetColor();
         }
@@ -481,6 +496,7 @@ internal sealed class InteractiveConsole
 
         // Personal Domain rows
         options.Add(Header("Personal Domain:"));
+        string[] pdCardLines = SeedCardLines(player.SeedCard?.ActionType);
         for (int r = 0; r < player.PersonalDomainRows.Count; r++)
         {
             var row   = player.PersonalDomainRows[r];
@@ -490,9 +506,13 @@ internal sealed class InteractiveConsole
             bool full = row.PlacedDie is not null;
             string gain = FormatPdGain(row, uncov);
 
-            string rowLabel = full
+            string rowLabelBase = full
                 ? $"{row.DieColor} ({row.FigureType})  val={row.CompareValue}  [die placed]"
                 : $"{row.DieColor} ({row.FigureType})  val={row.CompareValue}  [{gain}]";
+            string cardLine = pdCardLines[r];
+            string rowLabel = cardLine.Length > 0
+                ? $"{rowLabelBase.PadRight(50)}  {cardLine}"
+                : rowLabelBase;
             string rowDetail = pdAct is not null
                 ? $"\u2192 {CoinDeltaStr(die.Value - row.CompareValue)}"
                 : full ? "\u2192 full" : $"\u2192 need {row.DieColor} die";
@@ -751,6 +771,16 @@ internal sealed class InteractiveConsole
 
     // ── Format helpers ────────────────────────────────────────────────────
 
+    private static string[] SeedCardLines(string? actionType)
+    {
+        if (actionType is null) return ["", "", ""];
+        const int w = 20; // inner content width — fits "PlayTrainingGrounds" + 1 space
+        string top    = $"\u2554{new string('\u2550', w + 2)}\u2557";
+        string middle = $"\u2551 {actionType.PadRight(w)} \u2551";
+        string bottom = $"\u255a{new string('\u2550', w + 2)}\u255d";
+        return [top, middle, bottom];
+    }
+
     private static string CoinDeltaStr(int delta) => delta switch
     {
         > 0 => $"+{delta} coins",
@@ -935,6 +965,25 @@ internal sealed class InteractiveConsole
         var options = new List<ActionEntry>();
         var player  = state.Players[state.ActivePlayerIndex];
 
+        // Compact side-by-side overview: 3 rows + seed card box
+        string[] cardLines = SeedCardLines(player.SeedCard?.ActionType);
+        for (int r = 0; r < player.PersonalDomainRows.Count; r++)
+        {
+            var row   = player.PersonalDomainRows[r];
+            int uncov = row.Spots.Count(s => s.IsUncovered);
+            string die  = row.PlacedDie is not null ? $"[{row.PlacedDie.Value}]" : "[ ]";
+            string gain = FormatPdGain(row, uncov);
+            string rowLine  = $"{row.DieColor,-7} ({row.FigureType,-8})  val={row.CompareValue}  {die}  {gain}";
+            string cardLine = cardLines[r];
+            string overview = cardLine.Length > 0
+                ? $"{rowLine.PadRight(50)}  {cardLine}"
+                : rowLine;
+            options.Add(InfoRow(overview));
+        }
+
+        options.Add(Header(""));
+
+        // Detailed breakdown
         foreach (var row in player.PersonalDomainRows)
         {
             int uncov  = row.Spots.Count(s => s.IsUncovered);
@@ -951,4 +1000,35 @@ internal sealed class InteractiveConsole
         }
         return options;
     }
+
+    // ── Seed card selection ───────────────────────────────────────────────
+
+    private static List<ActionEntry> BuildSeedPairOptions(
+        GameStateSnapshot state, IReadOnlyList<IGameAction> legal)
+    {
+        var options = new List<ActionEntry>();
+        var player  = state.Players[state.ActivePlayerIndex];
+
+        options.Add(Header($"Choose one pair (action + starting resources)  —  {state.SeedPairs.Count} remaining"));
+        options.Add(Header(""));
+
+        for (int i = 0; i < state.SeedPairs.Count; i++)
+        {
+            var pair   = state.SeedPairs[i];
+            var act    = legal.OfType<ChooseSeedPairAction>().FirstOrDefault(a => a.PairIndex == i);
+            var label  = $"{pair.Action.ActionType,-24}  |  {FormatSeedResourceCard(pair.Resource)}";
+            options.Add(new ActionEntry(label, null, act != null, act));
+        }
+
+        if (player.SeedCard is { } existing)
+        {
+            options.Add(Header(""));
+            options.Add(InfoRow($"Already chosen: {existing.ActionType}"));
+        }
+
+        return options;
+    }
+
+    private static string FormatSeedResourceCard(SeedResourceCardSnapshot card) =>
+        string.Join(", ", card.Gains.Select(g => $"+{g.Amount} {g.GainType}"));
 }

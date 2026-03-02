@@ -44,6 +44,9 @@ internal sealed class Player
     /// <summary>The three personal domain rows (Red/Courtier, White/Farmer, Black/Soldier).</summary>
     internal PersonalDomainRow[] PersonalDomainRows { get; set; } = [];
 
+    /// <summary>The seed action card chosen at game start; activates on each personal domain placement.</summary>
+    internal SeedActionCard? SeedCard { get; set; }
+
     public PlayerSnapshot ToSnapshot() => new(
         Id, Name, Color, IsAI,
         Resources, LanternScore, Coins,
@@ -52,7 +55,8 @@ internal sealed class Player
         PendingOutsideActivationSlot,
         CourtiersAtGate, CourtiersOnGroundFloor, CourtiersOnMidFloor, CourtiersOnTopFloor,
         DiceInHand.Select(d => d.ToSnapshot()).ToList().AsReadOnly(),
-        PersonalDomainRows.Select(r => r.ToSnapshot(UncoveredCount(r.Config.FigureType))).ToList().AsReadOnly()
+        PersonalDomainRows.Select(r => r.ToSnapshot(UncoveredCount(r.Config.FigureType))).ToList().AsReadOnly(),
+        SeedCard?.ToSnapshot()
     );
 
     private int UncoveredCount(string figureType) => figureType switch

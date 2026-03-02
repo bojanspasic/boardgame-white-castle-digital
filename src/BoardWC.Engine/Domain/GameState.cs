@@ -11,6 +11,7 @@ internal sealed class GameState
     internal List<Player> Players { get; }
     internal Board Board { get; }
     internal Random Rng { get; } = new();
+    internal List<SeedCardPair> SeedCardPairs { get; } = new();
 
     public Player ActivePlayer => Players[ActivePlayerIndex];
 
@@ -32,6 +33,7 @@ internal sealed class GameState
         MaxRounds,
         ActivePlayerIndex,
         Players.Select(p => p.ToSnapshot()).ToList().AsReadOnly(),
-        Board.ToSnapshot()
+        Board.ToSnapshot(),
+        SeedCardPairs.Select(p => p.ToSnapshot()).ToList().AsReadOnly()
     );
 }

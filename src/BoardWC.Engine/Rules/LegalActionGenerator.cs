@@ -15,6 +15,26 @@ internal static class LegalActionGenerator
             return actions.AsReadOnly();
         }
 
+        if (state.CurrentPhase == Phase.SeedCardSelection)
+        {
+            var seedPlayer = state.Players.FirstOrDefault(p => p.Id == playerId);
+            if (seedPlayer is null || state.ActivePlayer.Id != playerId)
+                return actions.AsReadOnly();
+
+            // Resolve pending AnyResource choices from a resource card with wildcards
+            if (seedPlayer.PendingAnyResourceChoices > 0)
+            {
+                actions.Add(new ChooseResourceAction(playerId, ResourceType.Food));
+                actions.Add(new ChooseResourceAction(playerId, ResourceType.Iron));
+                actions.Add(new ChooseResourceAction(playerId, ResourceType.ValueItem));
+                return actions.AsReadOnly();
+            }
+
+            for (int i = 0; i < state.SeedCardPairs.Count; i++)
+                actions.Add(new ChooseSeedPairAction(playerId, i));
+            return actions.AsReadOnly();
+        }
+
         if (state.CurrentPhase != Phase.WorkerPlacement)
             return actions.AsReadOnly();
 

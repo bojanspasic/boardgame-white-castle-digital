@@ -44,6 +44,7 @@ public static class GameEngineFactory
         new(new IActionHandler[]
         {
             new StartGameHandler(),
+            new ChooseSeedPairHandler(),
             new TakeDieFromBridgeHandler(),
             new PlaceDieHandler(),
             new ChooseResourceHandler(),

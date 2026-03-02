@@ -19,7 +19,28 @@ public class GameEngineTests
     {
         var engine = CreateTwoPlayerGame();
         engine.ProcessAction(new StartGameAction());
+        CompleteSeedSelection(engine);
         return engine;
+    }
+
+    /// <summary>
+    /// Advances through the SeedCardSelection phase by having each player pick
+    /// the first available pair (resolving any AnyResource choices as Food).
+    /// </summary>
+    private static void CompleteSeedSelection(IGameEngine engine)
+    {
+        while (engine.GetCurrentState().CurrentPhase == Phase.SeedCardSelection)
+        {
+            var s     = engine.GetCurrentState();
+            var pid   = s.Players[s.ActivePlayerIndex].Id;
+            var legal = engine.GetLegalActions(pid);
+
+            var seedAction = legal.OfType<ChooseSeedPairAction>().FirstOrDefault();
+            if (seedAction is not null)
+                engine.ProcessAction(seedAction);
+            else
+                engine.ProcessAction(new ChooseResourceAction(pid, ResourceType.Food));
+        }
     }
 
     /// <summary>
@@ -47,12 +68,22 @@ public class GameEngineTests
     // ── StartGameAction ──────────────────────────────────────────────────────
 
     [Fact]
-    public void StartGame_TransitionsToWorkerPlacementPhase()
+    public void StartGame_TransitionsToSeedCardSelectionPhase()
     {
         var engine = CreateTwoPlayerGame();
         Assert.Equal(Phase.Setup, engine.GetCurrentState().CurrentPhase);
 
         engine.ProcessAction(new StartGameAction());
+
+        Assert.Equal(Phase.SeedCardSelection, engine.GetCurrentState().CurrentPhase);
+    }
+
+    [Fact]
+    public void CompleteSeedSelection_TransitionsToWorkerPlacementPhase()
+    {
+        var engine = CreateTwoPlayerGame();
+        engine.ProcessAction(new StartGameAction());
+        CompleteSeedSelection(engine);
 
         Assert.Equal(Phase.WorkerPlacement, engine.GetCurrentState().CurrentPhase);
     }
@@ -294,8 +325,8 @@ public class GameEngineTests
             engine.ProcessAction(new ChooseResourceAction(alice.Id, ResourceType.Food));
 
         var aliceAfter = engine.GetCurrentState().Players.First(p => p.Id == alice.Id);
-        // Coins = placement delta (die - 1) + any Coin tokens from the well
-        Assert.Equal(redHigh.Value - 1 + coinTokens, aliceAfter.Coins);
+        // Coins delta = (die - 1) + any Coin tokens from the well (alice may have coins from seed selection)
+        Assert.Equal(alice.Coins + redHigh.Value - 1 + coinTokens, aliceAfter.Coins);
     }
 
     [Fact]
@@ -316,13 +347,13 @@ public class GameEngineTests
     public void PlaceDieInCastle_CannotAfford_ReturnsFail()
     {
         // Castle ground value = 3. A die with value 1 costs 2 coins.
-        // Alice starts with 0 coins.
         var engine = StartedGame();
         var state  = engine.GetCurrentState();
         var alice  = state.Players[0];
 
         var bridgeWith1 = state.Board.Bridges.FirstOrDefault(b => b.High?.Value == 1);
-        if (bridgeWith1 is null) return;  // skip if no die value 1 available
+        if (bridgeWith1 is null) return;    // skip if no die value 1 available
+        if (alice.Coins >= 2) return;       // skip if seed gave enough coins to afford it
 
         engine.ProcessAction(new TakeDieFromBridgeAction(alice.Id, bridgeWith1.Color, DiePosition.High));
         var result = engine.ProcessAction(new PlaceDieAction(alice.Id, new CastleRoomTarget(0, 0)));
@@ -364,7 +395,8 @@ public class GameEngineTests
         engine.ProcessAction(new PlaceDieAction(alice.Id, new CastleRoomTarget(0, 0)));
 
         var aliceAfter = engine.GetCurrentState().Players.First(p => p.Id == alice.Id);
-        Assert.Equal(dieValue - 3 + cardCoinGains, aliceAfter.Coins);
+        // alice.Coins already includes any coins from seed selection
+        Assert.Equal(alice.Coins + dieValue - 3 + cardCoinGains, aliceAfter.Coins);
     }
 
     // ── Capacity ──────────────────────────────────────────────────────────────
@@ -470,6 +502,7 @@ public class GameEngineTests
         ], maxRounds: 1);
 
         engine.ProcessAction(new StartGameAction());
+        CompleteSeedSelection(engine);
 
         for (int i = 0; i < 6; i++)
             TakeAndPlaceAtWell(engine);
@@ -487,6 +520,7 @@ public class GameEngineTests
         ], maxRounds: 1);
 
         engine.ProcessAction(new StartGameAction());
+        CompleteSeedSelection(engine);
 
         for (int i = 0; i < 6; i++)
             TakeAndPlaceAtWell(engine);
@@ -711,9 +745,10 @@ public class GameEngineTests
 
         // ResolveAllPendingChoices picks Food for each AnyResource token
         int anyResourceCount = wellTokens.Count(t => t.ResourceSide == TokenResource.AnyResource);
-        int expectedFood = wellTokens.Count(t => t.ResourceSide == TokenResource.Food) + anyResourceCount;
-        int expectedIron = wellTokens.Count(t => t.ResourceSide == TokenResource.Iron);
-        int expectedVI   = wellTokens.Count(t => t.ResourceSide == TokenResource.ValueItem);
+        // Alice may have resources from seed selection; add well gains on top, capped at 7
+        int expectedFood = Math.Min(alice.Resources.Food + wellTokens.Count(t => t.ResourceSide == TokenResource.Food) + anyResourceCount, 7);
+        int expectedIron = Math.Min(alice.Resources.Iron + wellTokens.Count(t => t.ResourceSide == TokenResource.Iron), 7);
+        int expectedVI   = Math.Min(alice.Resources.ValueItem + wellTokens.Count(t => t.ResourceSide == TokenResource.ValueItem), 7);
 
         TakeAndPlaceAtWellForPlayer(engine, alice.Id);
         ResolveAllPendingChoices(engine, alice.Id);

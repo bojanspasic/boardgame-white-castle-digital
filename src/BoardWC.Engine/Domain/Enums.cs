@@ -2,7 +2,7 @@ namespace BoardWC.Engine.Domain;
 
 public enum ResourceType { Food, Iron, ValueItem }
 
-public enum Phase { Setup, WorkerPlacement, EndOfRound, GameOver }
+public enum Phase { Setup, SeedCardSelection, WorkerPlacement, EndOfRound, GameOver }
 
 public enum PlayerColor { White, Black, Red, Blue }
 

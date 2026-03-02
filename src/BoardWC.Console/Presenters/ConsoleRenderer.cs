@@ -291,6 +291,8 @@ internal sealed class ConsoleRenderer
         FarmEffectFiredEvent            x => FormatFarmEffect(x),
         TopFloorSlotFilledEvent         x => FormatTopFloorSlot(x),
         PersonalDomainActivatedEvent x => FormatPersonalDomainActivated(x),
+        SeedPairChosenEvent     x => FormatSeedPairChosen(x),
+        SeedCardActivatedEvent  x => $"{PlayerName(x.PlayerId, x)} seed card ({x.ActionType}) activated from personal domain row {x.RowIndex}",
         AnyResourceChosenEvent  x => $"{PlayerName(x.PlayerId, x)} chose {x.Choice} from AnyResource token",
         ResourcesCollectedEvent  x => $"{PlayerName(x.PlayerId, x)} collected {x.Gained}",
         LanternsGainedEvent      x => $"{PlayerName(x.PlayerId, x)} gained {x.Amount} lantern(s)",
@@ -420,6 +422,16 @@ internal sealed class ConsoleRenderer
         if (x.SealsGained   > 0) parts.Add($"+{x.SealsGained} seal(s)");
         if (x.LanternGained > 0) parts.Add($"+{x.LanternGained} lantern(s)");
         return $"{PlayerName(x.PlayerId, x)} top floor: {string.Join(", ", parts)}";
+    }
+
+    private static string FormatSeedPairChosen(SeedPairChosenEvent x)
+    {
+        var parts = new List<string> { $"action: {x.ActionType}" };
+        if (x.ResourcesGained.Total > 0) parts.Add($"resources: {x.ResourcesGained}");
+        if (x.CoinsGained   > 0) parts.Add($"+{x.CoinsGained} coin(s)");
+        if (x.SealsGained   > 0) parts.Add($"+{x.SealsGained} seal(s)");
+        if (x.PendingAnyChoices > 0) parts.Add($"{x.PendingAnyChoices} any-resource choice(s) pending");
+        return $"{PlayerName(x.PlayerId, x)} chose seed pair: {string.Join(", ", parts)}";
     }
 
     // Helpers for FormatEvent — events don't carry the full state, so we use the short ID

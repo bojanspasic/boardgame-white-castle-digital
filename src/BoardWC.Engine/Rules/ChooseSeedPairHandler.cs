@@ -1,0 +1,74 @@
+using BoardWC.Engine.Actions;
+using BoardWC.Engine.Domain;
+using BoardWC.Engine.Events;
+
+namespace BoardWC.Engine.Rules;
+
+internal sealed class ChooseSeedPairHandler : IActionHandler
+{
+    public bool CanHandle(IGameAction action) => action is ChooseSeedPairAction;
+
+    public ValidationResult Validate(IGameAction action, GameState state)
+    {
+        var a = (ChooseSeedPairAction)action;
+
+        if (state.CurrentPhase != Phase.SeedCardSelection)
+            return ValidationResult.Fail("Not in seed card selection phase.");
+
+        var player = state.Players.FirstOrDefault(p => p.Id == a.PlayerId);
+        if (player is null)
+            return ValidationResult.Fail("Unknown player.");
+        if (state.ActivePlayer.Id != a.PlayerId)
+            return ValidationResult.Fail("It is not this player's turn.");
+        if (player.PendingAnyResourceChoices > 0)
+            return ValidationResult.Fail("Resolve pending resource choices first.");
+        if (player.SeedCard is not null)
+            return ValidationResult.Fail("Already chose a seed card.");
+        if (a.PairIndex < 0 || a.PairIndex >= state.SeedCardPairs.Count)
+            return ValidationResult.Fail("Invalid pair index.");
+
+        return ValidationResult.Ok();
+    }
+
+    public void Apply(IGameAction action, GameState state, List<IDomainEvent> events)
+    {
+        var a      = (ChooseSeedPairAction)action;
+        var player = state.Players.First(p => p.Id == a.PlayerId);
+        var pair   = state.SeedCardPairs[a.PairIndex];
+        state.SeedCardPairs.RemoveAt(a.PairIndex);
+
+        player.SeedCard = pair.Action;
+
+        var resourcesGained = new ResourceBag();
+        int coinsGained = 0, sealsGained = 0, pendingChoices = 0;
+
+        foreach (var gain in pair.Resource.Gains)
+        {
+            switch (gain.Type)
+            {
+                case CardGainType.Food:
+                    resourcesGained = resourcesGained.Add(ResourceType.Food, gain.Amount); break;
+                case CardGainType.Iron:
+                    resourcesGained = resourcesGained.Add(ResourceType.Iron, gain.Amount); break;
+                case CardGainType.ValueItem:
+                    resourcesGained = resourcesGained.Add(ResourceType.ValueItem, gain.Amount); break;
+                case CardGainType.Coin:
+                    coinsGained   += gain.Amount; break;
+                case CardGainType.MonarchialSeal:
+                    sealsGained   += gain.Amount; break;
+                case CardGainType.AnyResource:
+                    pendingChoices += gain.Amount; break;
+            }
+        }
+
+        player.Resources = (player.Resources + resourcesGained).Clamp(7);
+        player.Coins     += coinsGained;
+        player.MonarchialSeals = Math.Min(player.MonarchialSeals + sealsGained, 5);
+        player.PendingAnyResourceChoices += pendingChoices;
+
+        events.Add(new SeedPairChosenEvent(
+            state.GameId, player.Id,
+            pair.Action.Id, pair.Action.ActionType.ToString(),
+            resourcesGained, coinsGained, sealsGained, pendingChoices));
+    }
+}

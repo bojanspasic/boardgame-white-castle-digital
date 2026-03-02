@@ -238,3 +238,30 @@ public sealed record PersonalDomainActivatedEvent(
     public DateTimeOffset OccurredAt { get; } = DateTimeOffset.UtcNow;
     public string EventType => nameof(PersonalDomainActivatedEvent);
 }
+
+public sealed record SeedPairChosenEvent(
+    Guid GameId,
+    Guid PlayerId,
+    string ActionCardId,
+    string ActionType,
+    ResourceBag ResourcesGained,
+    int CoinsGained,
+    int SealsGained,
+    int PendingAnyChoices
+) : IDomainEvent
+{
+    public DateTimeOffset OccurredAt { get; } = DateTimeOffset.UtcNow;
+    public string EventType => nameof(SeedPairChosenEvent);
+}
+
+public sealed record SeedCardActivatedEvent(
+    Guid GameId,
+    Guid PlayerId,
+    string ActionCardId,
+    string ActionType,
+    int RowIndex
+) : IDomainEvent
+{
+    public DateTimeOffset OccurredAt { get; } = DateTimeOffset.UtcNow;
+    public string EventType => nameof(SeedCardActivatedEvent);
+}

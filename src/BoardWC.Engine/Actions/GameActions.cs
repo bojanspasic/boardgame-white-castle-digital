@@ -77,3 +77,9 @@ public sealed record ChooseOutsideActivationAction(
     Guid PlayerId,
     OutsideActivation Choice
 ) : IGameAction;
+
+/// <summary>Choose one of the available seed card pairs at the start of the game.</summary>
+public sealed record ChooseSeedPairAction(
+    Guid PlayerId,
+    int PairIndex
+) : IGameAction;

@@ -1,0 +1,14 @@
+{
+  "cards": [
+    { "id": "rc-001", "gains": [{"type":"Coin","amount":3},{"type":"Iron","amount":2}] },
+    { "id": "rc-002", "gains": [{"type":"Food","amount":2},{"type":"Coin","amount":2},{"type":"MonarchialSeal","amount":1}] },
+    { "id": "rc-003", "gains": [{"type":"Iron","amount":3},{"type":"Coin","amount":1}] },
+    { "id": "rc-004", "gains": [{"type":"ValueItem","amount":2},{"type":"Food","amount":2}] },
+    { "id": "rc-005", "gains": [{"type":"Coin","amount":4},{"type":"Food","amount":1}] },
+    { "id": "rc-006", "gains": [{"type":"Food","amount":3},{"type":"Iron","amount":2}] },
+    { "id": "rc-007", "gains": [{"type":"Iron","amount":2},{"type":"Food","amount":2},{"type":"MonarchialSeal","amount":1}] },
+    { "id": "rc-008", "gains": [{"type":"AnyResource","amount":1},{"type":"Coin","amount":2},{"type":"Iron","amount":1}] },
+    { "id": "rc-009", "gains": [{"type":"AnyResource","amount":3}] },
+    { "id": "rc-010", "gains": [{"type":"ValueItem","amount":2},{"type":"Coin","amount":2},{"type":"MonarchialSeal","amount":1}] }
+  ]
+}

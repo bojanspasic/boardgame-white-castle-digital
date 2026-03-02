@@ -7,6 +7,20 @@ internal static class PostActionProcessor
 {
     public static void Run(GameState state, List<IDomainEvent> events)
     {
+        // Seed card selection phase: hold for AnyResource, then advance players or enter gameplay
+        if (state.CurrentPhase == Phase.SeedCardSelection)
+        {
+            if (state.ActivePlayer.PendingAnyResourceChoices > 0) return;
+            if (state.Players.All(p => p.SeedCard is not null))
+            {
+                state.ActivePlayerIndex = 0;
+                state.CurrentPhase = Phase.WorkerPlacement;
+                return;
+            }
+            state.AdvanceTurn();
+            return;
+        }
+
         if (state.CurrentPhase != Phase.WorkerPlacement) return;
 
         // Active player has taken a die but hasn't placed it yet — hold the turn

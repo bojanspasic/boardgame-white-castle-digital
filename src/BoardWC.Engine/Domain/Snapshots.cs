@@ -9,7 +9,8 @@ public sealed record GameStateSnapshot(
     int MaxRounds,
     int ActivePlayerIndex,
     IReadOnlyList<PlayerSnapshot> Players,
-    BoardSnapshot Board
+    BoardSnapshot Board,
+    IReadOnlyList<SeedPairSnapshot> SeedPairs
 );
 
 public sealed record PlayerSnapshot(
@@ -35,7 +36,8 @@ public sealed record PlayerSnapshot(
     int CourtiersOnMidFloor,
     int CourtiersOnTopFloor,
     IReadOnlyList<DieSnapshot> DiceInHand,
-    IReadOnlyList<PersonalDomainRowSnapshot> PersonalDomainRows
+    IReadOnlyList<PersonalDomainRowSnapshot> PersonalDomainRows,
+    SeedActionCardSnapshot? SeedCard
 );
 
 public sealed record BoardSnapshot(
@@ -158,6 +160,13 @@ public sealed record PersonalDomainRowSnapshot(
     int DefaultGainAmount,
     IReadOnlyList<PersonalDomainSpotSnapshot> Spots,
     DieSnapshot? PlacedDie);
+
+// ── Seed card snapshots ───────────────────────────────────────────────────────
+
+public sealed record SeedResourceGainSnapshot(string GainType, int Amount);
+public sealed record SeedResourceCardSnapshot(string Id, IReadOnlyList<SeedResourceGainSnapshot> Gains);
+public sealed record SeedActionCardSnapshot(string Id, string ActionType);
+public sealed record SeedPairSnapshot(SeedActionCardSnapshot Action, SeedResourceCardSnapshot Resource);
 
 public sealed record PlayerScore(
     Guid PlayerId,

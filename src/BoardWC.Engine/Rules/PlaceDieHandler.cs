@@ -210,6 +210,26 @@ internal sealed class PlaceDieHandler : IActionHandler
 
         events.Add(new PersonalDomainActivatedEvent(
             state.GameId, player.Id, target.RowIndex, row.Config.DieColor, uncovered, gained));
+
+        // Activate seed action card every time a die is placed in a personal domain row
+        if (player.SeedCard is { } seedCard)
+        {
+            switch (seedCard.ActionType)
+            {
+                case SeedActionType.PlayCastle:
+                    player.CastlePlaceRemaining++;
+                    player.CastleAdvanceRemaining++;
+                    break;
+                case SeedActionType.PlayFarm:
+                    player.PendingFarmActions++;
+                    break;
+                case SeedActionType.PlayTrainingGrounds:
+                    player.PendingTrainingGroundsActions++;
+                    break;
+            }
+            events.Add(new SeedCardActivatedEvent(
+                state.GameId, player.Id, seedCard.Id, seedCard.ActionType.ToString(), target.RowIndex));
+        }
     }
 
     private static int GetUncoveredCount(Player player, string figureType) => figureType switch
