@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using BoardWC.Engine.Actions;
 using BoardWC.Engine.Domain;
 using BoardWC.Engine.Events;
@@ -298,6 +299,8 @@ internal sealed class PlaceDieHandler : IActionHandler
         }
     }
 
+    /// Default arm unreachable: only Courtier/Farmer/Soldier figure types appear in data.
+    [ExcludeFromCodeCoverage]
     private static int GetUncoveredCount(Player player, string figureType) => figureType switch
     {
         "Courtier" => 5 - player.CourtiersAvailable,

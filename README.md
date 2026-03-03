@@ -23,3 +23,20 @@ In the first pass I decided to let Claude implement the rules as it knows it. It
 # refining the console ui
 
 Since my goal is to dewelop a resuable game engine library, I never exactly specified how the throwable console UI should look like and I let Claude decide. After several iterations it became cluttered, which is expected, since I paid no attention to it. But, since I need to actually be able to test the dehavior myself, I ended up with unusable UI. I instruced Claude to rebuild it and after 3 iterations got what I want.
+
+# tests
+
+As planned I did not push Claude to create tests. Initially I asked it to do so, but afterwards I did not insist. Upon implementing all the rules, I instructed it to review all the rules and create a test suite for the 100% code coverage for the engine (console code coverage is irrelevant atm).
+After first run it added 111 tests (in addition to existing 66), and even though I asked for 100% coverage it stopped there. When asked about the coverage it admitted that it was significantly less.
+Additionally, one of the tests was failing, even though Claude claimed that all the tests passed. It should not be left unattended. Subagent might resolve this state autonomously though - need to pay attention to this.
+...
+It proposed to exclude some paths from tests (which is a bit smelly). Let's see where it will end and see what was actually excluded.
+...
+Claude managed to come up with 333 tests, but coverage is still less than 80% (for some files is at 0%). I need to step in and micromanage it at this point. 
+...
+Well, this was a baby-sitting activity, but it managed to get code coverage right.
+
+# Excluded tests
+
+
+

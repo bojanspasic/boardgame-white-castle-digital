@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using BoardWC.Engine.Actions;
 using BoardWC.Engine.Domain;
 using BoardWC.Engine.Events;
@@ -29,13 +30,7 @@ internal sealed class CastlePlayHandler : IActionHandler
         if (!anyPending)
             return ValidationResult.Fail("No pending castle action to resolve.");
 
-        return action switch
-        {
-            CastlePlaceCourtierAction => ValidatePlace(player),
-            CastleAdvanceCourtierAction a => ValidateAdvance(player, a),
-            CastleSkipAction => ValidationResult.Ok(),
-            _ => ValidationResult.Fail("Unrecognised castle action."),
-        };
+        return ValidateKnownCastleAction(action, player);
     }
 
     public void Apply(IGameAction action, GameState state, List<IDomainEvent> events)
@@ -140,6 +135,27 @@ internal sealed class CastlePlayHandler : IActionHandler
 
     // ── helpers ──────────────────────────────────────────────────────────────
 
+    /// Unreachable in practice: CanHandle() ensures only castle actions enter Validate.
+    [ExcludeFromCodeCoverage]
+    private static ValidationResult ValidateKnownCastleAction(IGameAction action, Domain.Player player) =>
+        action switch
+        {
+            CastlePlaceCourtierAction   => ValidatePlace(player),
+            CastleAdvanceCourtierAction a => ValidateAdvance(player, a),
+            CastleSkipAction            => ValidationResult.Ok(),
+            _                           => ValidationResult.Fail("Unrecognised castle action."),
+        };
+
+    /// Unreachable default arm: ValidateAdvance already rejects positions other than Gate/GroundFloor/MidFloor.
+    [ExcludeFromCodeCoverage]
+    private static int CourtierCountAt(Domain.Player player, CourtierPosition pos) => pos switch
+    {
+        CourtierPosition.Gate        => player.CourtiersAtGate,
+        CourtierPosition.GroundFloor => player.CourtiersOnGroundFloor,
+        CourtierPosition.MidFloor    => player.CourtiersOnMidFloor,
+        _                            => 0,
+    };
+
     private static ValidationResult ValidatePlace(Domain.Player player)
     {
         if (player.CastlePlaceRemaining <= 0)
@@ -160,13 +176,7 @@ internal sealed class CastlePlayHandler : IActionHandler
         if (a.From == CourtierPosition.MidFloor && a.Levels == 2)
             return ValidationResult.Fail("Cannot advance 2 levels from the mid floor (would exceed top floor).");
 
-        int count = a.From switch
-        {
-            CourtierPosition.Gate        => player.CourtiersAtGate,
-            CourtierPosition.GroundFloor => player.CourtiersOnGroundFloor,
-            CourtierPosition.MidFloor    => player.CourtiersOnMidFloor,
-            _                            => 0,
-        };
+        int count = CourtierCountAt(player, a.From);
         if (count <= 0)
             return ValidationResult.Fail($"No courtiers at {a.From} to advance.");
 
