@@ -1,9 +1,11 @@
 # BoardWC — Claude Code Context
 
 ## Documentation Maintenance
-**Whenever rules or architecture change, update both `CLAUDE.md` and `gamerules.md`.**
+**Whenever rules or architecture change, update `CLAUDE.md`, `gamerules.md`, `architecture.md`, and `EngineAPI.md`.**
 - `gamerules.md` — source of truth for board game rules as described by the user.
 - `CLAUDE.md` — source of truth for codebase architecture, patterns, and conventions.
+- `architecture.md` — full description of implemented architecture.
+- `EnginaAPI.md` — full description of engine api.
 
 ---
 
@@ -106,18 +108,6 @@ dotnet test                                       # run 66 unit tests
 dotnet run --project src/BoardWC.Console          # play in console
 ```
 
-## Console Commands (in-game)
-```
-start                                 — start the game
-bridge <red|black|white> <high|low>   — take a die from a bridge
-place castle <floor(0-1)> <room(0-2)> — place die in castle room
-place well                            — place die in the well
-place outside <0|1>                   — place die in outside slot
-choose <food|iron|valueitem>          — choose resource from AnyResource token (after placing at well)
-pass                                  — end your turn
-help                                  — show command list
-```
-
 ## Key Enums
 - `BridgeColor`: Red, Black, White
 - `DiePosition`: High, Low
@@ -156,19 +146,6 @@ help                                  — show command list
 | Console input | `src/BoardWC.Console/Input/ConsoleInputParser.cs` |
 | Tests | `tests/BoardWC.Engine.Tests/GameEngineTests.cs` |
 
-## Castle Courtier System
-When a "Play castle" action triggers, the player may:
-1. **Place a courtier at the gate** (costs 2 coins, courtier from hand → `CourtiersAtGate`)
-2. **Advance a courtier** (costs 2 VI for 1 level, 5 VI for 2 levels):
-   - **Gate → Ground floor**: player picks one of 3 rooms; acquires that room's card, deck provides replacement
-   - **Gate → Mid floor**: player picks one of 2 rooms; acquires that room's card
-   - **Ground → Mid floor**: player picks one of 2 rooms; acquires that room's card
-   - **Ground → Top floor** or **Mid → Top floor**: no room choice (RoomIndex = -1)
-   - If no replacement card available in deck: courtier still advances but no card is taken
-3. **Skip** all remaining castle options
-
-`CastleAdvanceCourtierAction` has `int RoomIndex = -1` (default = top floor, no card).
-
 ### Personal Domain Card Field Mapping
 When a room card is acquired and a die later placed in a personal domain row, that card's field fires:
 | Card type | Layout | Row 0 (Red/Courtier) | Row 1 (White/Farmer) | Row 2 (Black/Soldier) |
@@ -176,9 +153,3 @@ When a room card is acquired and a die later placed in a personal domain row, th
 | Ground floor | null (3 fields) | field[0] | field[1] | field[2] |
 | Mid floor | DoubleTop | field[0] | field[0] | field[1] |
 | Mid floor | DoubleBottom | field[0] | field[1] | field[1] |
-
-## Deferred / Not Yet Implemented
-- Gate of the castle (skip for now)
-- Top castle level (1 room — die cannot be placed here; purpose TBD)
-- Monarchial Seals additional earn mechanics (beyond well placement)
-- Token gameplay effect when a die is placed in a **castle room** (well effect is implemented)
