@@ -279,7 +279,7 @@ At the start of each new round, the player with the **highest Influence score** 
 
 ## Victory Points
 
-Calculated at game end across six categories:
+Calculated at game end across eight categories:
 
 | Category | Rule |
 |----------|------|
@@ -289,6 +289,8 @@ Calculated at game end across six categories:
 | **Seals** | 1 VP per 5 Monarchial Seals (floor division) |
 | **Resources** | Per resource type: 4–6 of a kind = 1 VP; 7 of a kind = 2 VP |
 | **Farm** | Sum of VP printed on each farm field card where the player has a farmer |
+| **Training Grounds** | (soldiers in areas 1+2) × castle courtiers + (soldiers in area 3) × 2 × castle courtiers. Castle courtiers = ground + mid + top floor only (gate excluded). |
+| **Influence** | 0–5 = 0 VP · 6–10 = 3 VP · 11–15 = 6 VP · 16 = 7 · 17 = 8 · 18 = 9 · 19 = 10 · 20+ = 11 VP |
 
 The player with the highest total wins.
 

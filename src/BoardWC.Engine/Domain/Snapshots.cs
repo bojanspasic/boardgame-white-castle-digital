@@ -191,5 +191,7 @@ public sealed record PlayerScore(
     int CoinPoints,
     int SealPoints,
     int ResourcePoints,
-    int FarmPoints
+    int FarmPoints,
+    int TrainingGroundsPoints,
+    int InfluencePoints
 );

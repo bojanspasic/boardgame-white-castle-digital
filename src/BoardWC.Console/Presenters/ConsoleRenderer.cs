@@ -71,14 +71,14 @@ internal sealed class ConsoleRenderer
     public void RenderFinalScores(IReadOnlyList<PlayerScore> scores)
     {
         System.Console.WriteLine();
-        System.Console.WriteLine("═══════════════════════════════════════════════════════════════════");
-        System.Console.WriteLine("                       GAME OVER — SCORES                         ");
-        System.Console.WriteLine("═══════════════════════════════════════════════════════════════════");
-        System.Console.WriteLine($"  {"Player",-16} {"Total",5}  {"Lanterns",8}  {"Courtiers",9}  {"Coins",5}  {"Seals",5}  {"Resources",9}  {"Farm",4}");
-        System.Console.WriteLine("  " + new string('─', 63));
+        System.Console.WriteLine("═══════════════════════════════════════════════════════════════════════════════════════");
+        System.Console.WriteLine("                                  GAME OVER — SCORES                                  ");
+        System.Console.WriteLine("═══════════════════════════════════════════════════════════════════════════════════════");
+        System.Console.WriteLine($"  {"Player",-16} {"Total",5}  {"Lant",4}  {"Court",5}  {"Coins",5}  {"Seals",5}  {"Res",3}  {"Farm",4}  {"TG",4}  {"Infl",4}");
+        System.Console.WriteLine("  " + new string('─', 79));
         foreach (var s in scores)
             System.Console.WriteLine(
-                $"  {s.PlayerName,-16} {s.Total,5}  {s.LanternPoints,8}  {s.CourtierPoints,9}  {s.CoinPoints,5}  {s.SealPoints,5}  {s.ResourcePoints,9}  {s.FarmPoints,4}");
+                $"  {s.PlayerName,-16} {s.Total,5}  {s.LanternPoints,4}  {s.CourtierPoints,5}  {s.CoinPoints,5}  {s.SealPoints,5}  {s.ResourcePoints,3}  {s.FarmPoints,4}  {s.TrainingGroundsPoints,4}  {s.InfluencePoints,4}");
         System.Console.WriteLine();
         System.Console.WriteLine($"  Winner: {scores[0].PlayerName}");
     }
