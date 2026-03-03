@@ -36,7 +36,9 @@ Claude managed to come up with 333 tests, but coverage is still less than 80% (f
 ...
 Well, this was a baby-sitting activity, but it managed to get code coverage right.
 
-# Excluded tests
+# Tests excluded from code coverage
+
+Surprisingly, only three methods are excluded from coverage, with rationale that those are instances of Default _ arn and unreachable anyways due to datasets, which is acceptable at this point.
 
 
 
