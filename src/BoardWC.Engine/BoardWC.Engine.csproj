@@ -22,6 +22,7 @@
     <EmbeddedResource Include="Data\personal-domain-rows.json" />
     <EmbeddedResource Include="Data\starting-action-cards.json" />
     <EmbeddedResource Include="Data\starting-resource-cards.json" />
+    <EmbeddedResource Include="Data\decree-cards.json" />
   </ItemGroup>
 
 </Project>

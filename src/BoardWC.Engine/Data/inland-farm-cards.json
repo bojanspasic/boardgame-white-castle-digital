@@ -52,7 +52,7 @@
       "id": "farm_inland_07",
       "foodCost": 1,
       "gainItems": [],
-      "actionDescription": "Play castle",
+      "actionDescription": "Play any castle card field",
       "actionCost": [],
       "victoryPoints": 2
     },
@@ -60,7 +60,7 @@
       "id": "farm_inland_08",
       "foodCost": 2,
       "gainItems": [],
-      "actionDescription": "Play castle",
+      "actionDescription": "Play castle gain field",
       "actionCost": [],
       "victoryPoints": 3
     },

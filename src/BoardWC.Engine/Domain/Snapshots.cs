@@ -34,6 +34,9 @@ public sealed record PlayerSnapshot(
     int PendingOutsideActivationSlot,
     int PendingInfluenceGain,
     int PendingInfluenceSealCost,
+    string? PendingCastleCardFieldFilter,
+    bool PendingPersonalDomainRowChoice,
+    RoomCardSnapshot? PendingNewCardActivation,
     int CourtiersAtGate,
     int CourtiersOnGroundFloor,
     int CourtiersOnMidFloor,
@@ -178,8 +181,13 @@ public sealed record LanternChainItemSnapshot(
 // ── Seed card snapshots ───────────────────────────────────────────────────────
 
 public sealed record SeedResourceGainSnapshot(string GainType, int Amount);
-public sealed record SeedResourceCardSnapshot(string Id, IReadOnlyList<SeedResourceGainSnapshot> Gains);
-public sealed record SeedActionCardSnapshot(string Id, string ActionType);
+public sealed record SeedResourceCardSnapshot(
+    string Id,
+    IReadOnlyList<SeedResourceGainSnapshot> Gains,
+    LanternChainGainSnapshot Back,
+    string? DecreeCardId = null,
+    LanternChainGainSnapshot? DecreeGain = null);
+public sealed record SeedActionCardSnapshot(string Id, string ActionType, LanternChainGainSnapshot Back);
 public sealed record SeedPairSnapshot(SeedActionCardSnapshot Action, SeedResourceCardSnapshot Resource);
 
 public sealed record PlayerScore(

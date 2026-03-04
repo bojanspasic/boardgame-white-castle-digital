@@ -84,5 +84,21 @@ internal sealed class ChooseSeedPairHandler : IActionHandler
             state.GameId, player.Id,
             chainItem.SourceCardId, chainItem.SourceCardType,
             chainItem.Gains.Select(g => (g.Type.ToString(), g.Amount)).ToList().AsReadOnly()));
+
+        // If the resource card carries a decree card, add it to the lantern chain.
+        if (pair.Resource.Decree is { } decree)
+        {
+            var decreeChainItem = new LanternChainItem
+            {
+                SourceCardId   = decree.Id,
+                SourceCardType = "Decree",
+                Gains          = new[] { new LanternChainGain(decree.GainType, decree.Amount) },
+            };
+            player.LanternChain.Add(decreeChainItem);
+            events.Add(new LanternChainItemAddedEvent(
+                state.GameId, player.Id,
+                decreeChainItem.SourceCardId, decreeChainItem.SourceCardType,
+                decreeChainItem.Gains.Select(g => (g.Type.ToString(), g.Amount)).ToList().AsReadOnly()));
+        }
     }
 }

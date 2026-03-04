@@ -91,3 +91,29 @@ public sealed record ChooseInfluencePayAction(
     Guid PlayerId,
     bool WillPay
 ) : IGameAction;
+
+/// <summary>
+/// Activate one field on a placed castle room card matching the pending color filter.
+/// Use Floor = -1 (and RoomIndex = -1, FieldIndex = -1) to skip without activating.
+/// </summary>
+public sealed record ChooseCastleCardFieldAction(
+    Guid PlayerId,
+    int Floor,
+    int RoomIndex,
+    int FieldIndex
+) : IGameAction;
+
+/// <summary>Activate a personal domain row of the chosen color without placing a die.</summary>
+public sealed record ChoosePersonalDomainRowAction(
+    Guid PlayerId,
+    BridgeColor RowColor
+) : IGameAction;
+
+/// <summary>
+/// Select a field on the just-acquired room card to play before placing it in the personal domain.
+/// Use FieldIndex = -1 to skip field activation.
+/// </summary>
+public sealed record ChooseNewCardFieldAction(
+    Guid PlayerId,
+    int FieldIndex
+) : IGameAction;

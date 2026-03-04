@@ -1,0 +1,7 @@
+{
+  "cards": [
+    { "id": "decree-coin",      "gainType": "Coin",         "amount": 1 },
+    { "id": "decree-vp",        "gainType": "VictoryPoint", "amount": 1 },
+    { "id": "decree-valueitem", "gainType": "ValueItem",    "amount": 1 }
+  ]
+}

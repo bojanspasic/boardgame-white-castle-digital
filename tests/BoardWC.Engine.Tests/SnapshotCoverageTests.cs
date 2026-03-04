@@ -44,9 +44,16 @@ public class SnapshotCoverageTests
             _ = pair.Resource;
             _ = pair.Action.Id;
             _ = pair.Action.ActionType;
+            _ = pair.Action.Back;
             _ = pair.Resource.Id;
             _ = pair.Resource.Gains;
+            _ = pair.Resource.Back;
+            _ = pair.Resource.DecreeCardId;
+            _ = pair.Resource.DecreeGain;
             foreach (var g in pair.Resource.Gains) { _ = g.GainType; _ = g.Amount; }
+            { var ab = pair.Action.Back;   _ = ab.GainType; _ = ab.Amount; }
+            { var rb = pair.Resource.Back; _ = rb.GainType; _ = rb.Amount; }
+            if (pair.Resource.DecreeGain is { } dg) { _ = dg.GainType; _ = dg.Amount; }
         }
 
         // ── PlayerSnapshot ────────────────────────────────────────────────────
@@ -72,6 +79,9 @@ public class SnapshotCoverageTests
             _ = p.PendingOutsideActivationSlot;
             _ = p.PendingInfluenceGain;
             _ = p.PendingInfluenceSealCost;
+            _ = p.PendingCastleCardFieldFilter;
+            _ = p.PendingPersonalDomainRowChoice;
+            _ = p.PendingNewCardActivation;
             _ = p.CourtiersAtGate;
             _ = p.CourtiersOnGroundFloor;
             _ = p.CourtiersOnMidFloor;

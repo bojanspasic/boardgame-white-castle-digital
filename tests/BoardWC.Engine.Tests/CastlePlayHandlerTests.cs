@@ -532,7 +532,8 @@ public class CastlePlayHandlerTests
             new CastleAdvanceCourtierAction(alice.Id, CourtierPosition.Gate, 1, 0),
             state, events);
 
-        Assert.Single(alice.PersonalDomainCards);
+        Assert.NotNull(alice.PendingNewCardActivation);
+        Assert.Empty(alice.PersonalDomainCards); // card pending activation, not yet in domain
 
         var evt = Assert.Single(events.OfType<RoomCardAcquiredEvent>());
         Assert.Equal(state.GameId, evt.GameId);
@@ -560,7 +561,8 @@ public class CastlePlayHandlerTests
             new CastleAdvanceCourtierAction(alice.Id, CourtierPosition.GroundFloor, 1, 0),
             state, events);
 
-        Assert.Single(alice.PersonalDomainCards);
+        Assert.NotNull(alice.PendingNewCardActivation);
+        Assert.Empty(alice.PersonalDomainCards); // card pending activation, not yet in domain
 
         var evt = Assert.Single(events.OfType<RoomCardAcquiredEvent>());
         Assert.Equal(1,            evt.Floor);
@@ -593,7 +595,8 @@ public class CastlePlayHandlerTests
             new CastleAdvanceCourtierAction(alice.Id, CourtierPosition.Gate, 1, 0),
             state, events);
 
-        Assert.Contains(alice.PersonalDomainCards, c => c.Id == "back-test");
+        Assert.NotNull(alice.PendingNewCardActivation);
+        Assert.Equal("back-test", alice.PendingNewCardActivation.Id);
         var chainItem = Assert.Single(alice.LanternChain);
         Assert.Equal("back-test",   chainItem.SourceCardId);
         Assert.Equal("GroundFloor", chainItem.SourceCardType);

@@ -141,18 +141,36 @@ internal sealed class PlaceDieHandler : IActionHandler
                     events.Add(new CardActionActivatedEvent(
                         state.GameId, player.Id, card.Id, i, actionField.Description));
 
-                    if (actionField.Description == "Play castle")
+                    switch (actionField.Description)
                     {
-                        player.CastlePlaceRemaining++;
-                        player.CastleAdvanceRemaining++;
-                    }
-                    else if (actionField.Description == "Play training grounds")
-                    {
-                        player.PendingTrainingGroundsActions++;
-                    }
-                    else if (actionField.Description == "Play farm")
-                    {
-                        player.PendingFarmActions++;
+                        case "Play castle":
+                            player.CastlePlaceRemaining++;
+                            player.CastleAdvanceRemaining++;
+                            break;
+                        case "Play training grounds":
+                            player.PendingTrainingGroundsActions++;
+                            break;
+                        case "Play farm":
+                            player.PendingFarmActions++;
+                            break;
+                        case "Play red castle card field":
+                            player.PendingCastleCardFieldFilter = "Red";
+                            break;
+                        case "Play black castle card field":
+                            player.PendingCastleCardFieldFilter = "Black";
+                            break;
+                        case "Play white castle card field":
+                            player.PendingCastleCardFieldFilter = "White";
+                            break;
+                        case "Play any castle card field":
+                            player.PendingCastleCardFieldFilter = "Any";
+                            break;
+                        case "Play castle gain field":
+                            player.PendingCastleCardFieldFilter = "GainOnly";
+                            break;
+                        case "Play personal domain row":
+                            player.PendingPersonalDomainRowChoice = true;
+                            break;
                     }
                 }
             }
@@ -290,6 +308,24 @@ internal sealed class PlaceDieHandler : IActionHandler
                         break;
                     case "Play farm":
                         player.PendingFarmActions++;
+                        break;
+                    case "Play red castle card field":
+                        player.PendingCastleCardFieldFilter = "Red";
+                        break;
+                    case "Play black castle card field":
+                        player.PendingCastleCardFieldFilter = "Black";
+                        break;
+                    case "Play white castle card field":
+                        player.PendingCastleCardFieldFilter = "White";
+                        break;
+                    case "Play any castle card field":
+                        player.PendingCastleCardFieldFilter = "Any";
+                        break;
+                    case "Play castle gain field":
+                        player.PendingCastleCardFieldFilter = "GainOnly";
+                        break;
+                    case "Play personal domain row":
+                        player.PendingPersonalDomainRowChoice = true;
                         break;
                 }
                 events.Add(new PersonalDomainCardFieldActivatedEvent(

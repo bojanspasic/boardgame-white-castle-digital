@@ -35,11 +35,20 @@ internal static class PostActionProcessor
         // Active player has pending AnyResource choices to resolve — hold the turn
         if (state.ActivePlayer.PendingAnyResourceChoices > 0) return;
 
+        // Active player has a pending new card field choice to resolve — hold the turn
+        if (state.ActivePlayer.PendingNewCardActivation is not null) return;
+
         // Active player has pending training grounds actions to resolve — hold the turn
         if (state.ActivePlayer.PendingTrainingGroundsActions > 0) return;
 
         // Active player has pending farm actions to resolve — hold the turn
         if (state.ActivePlayer.PendingFarmActions > 0) return;
+
+        // Active player has a pending castle card field choice to resolve — hold the turn
+        if (state.ActivePlayer.PendingCastleCardFieldFilter is not null) return;
+
+        // Active player has a pending personal domain row choice to resolve — hold the turn
+        if (state.ActivePlayer.PendingPersonalDomainRowChoice) return;
 
         // Active player has pending castle actions to resolve — hold the turn
         if (state.ActivePlayer.CastlePlaceRemaining > 0 ||

@@ -349,3 +349,54 @@ public sealed record InfluenceGainResolvedEvent(
     public DateTimeOffset OccurredAt { get; } = DateTimeOffset.UtcNow;
     public string EventType => nameof(InfluenceGainResolvedEvent);
 }
+
+/// <summary>Fired when the player resolves a pending castle card field choice (or skips).</summary>
+public sealed record CastleCardFieldChosenEvent(
+    Guid GameId,
+    Guid PlayerId,
+    int Floor,              // -1 = skipped
+    int RoomIndex,
+    int FieldIndex,
+    ResourceBag ResourcesGained,
+    int CoinsGained,
+    int SealsGained,
+    int LanternGained,
+    int VpGained,
+    int InfluenceGained,
+    string? ActionTriggered  // null when skipped or gain field
+) : IDomainEvent
+{
+    public DateTimeOffset OccurredAt { get; } = DateTimeOffset.UtcNow;
+    public string EventType => nameof(CastleCardFieldChosenEvent);
+}
+
+/// <summary>Fired when the player activates a personal domain row for free (no die placed).</summary>
+public sealed record PersonalDomainRowChosenEvent(
+    Guid GameId,
+    Guid PlayerId,
+    BridgeColor RowColor,
+    ResourceBag ResourcesGained
+) : IDomainEvent
+{
+    public DateTimeOffset OccurredAt { get; } = DateTimeOffset.UtcNow;
+    public string EventType => nameof(PersonalDomainRowChosenEvent);
+}
+
+/// <summary>Fired when the player resolves a pending new-card field choice (or skips).</summary>
+public sealed record NewCardFieldChosenEvent(
+    Guid GameId,
+    Guid PlayerId,
+    string CardId,
+    int FieldIndex,          // -1 = skipped
+    ResourceBag ResourcesGained,
+    int CoinsGained,
+    int SealsGained,
+    int LanternGained,
+    int VpGained,
+    int InfluenceGained,
+    string? ActionTriggered  // null when skipped or gain field
+) : IDomainEvent
+{
+    public DateTimeOffset OccurredAt { get; } = DateTimeOffset.UtcNow;
+    public string EventType => nameof(NewCardFieldChosenEvent);
+}

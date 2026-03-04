@@ -59,6 +59,18 @@ internal static class LegalActionGenerator
             return actions.AsReadOnly();
         }
 
+        // Player must resolve pending new card field choice before acting
+        if (player.PendingNewCardActivation is { } pendingCard)
+        {
+            actions.Add(new ChooseNewCardFieldAction(playerId, -1)); // skip
+            for (int fi = 0; fi < pendingCard.Fields.Count; fi++)
+            {
+                if (CanAffordField(pendingCard.Fields[fi], player))
+                    actions.Add(new ChooseNewCardFieldAction(playerId, fi));
+            }
+            return actions.AsReadOnly();
+        }
+
         // Player must resolve pending outside slot activation choice before acting
         if (player.PendingOutsideActivationSlot >= 0)
         {
@@ -104,6 +116,42 @@ internal static class LegalActionGenerator
                 if (player.SoldiersAvailable > 0 && player.Resources.Iron >= tgAreas[i].IronCost)
                     actions.Add(new TrainingGroundsPlaceSoldierAction(playerId, i));
             }
+            return actions.AsReadOnly();
+        }
+
+        // Player must resolve pending castle card field choice before acting
+        if (player.PendingCastleCardFieldFilter is { } filter)
+        {
+            actions.Add(new ChooseCastleCardFieldAction(playerId, -1, -1, -1)); // skip
+            var castleFloors = state.Board.CastleFloors;
+            for (int floor = 0; floor < castleFloors.Count; floor++)
+            {
+                var rooms = castleFloors[floor];
+                for (int room = 0; room < rooms.Count; room++)
+                {
+                    var ph = rooms[room];
+                    if (ph.Card is not { } card) continue;
+
+                    if (filter == "Red"   && !ph.Tokens.Any(t => t.DieColor == BridgeColor.Red))   continue;
+                    if (filter == "Black" && !ph.Tokens.Any(t => t.DieColor == BridgeColor.Black)) continue;
+                    if (filter == "White" && !ph.Tokens.Any(t => t.DieColor == BridgeColor.White)) continue;
+
+                    for (int fi = 0; fi < card.Fields.Count; fi++)
+                    {
+                        if (filter == "GainOnly" && card.Fields[fi] is not GainCardField) continue;
+                        if (CanAffordField(card.Fields[fi], player))
+                            actions.Add(new ChooseCastleCardFieldAction(playerId, floor, room, fi));
+                    }
+                }
+            }
+            return actions.AsReadOnly();
+        }
+
+        // Player must resolve pending personal domain row choice before acting
+        if (player.PendingPersonalDomainRowChoice)
+        {
+            foreach (var row in player.PersonalDomainRows)
+                actions.Add(new ChoosePersonalDomainRowAction(playerId, row.Config.DieColor));
             return actions.AsReadOnly();
         }
 
@@ -190,6 +238,21 @@ internal static class LegalActionGenerator
         actions.Add(new PassAction(playerId));
 
         return actions.AsReadOnly();
+    }
+
+    /// <summary>Returns true if the player can afford any cost on the given field.</summary>
+    private static bool CanAffordField(CardField field, Domain.Player player)
+    {
+        if (field is not ActionCardField af) return true; // gain fields are always free
+        foreach (var cost in af.Cost)
+        {
+            switch (cost.Type)
+            {
+                case CardCostType.Coin          when player.Coins          < cost.Amount: return false;
+                case CardCostType.MonarchialSeal when player.MonarchialSeals < cost.Amount: return false;
+            }
+        }
+        return true;
     }
 
     private static IEnumerable<(CourtierPosition From, int Levels, int RoomIndex)> ValidAdvances(Domain.Player player)

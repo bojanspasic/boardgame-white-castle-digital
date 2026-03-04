@@ -1,6 +1,6 @@
 # about
 
-I am exploring the capabilities fo Claude Code by creating a digital version of The White Castle board game. So I'll start with greenfield project and have Claude Code generate everything.
+I am exploring the capabilities of Claude Code by creating a digital version of The White Castle board game. So I'll start with greenfield project and have Claude Code generate everything.
 
 I suspect that I will not physically be able to review everything it creates, so I'll have to trust it in some aspects.
 

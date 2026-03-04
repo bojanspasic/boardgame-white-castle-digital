@@ -145,6 +145,30 @@ internal sealed class FarmHandler : IActionHandler
             case "Gain 1 lantern":
                 lanternGained++;
                 break;
+
+            case "Play red castle card field":
+                player.PendingCastleCardFieldFilter = "Red";
+                break;
+
+            case "Play black castle card field":
+                player.PendingCastleCardFieldFilter = "Black";
+                break;
+
+            case "Play white castle card field":
+                player.PendingCastleCardFieldFilter = "White";
+                break;
+
+            case "Play any castle card field":
+                player.PendingCastleCardFieldFilter = "Any";
+                break;
+
+            case "Play castle gain field":
+                player.PendingCastleCardFieldFilter = "GainOnly";
+                break;
+
+            case "Play personal domain row":
+                player.PendingPersonalDomainRowChoice = true;
+                break;
         }
     }
 }

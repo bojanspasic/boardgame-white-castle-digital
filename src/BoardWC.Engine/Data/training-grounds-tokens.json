@@ -8,12 +8,12 @@
     {
       "id": "tg_02",
       "resourceSide": [{ "type": "Iron", "amount": 2 }],
-      "actionSide": "Play castle"
+      "actionSide": "Play red castle card field"
     },
     {
       "id": "tg_03",
       "resourceSide": [{ "type": "ValueItem", "amount": 2 }],
-      "actionSide": "Play castle"
+      "actionSide": "Play black castle card field"
     },
     {
       "id": "tg_04",
@@ -31,7 +31,7 @@
         { "type": "Food", "amount": 1 },
         { "type": "Iron", "amount": 1 }
       ],
-      "actionSide": "Gain 1 lantern"
+      "actionSide": "Play personal domain row"
     },
     {
       "id": "tg_07",
@@ -47,7 +47,7 @@
         { "type": "Food", "amount": 1 },
         { "type": "ValueItem", "amount": 1 }
       ],
-      "actionSide": "Play castle"
+      "actionSide": "Play white castle card field"
     },
     {
       "id": "tg_09",

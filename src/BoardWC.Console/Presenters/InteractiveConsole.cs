@@ -1152,7 +1152,7 @@ internal sealed class InteractiveConsole
         {
             var pair   = state.SeedPairs[i];
             var act    = legal.OfType<ChooseSeedPairAction>().FirstOrDefault(a => a.PairIndex == i);
-            var label  = $"{pair.Action.ActionType,-24}  |  {FormatSeedResourceCard(pair.Resource)}";
+            var label  = $"{pair.Action.ActionType,-24}  |  {FormatSeedResourceCard(pair.Resource, pair.Action.Back)}";
             options.Add(new ActionEntry(label, null, act != null, act));
         }
 
@@ -1165,6 +1165,13 @@ internal sealed class InteractiveConsole
         return options;
     }
 
-    private static string FormatSeedResourceCard(SeedResourceCardSnapshot card) =>
-        string.Join(", ", card.Gains.Select(g => $"+{g.Amount} {g.GainType}"));
+    private static string FormatSeedResourceCard(SeedResourceCardSnapshot card, LanternChainGainSnapshot actionBack)
+    {
+        var sb = new System.Text.StringBuilder();
+        sb.Append(string.Join(", ", card.Gains.Select(g => $"+{g.Amount} {g.GainType}")));
+        sb.Append($"  [chain: +{card.Back.Amount} {card.Back.GainType}, +{actionBack.Amount} {actionBack.GainType}]");
+        if (card.DecreeGain is { } dg)
+            sb.Append($"  [decree: +{dg.Amount} {dg.GainType}]");
+        return sb.ToString();
+    }
 }

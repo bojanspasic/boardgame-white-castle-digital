@@ -50,9 +50,12 @@ public static class GameEngineFactory
             new ChooseResourceHandler(),
             new ChooseInfluencePayHandler(),
             new OutsideActivationHandler(),
+            new ChooseNewCardFieldHandler(),
             new CastlePlayHandler(),
             new TrainingGroundsHandler(),
             new FarmHandler(),
+            new ChooseCastleCardFieldHandler(),
+            new ChoosePersonalDomainRowHandler(),
             new PassHandler(),
         });
 }

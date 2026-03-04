@@ -47,6 +47,15 @@ internal sealed class Player
     /// <summary>-1 = no pending choice; 0 = slot 0 (Farm/Castle); 1 = slot 1 (TG/Castle).</summary>
     internal int PendingOutsideActivationSlot { get; set; } = -1;
 
+    /// <summary>Filter for castle card field choice. "Red"/"Black"/"White"/"Any"/"GainOnly"; null = none pending.</summary>
+    internal string? PendingCastleCardFieldFilter { get; set; }
+
+    /// <summary>Whether the player must choose a personal domain row to activate for free.</summary>
+    internal bool PendingPersonalDomainRowChoice { get; set; }
+
+    /// <summary>Card just acquired by a courtier advance; player chooses a field before it enters the personal domain.</summary>
+    internal RoomCard? PendingNewCardActivation { get; set; }
+
     internal int CourtiersAtGate { get; set; }
     internal int CourtiersOnGroundFloor { get; set; }
     internal int CourtiersOnMidFloor { get; set; }
@@ -73,6 +82,7 @@ internal sealed class Player
         MonarchialSeals, SoldiersAvailable, CourtiersAvailable, FarmersAvailable,
         PendingAnyResourceChoices, PendingTrainingGroundsActions, PendingFarmActions, CastlePlaceRemaining, CastleAdvanceRemaining,
         PendingOutsideActivationSlot, PendingInfluenceGain, PendingInfluenceSealCost,
+        PendingCastleCardFieldFilter, PendingPersonalDomainRowChoice, PendingNewCardActivation?.ToSnapshot(),
         CourtiersAtGate, CourtiersOnGroundFloor, CourtiersOnMidFloor, CourtiersOnTopFloor,
         DiceInHand.Select(d => d.ToSnapshot()).ToList().AsReadOnly(),
         PersonalDomainRows.Select(r => r.ToSnapshot(UncoveredCount(r.Config.FigureType))).ToList().AsReadOnly(),

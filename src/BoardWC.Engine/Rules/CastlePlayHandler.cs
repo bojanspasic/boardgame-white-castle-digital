@@ -70,7 +70,7 @@ internal sealed class CastlePlayHandler : IActionHandler
                     if (replacement is not null && room.Card is { } takenCard)
                     {
                         room.SetCard(replacement);
-                        player.PersonalDomainCards.Add(takenCard);
+                        player.PendingNewCardActivation = takenCard;
                         events.Add(new RoomCardAcquiredEvent(
                             state.GameId, player.Id, takenCard.Id, takenCard.Name, floorIdx));
 

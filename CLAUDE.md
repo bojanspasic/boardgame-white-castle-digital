@@ -153,3 +153,7 @@ When a room card is acquired and a die later placed in a personal domain row, th
 | Ground floor | null (3 fields) | field[0] | field[1] | field[2] |
 | Mid floor | DoubleTop | field[0] | field[0] | field[1] |
 | Mid floor | DoubleBottom | field[0] | field[1] | field[1] |
+
+
+### Excplicit Quality Requirements
+For each implementation change make sure that appropirate tests are added and that code coverage is at maximum
