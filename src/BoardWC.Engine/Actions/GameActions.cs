@@ -32,16 +32,16 @@ public sealed record ChooseResourceAction(
 
 /// <summary>
 /// "From" positions for courtier advancement.
-/// Gate is the entry point; courtiers can advance up to MidFloor via this enum.
+/// Gate is the entry point; courtiers can advance up to DiplomatFloor via this enum.
 /// TopFloor is the destination only (no further advancement possible).
 /// </summary>
-public enum CourtierPosition { Gate, GroundFloor, MidFloor }
+public enum CourtierPosition { Gate, StewardFloor, DiplomatFloor }
 
 /// <summary>Place one courtier from hand to the gate (costs 2 coins).</summary>
 public sealed record CastlePlaceCourtierAction(Guid PlayerId) : IGameAction;
 
-/// <summary>Advance one courtier up the castle (costs 2 VI for 1 level, 5 VI for 2 levels).</summary>
-/// <param name="RoomIndex">Which room to enter when landing on ground (0–2) or mid (0–1) floor; -1 when going directly to top floor.</param>
+/// <summary>Advance one courtier up the castle (costs 2 Mother of Pearls for 1 level, 5 for 2 levels).</summary>
+/// <param name="RoomIndex">Which room to enter when landing on steward (0–2) or diplomat (0–1) floor; -1 when going directly to top floor.</param>
 public sealed record CastleAdvanceCourtierAction(
     Guid PlayerId,
     CourtierPosition From,
@@ -86,7 +86,7 @@ public sealed record ChooseSeedPairAction(
     int PairIndex
 ) : IGameAction;
 
-/// <summary>Accept or refuse a pending influence gain that crosses a Monarchial Seal threshold.</summary>
+/// <summary>Accept or refuse a pending influence gain that crosses a Daimyo Seal threshold.</summary>
 public sealed record ChooseInfluencePayAction(
     Guid PlayerId,
     bool WillPay

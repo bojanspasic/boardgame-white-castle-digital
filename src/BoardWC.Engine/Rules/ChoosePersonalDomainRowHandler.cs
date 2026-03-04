@@ -66,9 +66,9 @@ internal sealed class ChoosePersonalDomainRowHandler : IActionHandler
                     {
                         case CardGainType.Food:           res = res.Add(ResourceType.Food,      item.Amount); break;
                         case CardGainType.Iron:           res = res.Add(ResourceType.Iron,      item.Amount); break;
-                        case CardGainType.ValueItem:      res = res.Add(ResourceType.ValueItem, item.Amount); break;
+                        case CardGainType.MotherOfPearls:      res = res.Add(ResourceType.MotherOfPearls, item.Amount); break;
                         case CardGainType.Coin:           coins     += item.Amount; break;
-                        case CardGainType.MonarchialSeal: seals     += item.Amount; break;
+                        case CardGainType.DaimyoSeal: seals     += item.Amount; break;
                         case CardGainType.Lantern:        lantern   += item.Amount; break;
                         case CardGainType.VictoryPoint:   vp        += item.Amount; break;
                         case CardGainType.Influence:      influence += item.Amount; break;
@@ -77,7 +77,7 @@ internal sealed class ChoosePersonalDomainRowHandler : IActionHandler
 
                 player.Resources       = (player.Resources + res).Clamp(7);
                 player.Coins          += coins;
-                player.MonarchialSeals = Math.Min(player.MonarchialSeals + seals, 5);
+                player.DaimyoSeals = Math.Min(player.DaimyoSeals + seals, 5);
                 LanternHelper.Apply(player, lantern, state.GameId, events);
                 player.LanternScore   += vp;
                 InfluenceHelper.Apply(player, influence, state, events);

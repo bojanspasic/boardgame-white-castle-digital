@@ -212,18 +212,18 @@ public class TrainingGroundsHandlerTests
     }
 
     [Fact]
-    public void Apply_Area0_ResourceGain_ValueItem_GrantsValueItem()
+    public void Apply_Area0_ResourceGain_MotherOfPearls_GrantsMotherOfPearls()
     {
         var (alice, state, handler) = MakeStateWithCustomArea(
             areaIndex: 0,
             ironCost:  1,
-            area => area.AssignResourceSide(new[] { new TgGainItem("ValueItem", 2) }.AsReadOnly()),
+            area => area.AssignResourceSide(new[] { new TgGainItem("MotherOfPearls", 2) }.AsReadOnly()),
             playerIron: 5);
 
         var events = new List<IDomainEvent>();
         handler.Apply(new TrainingGroundsPlaceSoldierAction(alice.Id, 0), state, events);
 
-        Assert.Equal(2, alice.Resources.ValueItem);
+        Assert.Equal(2, alice.Resources.MotherOfPearls);
     }
 
     [Fact]
@@ -245,18 +245,18 @@ public class TrainingGroundsHandlerTests
     }
 
     [Fact]
-    public void Apply_Area0_ResourceGain_MonarchialSeal_GrantsSeal()
+    public void Apply_Area0_ResourceGain_DaimyoSeal_GrantsSeal()
     {
         var (alice, state, handler) = MakeStateWithCustomArea(
             areaIndex: 0,
             ironCost:  1,
-            area => area.AssignResourceSide(new[] { new TgGainItem("MonarchialSeal", 1) }.AsReadOnly()),
+            area => area.AssignResourceSide(new[] { new TgGainItem("DaimyoSeal", 1) }.AsReadOnly()),
             playerIron: 5);
 
         var events = new List<IDomainEvent>();
         handler.Apply(new TrainingGroundsPlaceSoldierAction(alice.Id, 0), state, events);
 
-        Assert.Equal(1, alice.MonarchialSeals);
+        Assert.Equal(1, alice.DaimyoSeals);
 
         var evt = Assert.Single(events.OfType<TrainingGroundsUsedEvent>());
         Assert.Equal(1, evt.SealsGained);
@@ -304,7 +304,7 @@ public class TrainingGroundsHandlerTests
     }
 
     [Fact]
-    public void Apply_NamedAction_Gain1MonarchialSeal_GrantsSeal()
+    public void Apply_NamedAction_Gain1DaimyoSeal_GrantsSeal()
     {
         var (alice, state, handler) = MakeStateWithCustomArea(
             areaIndex: 1,
@@ -315,7 +315,7 @@ public class TrainingGroundsHandlerTests
         var events = new List<IDomainEvent>();
         handler.Apply(new TrainingGroundsPlaceSoldierAction(alice.Id, 1), state, events);
 
-        Assert.Equal(1, alice.MonarchialSeals);
+        Assert.Equal(1, alice.DaimyoSeals);
 
         var evt = Assert.Single(events.OfType<TrainingGroundsUsedEvent>());
         Assert.Equal("Gain 1 monarchial seal", evt.ActionTriggered);
@@ -358,7 +358,7 @@ public class TrainingGroundsHandlerTests
         Assert.Equal("Play farm", evt.ActionTriggered);
     }
 
-    // ── MonarchialSeal cap ────────────────────────────────────────────────────
+    // ── DaimyoSeal cap ────────────────────────────────────────────────────
 
     [Fact]
     public void Apply_NamedAction_SealCappedAtFive()
@@ -368,7 +368,7 @@ public class TrainingGroundsHandlerTests
             Name = "Alice",
             PendingTrainingGroundsActions = 1,
             Resources                     = new ResourceBag(Iron: 10),
-            MonarchialSeals               = 5, // already at cap
+            DaimyoSeals               = 5, // already at cap
         };
         var bob   = new Player { Name = "Bob" };
         var state = new GameState(new List<Player> { alice, bob });
@@ -376,7 +376,7 @@ public class TrainingGroundsHandlerTests
         state.Board.SetupTrainingGrounds(state.Rng);
 
         var area = state.Board.TrainingGrounds.Areas[0];
-        area.AssignResourceSide(new[] { new TgGainItem("MonarchialSeal", 2) }.AsReadOnly());
+        area.AssignResourceSide(new[] { new TgGainItem("DaimyoSeal", 2) }.AsReadOnly());
 
         var handler = new TrainingGroundsHandler();
         var events  = new List<IDomainEvent>();
@@ -384,7 +384,7 @@ public class TrainingGroundsHandlerTests
         handler.Apply(new TrainingGroundsPlaceSoldierAction(alice.Id, 0), state, events);
 
         // Seals capped at 5
-        Assert.Equal(5, alice.MonarchialSeals);
+        Assert.Equal(5, alice.DaimyoSeals);
     }
 
     // ── Soldier counter and iron spending ─────────────────────────────────────

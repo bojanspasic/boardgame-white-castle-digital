@@ -18,7 +18,7 @@ public class EventPropertyCoverageTests
     [Fact]
     public void TrainingGroundsUsedEvent_AllPropertiesReadable()
     {
-        var res = new ResourceBag(Food: 1, Iron: 2, ValueItem: 3);
+        var res = new ResourceBag(Food: 1, Iron: 2, MotherOfPearls: 3);
         var evt = new TrainingGroundsUsedEvent(
             GameId, PlayerId,
             AreaIndex:      1,
@@ -35,7 +35,7 @@ public class EventPropertyCoverageTests
         Assert.Equal(3,             evt.IronSpent);
         Assert.Equal(1,             evt.ResourcesGained.Food);
         Assert.Equal(2,             evt.ResourcesGained.Iron);
-        Assert.Equal(3,             evt.ResourcesGained.ValueItem);
+        Assert.Equal(3,             evt.ResourcesGained.MotherOfPearls);
         Assert.Equal(2,             evt.CoinsGained);
         Assert.Equal(1,             evt.SealsGained);
         Assert.Equal(0,             evt.LanternGained);
@@ -157,7 +157,7 @@ public class EventPropertyCoverageTests
     [Fact]
     public void PersonalDomainActivatedEvent_AllPropertiesReadable()
     {
-        var res = new ResourceBag(ValueItem: 2);
+        var res = new ResourceBag(MotherOfPearls: 2);
         var evt = new PersonalDomainActivatedEvent(
             GameId, PlayerId,
             RowIndex:       2,
@@ -170,7 +170,7 @@ public class EventPropertyCoverageTests
         Assert.Equal(2,               evt.RowIndex);
         Assert.Equal(BridgeColor.Black, evt.DieColor);
         Assert.Equal(3,               evt.UncoveredSpots);
-        Assert.Equal(2,               evt.ResourcesGained.ValueItem);
+        Assert.Equal(2,               evt.ResourcesGained.MotherOfPearls);
         Assert.True(evt.OccurredAt > DateTimeOffset.MinValue);
         Assert.Equal(nameof(PersonalDomainActivatedEvent), evt.EventType);
     }
@@ -180,7 +180,7 @@ public class EventPropertyCoverageTests
     [Fact]
     public void LanternChainActivatedEvent_AllPropertiesReadable()
     {
-        var res = new ResourceBag(Food: 1, Iron: 2, ValueItem: 1);
+        var res = new ResourceBag(Food: 1, Iron: 2, MotherOfPearls: 1);
         var evt = new LanternChainActivatedEvent(
             GameId, PlayerId,
             Resources: res,
@@ -192,7 +192,7 @@ public class EventPropertyCoverageTests
         Assert.Equal(PlayerId, evt.PlayerId);
         Assert.Equal(1,        evt.Resources.Food);
         Assert.Equal(2,        evt.Resources.Iron);
-        Assert.Equal(1,        evt.Resources.ValueItem);
+        Assert.Equal(1,        evt.Resources.MotherOfPearls);
         Assert.Equal(3,        evt.Coins);
         Assert.Equal(1,        evt.Seals);
         Assert.Equal(2,        evt.VpGained);
@@ -205,7 +205,7 @@ public class EventPropertyCoverageTests
     [Fact]
     public void CardFieldGainActivatedEvent_AllPropertiesReadable()
     {
-        var res = new ResourceBag(Food: 1, Iron: 1, ValueItem: 1);
+        var res = new ResourceBag(Food: 1, Iron: 1, MotherOfPearls: 1);
         var evt = new CardFieldGainActivatedEvent(
             GameId, PlayerId,
             CardId:           "card-1",
@@ -223,7 +223,7 @@ public class EventPropertyCoverageTests
         Assert.Equal(2,        evt.FieldIndex);
         Assert.Equal(1,        evt.ResourcesGained.Food);
         Assert.Equal(1,        evt.ResourcesGained.Iron);
-        Assert.Equal(1,        evt.ResourcesGained.ValueItem);
+        Assert.Equal(1,        evt.ResourcesGained.MotherOfPearls);
         Assert.Equal(3,        evt.CoinsGained);
         Assert.Equal(1,        evt.SealsGained);
         Assert.Equal(1,        evt.LanternGained);
@@ -381,14 +381,14 @@ public class EventPropertyCoverageTests
     [Fact]
     public void TopFloorSlotFilledEvent_AllPropertiesReadable()
     {
-        var res = new ResourceBag(ValueItem: 1);
+        var res = new ResourceBag(MotherOfPearls: 1);
         var evt = new TopFloorSlotFilledEvent(GameId, PlayerId, SlotIndex: 0,
             ResourcesGained: res, CoinsGained: 1, SealsGained: 0, LanternGained: 0);
 
         Assert.Equal(GameId,   evt.GameId);
         Assert.Equal(PlayerId, evt.PlayerId);
         Assert.Equal(0,        evt.SlotIndex);
-        Assert.Equal(1,        evt.ResourcesGained.ValueItem);
+        Assert.Equal(1,        evt.ResourcesGained.MotherOfPearls);
         Assert.Equal(1,        evt.CoinsGained);
         Assert.Equal(0,        evt.SealsGained);
         Assert.Equal(0,        evt.LanternGained);
@@ -415,13 +415,13 @@ public class EventPropertyCoverageTests
         var evt = new LanternChainItemAddedEvent(
             GameId, PlayerId,
             SourceCardId:   "src-1",
-            SourceCardType: "GroundFloor",
+            SourceCardType: "StewardFloor",
             Gains:          gains);
 
         Assert.Equal(GameId,        evt.GameId);
         Assert.Equal(PlayerId,      evt.PlayerId);
         Assert.Equal("src-1",       evt.SourceCardId);
-        Assert.Equal("GroundFloor", evt.SourceCardType);
+        Assert.Equal("StewardFloor", evt.SourceCardType);
         Assert.Equal(2,             evt.Gains.Count);
         Assert.True(evt.OccurredAt > DateTimeOffset.MinValue);
         Assert.Equal(nameof(LanternChainItemAddedEvent), evt.EventType);

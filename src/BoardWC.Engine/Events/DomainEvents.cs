@@ -298,7 +298,7 @@ public sealed record RoomCardAcquiredEvent(
     Guid PlayerId,
     string CardId,
     string CardName,
-    int Floor   // 0 = ground floor, 1 = mid floor
+    int Floor   // 0 = steward floor, 1 = diplomat floor
 ) : IDomainEvent
 {
     public DateTimeOffset OccurredAt { get; } = DateTimeOffset.UtcNow;

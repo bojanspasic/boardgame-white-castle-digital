@@ -1,6 +1,6 @@
 namespace BoardWC.Engine.Domain;
 
-public readonly record struct ResourceBag(int Food = 0, int Iron = 0, int ValueItem = 0)
+public readonly record struct ResourceBag(int Food = 0, int Iron = 0, int MotherOfPearls = 0)
 {
     public static readonly ResourceBag Empty = new();
 
@@ -8,26 +8,26 @@ public readonly record struct ResourceBag(int Food = 0, int Iron = 0, int ValueI
     {
         ResourceType.Food      => this with { Food      = Food      + amount },
         ResourceType.Iron      => this with { Iron      = Iron      + amount },
-        ResourceType.ValueItem => this with { ValueItem = ValueItem + amount },
+        ResourceType.MotherOfPearls => this with { MotherOfPearls = MotherOfPearls + amount },
         _ => throw new ArgumentOutOfRangeException(nameof(type))
     };
 
     public ResourceBag Add(ResourceBag other) =>
-        new(Food + other.Food, Iron + other.Iron, ValueItem + other.ValueItem);
+        new(Food + other.Food, Iron + other.Iron, MotherOfPearls + other.MotherOfPearls);
 
     public ResourceBag Subtract(ResourceBag cost) =>
-        new(Food - cost.Food, Iron - cost.Iron, ValueItem - cost.ValueItem);
+        new(Food - cost.Food, Iron - cost.Iron, MotherOfPearls - cost.MotherOfPearls);
 
     public bool CanAfford(ResourceBag cost) =>
-        Food >= cost.Food && Iron >= cost.Iron && ValueItem >= cost.ValueItem;
+        Food >= cost.Food && Iron >= cost.Iron && MotherOfPearls >= cost.MotherOfPearls;
 
-    public int Total => Food + Iron + ValueItem;
+    public int Total => Food + Iron + MotherOfPearls;
 
     public ResourceBag Clamp(int max) =>
-        new(Math.Min(Food, max), Math.Min(Iron, max), Math.Min(ValueItem, max));
+        new(Math.Min(Food, max), Math.Min(Iron, max), Math.Min(MotherOfPearls, max));
 
     public static ResourceBag operator +(ResourceBag a, ResourceBag b) => a.Add(b);
 
     public override string ToString() =>
-        $"Food:{Food} Iron:{Iron} VI:{ValueItem}";
+        $"Food:{Food} Iron:{Iron} Pearls:{MotherOfPearls}";
 }

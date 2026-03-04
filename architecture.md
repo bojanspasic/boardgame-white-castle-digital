@@ -281,7 +281,7 @@ Returns `IReadOnlyList<PlayerScore>` ordered descending by total score.
 | Lantern points | `player.LanternScore` |
 | Courtier points | Gate×1 + Ground×3 + Mid×6 + Top×10 |
 | Coin points | `Coins / 5` |
-| Seal points | `MonarchialSeals / 5` |
+| Seal points | `DaimyoSeals / 5` |
 | Resource points | ≥4 of one type = 1 VP; 7 = 2 VP (per resource independently) |
 | Farm points | Sum of `VictoryPoints` on each field where the player has a farmer |
 | Training grounds points | (soldiers in area 0+1) × castle-courtiers + (soldiers in area 2) × 2 × castle-courtiers |

@@ -27,12 +27,12 @@
         { "type": "Iron", "amount": 1 }
       ],
       "gain2": [
-        { "type": "MonarchialSeal", "amount": 1 },
+        { "type": "DaimyoSeal", "amount": 1 },
         { "type": "Food", "amount": 1 }
       ],
       "action": {
         "cost": [
-          { "type": "MonarchialSeal", "amount": 1 }
+          { "type": "DaimyoSeal", "amount": 1 }
         ],
         "description": "Play training grounds"
       }
@@ -42,7 +42,7 @@
       "name": "Card Name",
       "back": { "type": "Coin", "amount": 1 },
       "gain1": [
-        { "type": "ValueItem", "amount": 1 },
+        { "type": "MotherOfPearls", "amount": 1 },
         { "type": "Influence", "amount": 1 }
       ],
       "gain2": [
@@ -76,7 +76,7 @@
         { "type": "Lantern", "amount": 1 }
       ],
       "gain2": [
-        { "type": "ValueItem", "amount": 2 },
+        { "type": "MotherOfPearls", "amount": 2 },
         { "type": "Influence", "amount": 1 }
       ],
       "action": {
@@ -100,7 +100,7 @@
       ],
       "action": {
         "cost": [
-          { "type": "MonarchialSeal", "amount": 1 }
+          { "type": "DaimyoSeal", "amount": 1 }
         ],
         "description": "Play farm"
       }
@@ -110,11 +110,11 @@
       "name": "Card Name",
       "back": { "type": "Coin", "amount": 1 },
       "gain1": [
-        { "type": "MonarchialSeal", "amount": 1 }
+        { "type": "DaimyoSeal", "amount": 1 }
       ],
       "gain2": [
         { "type": "Food", "amount": 1 },
-        { "type": "ValueItem", "amount": 1 },
+        { "type": "MotherOfPearls", "amount": 1 },
         { "type": "VictoryPoint", "amount": 1 }
       ],
       "action": {
@@ -143,12 +143,12 @@
       "name": "Card Name",
       "back": { "type": "Coin", "amount": 1 },
       "gain1": [
-        { "type": "ValueItem", "amount": 1 },
+        { "type": "MotherOfPearls", "amount": 1 },
         { "type": "Coin", "amount": 1 },
         { "type": "VictoryPoint", "amount": 1 }
       ],
       "gain2": [
-        { "type": "MonarchialSeal", "amount": 1 },
+        { "type": "DaimyoSeal", "amount": 1 },
         { "type": "Iron", "amount": 1 }
       ],
       "action": {

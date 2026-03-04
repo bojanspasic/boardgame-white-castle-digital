@@ -665,14 +665,14 @@ public class HandlerIntegrationTests
         if (alice == Guid.Empty) { Assert.True(true, "Skipped"); return; }
 
         var p = engine.GetCurrentState().Players.First(x => x.Id == alice);
-        int groundBefore = p.CourtiersOnGroundFloor;
+        int groundBefore = p.CourtiersOnStewardFloor;
         int gateBefore   = p.CourtiersAtGate;
 
         engine.ProcessAction(new CastleAdvanceCourtierAction(alice, CourtierPosition.Gate, 1, 0));
         ResolveAllPending(engine, alice);
 
         var pAfter = engine.GetCurrentState().Players.First(x => x.Id == alice);
-        Assert.Equal(groundBefore + 1, pAfter.CourtiersOnGroundFloor);
+        Assert.Equal(groundBefore + 1, pAfter.CourtiersOnStewardFloor);
         Assert.Equal(gateBefore   - 1, pAfter.CourtiersAtGate);
     }
 
@@ -684,13 +684,13 @@ public class HandlerIntegrationTests
         if (alice == Guid.Empty) { Assert.True(true, "Skipped"); return; }
 
         var p = engine.GetCurrentState().Players.First(x => x.Id == alice);
-        int before = p.CourtiersOnMidFloor;
+        int before = p.CourtiersOnDiplomatFloor;
 
         engine.ProcessAction(new CastleAdvanceCourtierAction(alice, CourtierPosition.Gate, 2, 0));
         ResolveAllPending(engine, alice);
 
         var pAfter = engine.GetCurrentState().Players.First(x => x.Id == alice);
-        Assert.Equal(before + 1, pAfter.CourtiersOnMidFloor);
+        Assert.Equal(before + 1, pAfter.CourtiersOnDiplomatFloor);
     }
 
     [Fact]
@@ -700,17 +700,17 @@ public class HandlerIntegrationTests
         var alice  = GivePendingCastle(engine);
         if (alice == Guid.Empty) { Assert.True(true, "Skipped"); return; }
 
-        // Try to advance from GroundFloor when player has no courtiers there
+        // Try to advance from StewardFloor when player has no courtiers there
         var p = engine.GetCurrentState().Players.First(x => x.Id == alice);
-        if (p.CourtiersOnGroundFloor > 0)
+        if (p.CourtiersOnStewardFloor > 0)
         {
             engine.ProcessAction(new CastleSkipAction(alice));
-            Assert.True(true, "Skipped (has ground floor courtiers)");
+            Assert.True(true, "Skipped (has steward floor courtiers)");
             return;
         }
 
         var result = engine.ProcessAction(
-            new CastleAdvanceCourtierAction(alice, CourtierPosition.GroundFloor, 1, 0));
+            new CastleAdvanceCourtierAction(alice, CourtierPosition.StewardFloor, 1, 0));
         Assert.IsType<ActionResult.Failure>(result);
     }
 
@@ -723,7 +723,7 @@ public class HandlerIntegrationTests
 
         // Advance from gate to ground (costs 2 VI) when player has 0 VI
         var p = engine.GetCurrentState().Players.First(x => x.Id == alice);
-        if (p.Resources.ValueItem >= 2 || p.CourtiersAtGate == 0)
+        if (p.Resources.MotherOfPearls >= 2 || p.CourtiersAtGate == 0)
         {
             engine.ProcessAction(new CastleSkipAction(alice));
             Assert.True(true, "Skipped");
@@ -764,7 +764,7 @@ public class HandlerIntegrationTests
         if (alice == Guid.Empty) { Assert.True(true, "Skipped"); return; }
 
         var p = engine.GetCurrentState().Players.First(x => x.Id == alice);
-        if (p.CourtiersOnMidFloor == 0 || p.Resources.ValueItem < 2)
+        if (p.CourtiersOnDiplomatFloor == 0 || p.Resources.MotherOfPearls < 2)
         {
             engine.ProcessAction(new CastleSkipAction(alice));
             Assert.True(true, "Skipped");
@@ -772,7 +772,7 @@ public class HandlerIntegrationTests
         }
 
         int topBefore = p.CourtiersOnTopFloor;
-        engine.ProcessAction(new CastleAdvanceCourtierAction(alice, CourtierPosition.MidFloor, 1, -1));
+        engine.ProcessAction(new CastleAdvanceCourtierAction(alice, CourtierPosition.DiplomatFloor, 1, -1));
         ResolveAllPending(engine, alice);
 
         var pAfter = engine.GetCurrentState().Players.First(x => x.Id == alice);
@@ -780,7 +780,7 @@ public class HandlerIntegrationTests
     }
 
     [Fact]
-    public void CastleAdvanceCourtier_RoomCardAcquired_WhenEnteringGroundFloor()
+    public void CastleAdvanceCourtier_RoomCardAcquired_WhenEnteringStewardFloor()
     {
         var engine = StartedGame();
         var (alice, _) = SetupCourtiersAtGate(engine, minVI: 2);
@@ -822,13 +822,13 @@ public class HandlerIntegrationTests
             if (p.CastlePlaceRemaining > 0 && p.CourtiersAvailable > 0 && p.Coins >= 2)
             {
                 int gateBefore = p.CourtiersAtGate;
-                int viBefore   = p.Resources.ValueItem;
+                int viBefore   = p.Resources.MotherOfPearls;
                 engine.ProcessAction(new CastlePlaceCourtierAction(castle));
                 // Now we have CastleAdvanceRemaining > 0; skip it for now to get VI
                 engine.ProcessAction(new CastleSkipAction(castle));
 
                 var pAfter = engine.GetCurrentState().Players.First(x => x.Id == castle);
-                if (pAfter.CourtiersAtGate > 0 && pAfter.Resources.ValueItem >= minVI)
+                if (pAfter.CourtiersAtGate > 0 && pAfter.Resources.MotherOfPearls >= minVI)
                 {
                     // Get another castle action for advancing
                     castle = GivePendingCastle(engine);
@@ -840,7 +840,7 @@ public class HandlerIntegrationTests
                     // Actually we need CastleAdvanceRemaining
                     // At this point CastleAdvanceRemaining should be 1
                     var p3 = engine.GetCurrentState().Players.First(x => x.Id == castle);
-                    if (p3.CastleAdvanceRemaining > 0 && p3.CourtiersAtGate > 0 && p3.Resources.ValueItem >= minVI)
+                    if (p3.CastleAdvanceRemaining > 0 && p3.CourtiersAtGate > 0 && p3.Resources.MotherOfPearls >= minVI)
                         return (castle, (gateBefore, viBefore));
                     engine.ProcessAction(new CastleSkipAction(castle));
                 }
@@ -913,7 +913,7 @@ public class HandlerIntegrationTests
     private static (Player Player, GameState State, ChooseInfluencePayHandler Handler)
         MakeInfluencePayState(int seals, int influence, int pendingGain, int pendingSealCost)
     {
-        var player = new Player { Name = "Alice", MonarchialSeals = seals, Influence = influence };
+        var player = new Player { Name = "Alice", DaimyoSeals = seals, Influence = influence };
         player.PendingInfluenceGain     = pendingGain;
         player.PendingInfluenceSealCost = pendingSealCost;
         var state = new GameState(new List<Player> { player });
@@ -931,7 +931,7 @@ public class HandlerIntegrationTests
         handler.Apply(action, state, new List<IDomainEvent>());
 
         Assert.Equal(6, player.Influence);
-        Assert.Equal(2, player.MonarchialSeals);
+        Assert.Equal(2, player.DaimyoSeals);
         Assert.Equal(0, player.PendingInfluenceGain);
     }
 
@@ -945,7 +945,7 @@ public class HandlerIntegrationTests
         handler.Apply(action, state, new List<IDomainEvent>());
 
         Assert.Equal(3, player.Influence);        // unchanged
-        Assert.Equal(3, player.MonarchialSeals);  // no seals spent
+        Assert.Equal(3, player.DaimyoSeals);  // no seals spent
         Assert.Equal(0, player.PendingInfluenceGain);
     }
 

@@ -88,9 +88,9 @@ When triggered: placement areas clear, dice reroll (or game ends).
 
 ## Player State
 Each player tracks:
-- **Resources**: Food, Iron, Value Item (max 7 each)
+- **Resources**: Food, Iron, Mother of Pearls (max 7 each)
 - **Coins**: earned/spent when placing dice
-- **Monarchial Seals**: separate currency (max 5); +1 gained each time a die is placed at the well
+- **Daimyo Seals**: separate currency (max 5); +1 gained each time a die is placed at the well
 - **Lantern score**: victory points from lanterns
 - **Dice in hand**: die taken from bridge awaiting placement
 - **PendingAnyResourceChoices**: unresolved AnyResource token choices from the well
@@ -111,11 +111,11 @@ dotnet run --project src/BoardWC.Console          # play in console
 ## Key Enums
 - `BridgeColor`: Red, Black, White
 - `DiePosition`: High, Low
-- `ResourceType`: Food, Iron, ValueItem
-- `TokenResource`: Food, Iron, ValueItem, AnyResource, Coin
+- `ResourceType`: Food, Iron, MotherOfPearls
+- `TokenResource`: Food, Iron, MotherOfPearls, AnyResource, Coin
 - `PlayerColor`: White, Black, Red, Blue
 - `Phase`: Setup, WorkerPlacement, EndOfRound, GameOver
-- `CardGainType`: Food, Iron, ValueItem, Coin, MonarchialSeal, Lantern, AnyResource, **VictoryPoint** (maps to `LanternScore += vp` directly, no chain), **Influence** (routed through `InfluenceHelper.Apply()`; may create pending state)
+- `CardGainType`: Food, Iron, MotherOfPearls, Coin, DaimyoSeal, Lantern, AnyResource, **VictoryPoint** (maps to `LanternScore += vp` directly, no chain), **Influence** (routed through `InfluenceHelper.Apply()`; may create pending state)
 
 ## Coding Conventions
 - Domain classes are `internal sealed class`; records used for value objects.

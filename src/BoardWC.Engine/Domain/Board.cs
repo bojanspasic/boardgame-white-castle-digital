@@ -23,8 +23,8 @@ internal sealed class Board
     private TrainingGrounds? _trainingGrounds;
     private FarmingLands?    _farmingLands;
     private TopFloorRoom?    _topFloorRoom;
-    public int GroundFloorDeckRemaining => _groundDeck?.Remaining ?? 0;
-    public int MidFloorDeckRemaining    => _midDeck?.Remaining   ?? 0;
+    public int StewardFloorDeckRemaining  => _groundDeck?.Remaining ?? 0;
+    public int DiplomatFloorDeckRemaining => _midDeck?.Remaining   ?? 0;
 
     public IReadOnlyList<Bridge> Bridges => _bridges;
 
@@ -59,10 +59,10 @@ internal sealed class Board
     public DicePlaceholder GetCastleRoom(int floor, int room) => _castleRooms[floor][room];
     public DicePlaceholder GetOutsideSlot(int slot)           => _outsideSlots[slot];
 
-    /// <summary>Deal the next card from the ground-floor deck as a replacement; returns null if deck is empty.</summary>
+    /// <summary>Deal the next card from the steward-floor deck as a replacement; returns null if deck is empty.</summary>
     public RoomCard? TryDealGroundReplacement() => _groundDeck?.Deal();
 
-    /// <summary>Deal the next card from the mid-floor deck as a replacement; returns null if deck is empty.</summary>
+    /// <summary>Deal the next card from the diplomat-floor deck as a replacement; returns null if deck is empty.</summary>
     public RoomCard? TryDealMidReplacement() => _midDeck?.Deal();
 
     /// <summary>Roll and arrange dice on all bridges for a new round.</summary>
@@ -82,7 +82,7 @@ internal sealed class Board
     {
         var bag = CreateAllTokens().OrderBy(_ => rng.Next()).ToList();
 
-        // Step 1: seed each ground floor room with 1 token, one die color per room
+        // Step 1: seed each steward floor room with 1 token, one die color per room
         var colorOrder = Enum.GetValues<BridgeColor>().OrderBy(_ => rng.Next()).ToArray();
         for (int r = 0; r < 3; r++)
         {
@@ -91,7 +91,7 @@ internal sealed class Board
             _castleRooms[0][r].AddToken(token);
         }
 
-        // Step 2: mid floor rooms — 2 tokens each, must have different die colors
+        // Step 2: diplomat floor rooms — 2 tokens each, must have different die colors
         for (int r = 0; r < _castleRooms[1].Length; r++)
         {
             var t1 = bag[rng.Next(bag.Count)]; bag.Remove(t1);
@@ -100,7 +100,7 @@ internal sealed class Board
                 _castleRooms[1][r].AddToken(t);
         }
 
-        // Step 3: add 2 more tokens to each ground floor room
+        // Step 3: add 2 more tokens to each steward floor room
         //         constraint: final 3 tokens per room must contain ≥2 different die colors
         for (int r = 0; r < 3; r++)
         {
@@ -128,8 +128,8 @@ internal sealed class Board
     /// </summary>
     public void PlaceCards(Random rng)
     {
-        _groundDeck = FloorCardDeck.LoadGroundFloor(rng);
-        _midDeck    = FloorCardDeck.LoadMidFloor(rng);
+        _groundDeck = FloorCardDeck.LoadStewardFloor(rng);
+        _midDeck    = FloorCardDeck.LoadDiplomatFloor(rng);
 
         for (int r = 0; r < _castleRooms[0].Length; r++)
             if (_groundDeck.Deal() is { } c) _castleRooms[0][r].SetCard(c);
@@ -202,8 +202,8 @@ internal sealed class Board
             _topFloorRoom?.ToSnapshot() ?? new TopFloorRoomSnapshot(string.Empty, [])),
         new WellSnapshot(_well.ToSnapshot()),
         new OutsideSnapshot(_outsideSlots.Select(s => s.ToSnapshot()).ToArray()),
-        GroundFloorDeckRemaining,
-        MidFloorDeckRemaining,
+        StewardFloorDeckRemaining,
+        DiplomatFloorDeckRemaining,
         _trainingGrounds?.ToSnapshot() ?? new TrainingGroundsSnapshot([]),
         _farmingLands?.ToSnapshot()    ?? new FarmingLandsSnapshot([])
     );

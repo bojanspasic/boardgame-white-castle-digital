@@ -5,7 +5,7 @@
 
 ## Overview
 2–4 players compete to earn the most victory points over 3 rounds by placing dice on the
-board and earning coins, lanterns, resources, and monarchial seals.
+board and earning coins, lanterns, resources, and daimyo seals.
 
 ---
 
@@ -38,7 +38,7 @@ Double-sided cardboard tokens placed at game start in castle rooms and the well.
 
 **Two sides:**
 - **Die-color side** (Red / Black / White) — indicates which die color interacts with this token.
-- **Resource side** — one of: Food, Iron, Value Item, Any Resource, Coin.
+- **Resource side** — one of: Food, Iron, Mother of Pearls, Any Resource, Coin.
 
 **Composition:** 3 die colors × 5 resource types = 15 tokens (one of each combination).
 
@@ -55,16 +55,16 @@ Tokens are permanent — they are NOT cleared at round end.
 
 **Effect when die placed in the well:**
 The player immediately receives:
-- **+1 Monarchial Seal** (capped at 5)
+- **+1 Daimyo Seal** (capped at 5)
 - For each well token (resource side up):
   - Food token → +1 Food (capped at 7)
   - Iron token → +1 Iron (capped at 7)
-  - Value Item token → +1 Value Item (capped at 7)
+  - Mother of Pearls token → +1 Mother of Pearls (capped at 7)
   - Coin token → +1 Coin
-  - Any Resource token → player chooses Food, Iron, or Value Item (capped at 7); prompted separately for each
+  - Any Resource token → player chooses Food, Iron, or Mother of Pearls (capped at 7); prompted separately for each
 
 When AnyResource tokens are present, the player must resolve each choice before their turn advances.
-In the console, use: `choose food`, `choose iron`, or `choose valueitem`.
+In the console, use: `choose food`, `choose iron`, or `choose motherofpearls`.
 
 **Effect when die placed in a castle room:** **[DEFERRED]**
 
@@ -85,7 +85,7 @@ When a "Play Castle" action is triggered (from an outside slot, or from card fie
 The player must then resolve each use before acting further. For each use, they can:
 
 1. **Place a courtier at the gate** — costs 2 coins, moves a courtier from hand to `CourtiersAtGate`
-2. **Advance a courtier** — costs Value Items, moves a courtier one or two levels up the castle:
+2. **Advance a courtier** — costs Mother of Pearlss, moves a courtier one or two levels up the castle:
    - **Gate → Ground floor** (1 level, −2 VI): player picks one of 3 rooms
    - **Gate → Mid floor** (2 levels, −5 VI): player picks one of 2 rooms
    - **Ground → Mid floor** (1 level, −2 VI): player picks one of 2 rooms
@@ -93,7 +93,7 @@ The player must then resolve each use before acting further. For each use, they 
    - **Mid → Top floor** (1 level, −2 VI): no room choice
 3. **Skip** — forfeits all remaining castle uses
 
-**Card acquisition (when entering ground or mid floor):**
+**Card acquisition (when entering ground or diplomat floor):**
 - The player takes the **current card** from the chosen room
 - A replacement is dealt from the floor deck; if no replacement is available, no card is taken
 - The taken card's **back** goes into the lantern chain
@@ -116,11 +116,11 @@ belonging to that player. It is divided into two sections:
 Three resource types, each stored in their own space on the personal domain:
 - **Food** — maximum 7
 - **Iron** — maximum 7
-- **Value Item** — maximum 7
+- **Mother of Pearls** — maximum 7
 
 Additional tracked values (not resources, but stored on personal domain):
 - **Coins** — no cap (earned/spent during placement)
-- **Monarchial Seals** — maximum 5 (earned by placing dice in the Well)
+- **Daimyo Seals** — maximum 5 (earned by placing dice in the Well)
 - **Lantern score** — victory points accumulated over the game
 
 ### Personnel Area
@@ -146,8 +146,8 @@ that fire whenever the Lantern Effect triggers.
 **Building the chain:**
 - When seeding completes (a player picks their seed pair), the **resource seed card** is flipped
   and its back gain is added as the first entry in the chain.
-  - Resource seed card backs: one resource (Food, Iron, or Value Item), quantity 1.
-- When a courtier enters a **ground floor** or **mid floor** castle room (see Castle section),
+  - Resource seed card backs: one resource (Food, Iron, or Mother of Pearls), quantity 1.
+- When a courtier enters a **steward floor** or **diplomat floor** castle room (see Castle section),
   the room card is taken and its back gain is added to the chain:
   - Ground floor card backs: one Coin
   - Mid floor card backs: one VictoryPoint
@@ -155,12 +155,12 @@ that fire whenever the Lantern Effect triggers.
 **Activation:**
 - Every time a Lantern gain fires (Low-die Lantern Effect, card field gains, castle/farm/TG effects),
   the chain activates **once** — every entry fires left-to-right and the player receives all chain gains.
-- Resource gains (Food/Iron/ValueItem) are capped at 7; Monarchial Seals capped at 5.
+- Resource gains (Food/Iron/MotherOfPearls) are capped at 7; Daimyo Seals capped at 5.
 - **VictoryPoint** chain entries increment `LanternScore` directly.
 - **Influence** chain entries increment the player's `Influence` counter.
 
 **Card backs (all cards have a back):**
-- Resource seed cards: one resource (Food/Iron/ValueItem)
+- Resource seed cards: one resource (Food/Iron/MotherOfPearls)
 - Action seed cards: one Influence (**deferred**)
 - Ground floor castle cards: one Coin
 - Mid floor castle cards: one VictoryPoint (**maps to LanternScore**)
@@ -173,7 +173,7 @@ Each row is associated with a specific die color and a compare value of **6**.
 | Row | Die color | Figure type | Default gain | Spot gain (×5) |
 |-----|-----------|-------------|--------------|----------------|
 | 0   | Red       | Courtier    | +1 Iron      | Iron           |
-| 1   | White     | Farmer      | +1 Value Item | Value Item    |
+| 1   | White     | Farmer      | +1 Mother of Pearls | Mother of Pearls    |
 | 2   | Black     | Soldier     | +1 Food      | Food           |
 
 **Mechanics:**
@@ -187,7 +187,7 @@ Each row is associated with a specific die color and a compare value of **6**.
 
 ### Personal Domain Cards
 
-When a courtier is advanced into a **ground floor** or **mid floor** castle room, the player takes the
+When a courtier is advanced into a **steward floor** or **diplomat floor** castle room, the player takes the
 room's current card and places a replacement card from the floor deck.
 If no replacement is available, the courtier still advances but no card is taken.
 
@@ -286,7 +286,7 @@ Calculated at game end across eight categories:
 | **Lanterns** | Accumulated VP from lantern effects, VictoryPoint card field gains, and VictoryPoint chain entries |
 | **Courtiers** | Gate: 1 VP each · Ground floor: 3 VP each · Mid floor: 6 VP each · Top floor: 10 VP each |
 | **Coins** | 1 VP per 5 coins (floor division) |
-| **Seals** | 1 VP per 5 Monarchial Seals (floor division) |
+| **Seals** | 1 VP per 5 Daimyo Seals (floor division) |
 | **Resources** | Per resource type: 4–6 of a kind = 1 VP; 7 of a kind = 2 VP |
 | **Farm** | Sum of VP printed on each farm field card where the player has a farmer |
 | **Training Grounds** | (soldiers in areas 1+2) × castle courtiers + (soldiers in area 3) × 2 × castle courtiers. Castle courtiers = ground + mid + top floor only (gate excluded). |
@@ -296,11 +296,11 @@ The player with the highest total wins.
 
 ## Influence
 
-Influence is a separate currency tracked per player (`Influence` counter). It is gained from card fields with `{"type":"Influence","amount":N}` gains on ground/mid floor cards. Influence is displayed on the player summary line.
+Influence is a separate currency tracked per player (`Influence` counter). It is gained from card fields with `{"type":"Influence","amount":N}` gains on ground/diplomat floor cards. Influence is displayed on the player summary line.
 
 ### Influence Thresholds
 
-Adding influence to a score that has reached (or would cross) certain thresholds requires a **Monarchial Seal payment**:
+Adding influence to a score that has reached (or would cross) certain thresholds requires a **Daimyo Seal payment**:
 
 | Threshold crossed | Additional seal cost |
 |-------------------|---------------------|
@@ -321,7 +321,7 @@ If a gain does **not** cross any threshold (e.g., player has 3 influence and gai
 ---
 
 ## Notes on Implementation
-- Coins and Monarchial Seals are tracked per player and persist across rounds.
+- Coins and Daimyo Seals are tracked per player and persist across rounds.
 - Dice colors match their bridge color (cosmetic; does not affect placement rules).
 - AI strategy "greedy-resource" scores bridge actions by die face value.
 - Tokens are placed once at game start via `Board.PlaceTokens(rng)` and persist across all rounds.

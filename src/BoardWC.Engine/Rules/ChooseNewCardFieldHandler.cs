@@ -37,9 +37,9 @@ internal sealed class ChooseNewCardFieldHandler : IActionHandler
                     case CardCostType.Coin when player.Coins < cost.Amount:
                         return ValidationResult.Fail(
                             $"Need {cost.Amount} coins to activate this field; have {player.Coins}.");
-                    case CardCostType.MonarchialSeal when player.MonarchialSeals < cost.Amount:
+                    case CardCostType.DaimyoSeal when player.DaimyoSeals < cost.Amount:
                         return ValidationResult.Fail(
-                            $"Need {cost.Amount} seals to activate this field; have {player.MonarchialSeals}.");
+                            $"Need {cost.Amount} seals to activate this field; have {player.DaimyoSeals}.");
                 }
             }
         }
@@ -77,9 +77,9 @@ internal sealed class ChooseNewCardFieldHandler : IActionHandler
                 {
                     case CardGainType.Food:           resources = resources.Add(ResourceType.Food,      item.Amount); break;
                     case CardGainType.Iron:           resources = resources.Add(ResourceType.Iron,      item.Amount); break;
-                    case CardGainType.ValueItem:      resources = resources.Add(ResourceType.ValueItem, item.Amount); break;
+                    case CardGainType.MotherOfPearls:      resources = resources.Add(ResourceType.MotherOfPearls, item.Amount); break;
                     case CardGainType.Coin:           coins     += item.Amount; break;
-                    case CardGainType.MonarchialSeal: seals     += item.Amount; break;
+                    case CardGainType.DaimyoSeal: seals     += item.Amount; break;
                     case CardGainType.Lantern:        lantern   += item.Amount; break;
                     case CardGainType.VictoryPoint:   vp        += item.Amount; break;
                     case CardGainType.Influence:      influence += item.Amount; break;
@@ -88,7 +88,7 @@ internal sealed class ChooseNewCardFieldHandler : IActionHandler
 
             player.Resources       = (player.Resources + resources).Clamp(7);
             player.Coins          += coins;
-            player.MonarchialSeals = Math.Min(player.MonarchialSeals + seals, 5);
+            player.DaimyoSeals = Math.Min(player.DaimyoSeals + seals, 5);
             LanternHelper.Apply(player, lantern, state.GameId, events);
             player.LanternScore   += vp;
             InfluenceHelper.Apply(player, influence, state, events);
@@ -101,7 +101,7 @@ internal sealed class ChooseNewCardFieldHandler : IActionHandler
                 switch (cost.Type)
                 {
                     case CardCostType.Coin:          player.Coins          -= cost.Amount; break;
-                    case CardCostType.MonarchialSeal: player.MonarchialSeals -= cost.Amount; break;
+                    case CardCostType.DaimyoSeal: player.DaimyoSeals -= cost.Amount; break;
                 }
             }
 

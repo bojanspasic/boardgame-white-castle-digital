@@ -102,16 +102,16 @@ internal sealed class FarmHandler : IActionHandler
                 {
                     case "Food":          resourcesGained = resourcesGained.Add(ResourceType.Food,      item.Amount); break;
                     case "Iron":          resourcesGained = resourcesGained.Add(ResourceType.Iron,      item.Amount); break;
-                    case "ValueItem":     resourcesGained = resourcesGained.Add(ResourceType.ValueItem, item.Amount); break;
+                    case "MotherOfPearls":     resourcesGained = resourcesGained.Add(ResourceType.MotherOfPearls, item.Amount); break;
                     case "Coin":          coinsGained  += item.Amount; break;
-                    case "MonarchialSeal": sealsGained += item.Amount; break;
+                    case "DaimyoSeal": sealsGained += item.Amount; break;
                     case "Lantern":       lanternGained += item.Amount; break;
                 }
             }
 
             player.Resources       = (player.Resources + resourcesGained).Clamp(7);
             player.Coins          += coinsGained;
-            player.MonarchialSeals = Math.Min(player.MonarchialSeals + sealsGained, 5);
+            player.DaimyoSeals = Math.Min(player.DaimyoSeals + sealsGained, 5);
         }
 
         return (resourcesGained, coinsGained, sealsGained, lanternGained, actionTriggered);
@@ -139,7 +139,7 @@ internal sealed class FarmHandler : IActionHandler
 
             case "Gain 1 monarchial seal":
                 sealsGained++;
-                player.MonarchialSeals = Math.Min(player.MonarchialSeals + 1, 5);
+                player.DaimyoSeals = Math.Min(player.DaimyoSeals + 1, 5);
                 break;
 
             case "Gain 1 lantern":

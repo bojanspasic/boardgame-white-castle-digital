@@ -169,7 +169,7 @@ rather than constructing actions directly when the full list is needed.
 | Action | Parameters | Triggered by |
 |---|---|---|
 | `ChooseResourceAction(PlayerId, Choice)` | `Choice` — `ResourceType` | Placing a die at the Well when a token with `AnyResource` is face-up |
-| `ChooseInfluencePayAction(PlayerId, WillPay)` | `WillPay` — `bool` | Influence gain that crosses a Monarchial Seal threshold (5/10/15) |
+| `ChooseInfluencePayAction(PlayerId, WillPay)` | `WillPay` — `bool` | Influence gain that crosses a Daimyo Seal threshold (5/10/15) |
 | `ChooseOutsideActivationAction(PlayerId, Choice)` | `Choice` — `OutsideActivation` | Placing a die in an outside slot |
 | `CastlePlaceCourtierAction(PlayerId)` | — | Pending castle-place action (costs 2 coins) |
 | `CastleAdvanceCourtierAction(PlayerId, From, Levels, RoomIndex)` | `From` — `CourtierPosition`; `Levels` — 1 or 2; `RoomIndex` — 0-based room to enter (−1 for top floor) | Pending castle-advance action |
@@ -206,14 +206,14 @@ Abstract base for the `Target` parameter of `PlaceDieAction`.
 | `PlayerColor` | `White`, `Black`, `Red`, `Blue` |
 | `BridgeColor` | `Red`, `Black`, `White` |
 | `DiePosition` | `High`, `Low` |
-| `ResourceType` | `Food`, `Iron`, `ValueItem` |
-| `TokenResource` | `Food`, `Iron`, `ValueItem`, `AnyResource`, `Coin` |
+| `ResourceType` | `Food`, `Iron`, `MotherOfPearls` |
+| `TokenResource` | `Food`, `Iron`, `MotherOfPearls`, `AnyResource`, `Coin` |
 
 **Namespace:** `BoardWC.Engine.Actions`
 
 | Enum | Values | Used by |
 |---|---|---|
-| `CourtierPosition` | `Gate`, `GroundFloor`, `MidFloor` | `CastleAdvanceCourtierAction.From` |
+| `CourtierPosition` | `Gate`, `StewardFloor`, `DiplomatFloor` | `CastleAdvanceCourtierAction.From` |
 | `OutsideActivation` | `Farm`, `Castle`, `TrainingGrounds` | `ChooseOutsideActivationAction.Choice` |
 
 ---
@@ -225,14 +225,14 @@ Abstract base for the `Target` parameter of `PlaceDieAction`.
 Immutable value type representing the three resource currencies.
 
 ```csharp
-public readonly record struct ResourceBag(int Food = 0, int Iron = 0, int ValueItem = 0)
+public readonly record struct ResourceBag(int Food = 0, int Iron = 0, int MotherOfPearls = 0)
 ```
 
 | Member | Description |
 |---|---|
 | `ResourceBag.Empty` | Static zero bag |
-| `Food`, `Iron`, `ValueItem` | Individual resource counts |
-| `Total` | `Food + Iron + ValueItem` |
+| `Food`, `Iron`, `MotherOfPearls` | Individual resource counts |
+| `Total` | `Food + Iron + MotherOfPearls` |
 | `Add(ResourceType, int)` | Returns new bag with one resource increased |
 | `Add(ResourceBag)` | Returns element-wise sum |
 | `Subtract(ResourceBag)` | Returns element-wise difference (no floor — callers must validate first) |
@@ -276,11 +276,11 @@ Top-level snapshot returned by `GetCurrentState()` and `ActionResult.Success.New
 | `Name` | `string` | Display name |
 | `Color` | `PlayerColor` | Player colour token |
 | `IsAI` | `bool` | Whether this player is controlled by the AI strategy |
-| `Resources` | `ResourceBag` | Food / Iron / ValueItem (max 7 each) |
+| `Resources` | `ResourceBag` | Food / Iron / MotherOfPearls (max 7 each) |
 | `LanternScore` | `int` | Victory points from lanterns |
 | `Influence` | `int` | Current influence level |
 | `Coins` | `int` | Coin count |
-| `MonarchialSeals` | `int` | Seal count (max 5) |
+| `DaimyoSeals` | `int` | Seal count (max 5) |
 | `SoldiersAvailable` | `int` | Soldiers not yet placed on the board (0–5) |
 | `CourtiersAvailable` | `int` | Courtiers not yet placed in the castle (0–5) |
 | `FarmersAvailable` | `int` | Farmers not yet placed on farming lands (0–5) |
@@ -293,8 +293,8 @@ Top-level snapshot returned by `GetCurrentState()` and `ActionResult.Success.New
 | `PendingInfluenceGain` | `int` | Influence amount pending acceptance; 0 if none |
 | `PendingInfluenceSealCost` | `int` | Seal cost required to accept the pending influence gain |
 | `CourtiersAtGate` | `int` | Courtiers currently at the castle gate |
-| `CourtiersOnGroundFloor` | `int` | Courtiers on the ground floor |
-| `CourtiersOnMidFloor` | `int` | Courtiers on the mid floor |
+| `CourtiersOnStewardFloor` | `int` | Courtiers on the steward floor |
+| `CourtiersOnDiplomatFloor` | `int` | Courtiers on the diplomat floor |
 | `CourtiersOnTopFloor` | `int` | Courtiers on the top floor |
 | `DiceInHand` | `IReadOnlyList<DieSnapshot>` | Die taken from bridge awaiting placement (usually 0 or 1) |
 | `PersonalDomainRows` | `IReadOnlyList<PersonalDomainRowSnapshot>` | The 3 rows of the personal domain board |
@@ -309,11 +309,11 @@ Top-level snapshot returned by `GetCurrentState()` and `ActionResult.Success.New
 | Property | Type | Description |
 |---|---|---|
 | `Bridges` | `IReadOnlyList<BridgeSnapshot>` | The three bridges (Red, Black, White) |
-| `Castle` | `CastleSnapshot` | Ground floor, mid floor, and top floor state |
+| `Castle` | `CastleSnapshot` | Ground floor, diplomat floor, and top floor state |
 | `Well` | `WellSnapshot` | The well placement area |
 | `Outside` | `OutsideSnapshot` | The two outside slots |
-| `GroundFloorDeckRemaining` | `int` | Cards still in the ground-floor draw deck |
-| `MidFloorDeckRemaining` | `int` | Cards still in the mid-floor draw deck |
+| `StewardFloorDeckRemaining` | `int` | Cards still in the ground-floor draw deck |
+| `DiplomatFloorDeckRemaining` | `int` | Cards still in the mid-floor draw deck |
 | `TrainingGrounds` | `TrainingGroundsSnapshot` | The three training-grounds areas |
 | `FarmingLands` | `FarmingLandsSnapshot` | All farming-land fields |
 | `TotalDiceRemaining` | `int` | Computed sum of all dice on all bridges (triggers round-end at ≤ 3) |
@@ -436,7 +436,7 @@ Exactly one of `Gains` or `ActionDescription` is non-null depending on `IsGain`.
 
 | Property | Type | Description |
 |---|---|---|
-| `GainType` | `string` | Type name: `"Food"`, `"Iron"`, `"ValueItem"`, `"Coin"`, `"MonarchialSeal"`, `"Lantern"`, `"AnyResource"`, `"Influence"`, `"VictoryPoint"` |
+| `GainType` | `string` | Type name: `"Food"`, `"Iron"`, `"MotherOfPearls"`, `"Coin"`, `"DaimyoSeal"`, `"Lantern"`, `"AnyResource"`, `"Influence"`, `"VictoryPoint"` |
 | `Amount` | `int` | Quantity of the gain |
 
 ---
@@ -445,7 +445,7 @@ Exactly one of `Gains` or `ActionDescription` is non-null depending on `IsGain`.
 
 | Property | Type | Description |
 |---|---|---|
-| `CostType` | `string` | Type name: `"Coin"` or `"MonarchialSeal"` |
+| `CostType` | `string` | Type name: `"Coin"` or `"DaimyoSeal"` |
 | `Amount` | `int` | Quantity required |
 
 ---
@@ -523,7 +523,7 @@ One entry per room card acquired by advancing courtiers. The full chain fires wh
 | Property | Type | Description |
 |---|---|---|
 | `SourceCardId` | `string` | The room card that contributed this entry |
-| `SourceCardType` | `string` | Floor label: `"GroundFloor"` or `"MidFloor"` |
+| `SourceCardType` | `string` | Floor label: `"StewardFloor"` or `"DiplomatFloor"` |
 | `Gains` | `IReadOnlyList<LanternChainGainSnapshot>` | Gains yielded each time the chain fires |
 
 ---
@@ -578,7 +578,7 @@ Returned only after `IsGameOver` is `true`.
 | `LanternPoints` | `int` | VP from lanterns |
 | `CourtierPoints` | `int` | VP from courtier positions |
 | `CoinPoints` | `int` | VP from coins |
-| `SealPoints` | `int` | VP from Monarchial Seals |
+| `SealPoints` | `int` | VP from Daimyo Seals |
 | `ResourcePoints` | `int` | VP from remaining resources |
 | `FarmPoints` | `int` | VP from farmers on farming lands |
 | `TrainingGroundsPoints` | `int` | VP from soldiers in training grounds |
@@ -773,7 +773,7 @@ Fired when a courtier advances into a ground- or mid-floor room.
 | `PlayerId` | `Guid` | |
 | `CardId` | `string` | |
 | `CardName` | `string` | |
-| `Floor` | `int` | 0 = ground floor, 1 = mid floor |
+| `Floor` | `int` | 0 = steward floor, 1 = diplomat floor |
 
 ---
 

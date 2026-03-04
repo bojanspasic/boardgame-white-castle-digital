@@ -79,7 +79,7 @@ public class PlaceDieHandlerTests
         var (alice, _, state, handler) = MakeState(p =>
         {
             p.Coins    = 10;
-            p.MonarchialSeals = 3;
+            p.DaimyoSeals = 3;
         });
 
         var room = state.Board.GetCastleRoom(0, 0);
@@ -92,9 +92,9 @@ public class PlaceDieHandlerTests
         {
             new CardGainItem(CardGainType.Food,           1),
             new CardGainItem(CardGainType.Iron,           1),
-            new CardGainItem(CardGainType.ValueItem,      1),
+            new CardGainItem(CardGainType.MotherOfPearls,      1),
             new CardGainItem(CardGainType.Coin,           2),
-            new CardGainItem(CardGainType.MonarchialSeal, 1),
+            new CardGainItem(CardGainType.DaimyoSeal, 1),
             new CardGainItem(CardGainType.Lantern,        1),
             new CardGainItem(CardGainType.VictoryPoint,   1),
         }.AsReadOnly();
@@ -111,13 +111,13 @@ public class PlaceDieHandlerTests
         // Resource gains
         Assert.Equal(1, alice.Resources.Food);
         Assert.Equal(1, alice.Resources.Iron);
-        Assert.Equal(1, alice.Resources.ValueItem);
+        Assert.Equal(1, alice.Resources.MotherOfPearls);
 
         // Coin delta from die value vs compare value (5 - 3 = 2) plus gain of 2 = 10 + 2 + 2 = 14
         Assert.Equal(14, alice.Coins);
 
         // Seals: 3 + 1 = 4
-        Assert.Equal(4, alice.MonarchialSeals);
+        Assert.Equal(4, alice.DaimyoSeals);
 
         // Lantern (1) → LanternScore += 1 via LanternHelper.Apply, VP (1) → LanternScore += 1 directly
         // Total LanternScore = 0 + 1 (lantern) + 1 (vp) = 2
@@ -131,7 +131,7 @@ public class PlaceDieHandlerTests
         Assert.Equal(0,            evt.FieldIndex);
         Assert.Equal(1,            evt.ResourcesGained.Food);
         Assert.Equal(1,            evt.ResourcesGained.Iron);
-        Assert.Equal(1,            evt.ResourcesGained.ValueItem);
+        Assert.Equal(1,            evt.ResourcesGained.MotherOfPearls);
         Assert.Equal(2,            evt.CoinsGained);
         Assert.Equal(1,            evt.SealsGained);
         Assert.Equal(1,            evt.LanternGained);
@@ -273,7 +273,7 @@ public class PlaceDieHandlerTests
         Assert.Equal(1,                       evt.SealGained);
         Assert.Equal(1,                       evt.ResourcesGained.Food);
         Assert.Equal(0,                       evt.ResourcesGained.Iron);
-        Assert.Equal(0,                       evt.ResourcesGained.ValueItem);
+        Assert.Equal(0,                       evt.ResourcesGained.MotherOfPearls);
         Assert.Equal(0,                       evt.CoinsGained);
         Assert.Equal(0,                       evt.PendingChoices);
         Assert.True(evt.OccurredAt > DateTimeOffset.MinValue);
@@ -296,19 +296,19 @@ public class PlaceDieHandlerTests
     }
 
     [Fact]
-    public void Apply_Well_ValueItemToken_GrantsValueItem()
+    public void Apply_Well_MotherOfPearlsToken_GrantsMotherOfPearls()
     {
         var (alice, _, state, handler) = MakeState(p => { p.Coins = 5; });
-        state.Board.Well.AddToken(new Token(BridgeColor.Red, TokenResource.ValueItem, IsResourceSideUp: true));
+        state.Board.Well.AddToken(new Token(BridgeColor.Red, TokenResource.MotherOfPearls, IsResourceSideUp: true));
 
         GiveDie(alice, BridgeColor.Red, 3);
         var events = new List<IDomainEvent>();
 
         handler.Apply(new PlaceDieAction(alice.Id, new WellTarget()), state, events);
 
-        Assert.Equal(1, alice.Resources.ValueItem);
+        Assert.Equal(1, alice.Resources.MotherOfPearls);
         var evt = Assert.Single(events.OfType<WellEffectAppliedEvent>());
-        Assert.Equal(1, evt.ResourcesGained.ValueItem);
+        Assert.Equal(1, evt.ResourcesGained.MotherOfPearls);
     }
 
     [Fact]
@@ -351,7 +351,7 @@ public class PlaceDieHandlerTests
         var (alice, _, state, handler) = MakeState(p => { p.Coins = 5; });
         state.Board.Well.AddToken(new Token(BridgeColor.Red,   TokenResource.Food,      IsResourceSideUp: true));
         state.Board.Well.AddToken(new Token(BridgeColor.Black, TokenResource.Iron,      IsResourceSideUp: true));
-        state.Board.Well.AddToken(new Token(BridgeColor.White, TokenResource.ValueItem, IsResourceSideUp: true));
+        state.Board.Well.AddToken(new Token(BridgeColor.White, TokenResource.MotherOfPearls, IsResourceSideUp: true));
 
         GiveDie(alice, BridgeColor.Red, 3);
         var events = new List<IDomainEvent>();
@@ -360,12 +360,12 @@ public class PlaceDieHandlerTests
 
         Assert.Equal(1, alice.Resources.Food);
         Assert.Equal(1, alice.Resources.Iron);
-        Assert.Equal(1, alice.Resources.ValueItem);
+        Assert.Equal(1, alice.Resources.MotherOfPearls);
 
         var evt = Assert.Single(events.OfType<WellEffectAppliedEvent>());
         Assert.Equal(1, evt.ResourcesGained.Food);
         Assert.Equal(1, evt.ResourcesGained.Iron);
-        Assert.Equal(1, evt.ResourcesGained.ValueItem);
+        Assert.Equal(1, evt.ResourcesGained.MotherOfPearls);
     }
 
     // ── PersonalDomain — seed action cards ───────────────────────────────────
@@ -513,7 +513,7 @@ public class PlaceDieHandlerTests
             {
                 new GainCardField(new[] { new CardGainItem(CardGainType.Food, 2) }.AsReadOnly()),
                 new GainCardField(new[] { new CardGainItem(CardGainType.Iron, 1) }.AsReadOnly()),
-                new GainCardField(new[] { new CardGainItem(CardGainType.ValueItem, 1) }.AsReadOnly()),
+                new GainCardField(new[] { new CardGainItem(CardGainType.MotherOfPearls, 1) }.AsReadOnly()),
             }.AsReadOnly());
         alice.PersonalDomainCards.Add(pdCard);
 
@@ -557,7 +557,7 @@ public class PlaceDieHandlerTests
             {
                 new ActionCardField("Play castle", []),
                 new GainCardField(new[] { new CardGainItem(CardGainType.Iron, 1) }.AsReadOnly()),
-                new GainCardField(new[] { new CardGainItem(CardGainType.ValueItem, 1) }.AsReadOnly()),
+                new GainCardField(new[] { new CardGainItem(CardGainType.MotherOfPearls, 1) }.AsReadOnly()),
             }.AsReadOnly());
         alice.PersonalDomainCards.Add(pdCard);
 

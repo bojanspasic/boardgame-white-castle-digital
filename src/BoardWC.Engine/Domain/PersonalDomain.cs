@@ -67,7 +67,7 @@ internal sealed class PersonalDomainRowConfig
     {
         "Food"      => ResourceType.Food,
         "Iron"      => ResourceType.Iron,
-        "ValueItem" => ResourceType.ValueItem,
+        "MotherOfPearls" => ResourceType.MotherOfPearls,
         _           => throw new InvalidOperationException($"Unknown resource type in personal-domain-rows.json: '{s}'")
     };
 }

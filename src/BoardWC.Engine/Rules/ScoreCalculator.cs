@@ -15,14 +15,14 @@ internal static class ScoreCalculator
     {
         int lanterns  = p.LanternScore;
         int courtiers = p.CourtiersAtGate * 1
-                      + p.CourtiersOnGroundFloor * 3
-                      + p.CourtiersOnMidFloor    * 6
+                      + p.CourtiersOnStewardFloor * 3
+                      + p.CourtiersOnDiplomatFloor    * 6
                       + p.CourtiersOnTopFloor     * 10;
         int coins     = p.Coins / 5;
-        int seals     = p.MonarchialSeals / 5;
+        int seals     = p.DaimyoSeals / 5;
         int resources = ResourceVP(p.Resources.Food)
                       + ResourceVP(p.Resources.Iron)
-                      + ResourceVP(p.Resources.ValueItem);
+                      + ResourceVP(p.Resources.MotherOfPearls);
         int farm      = FarmVP(p, state);
         int tg        = TrainingGroundsVP(p, state);
         int influence = InfluenceVP(p.Influence);
@@ -50,12 +50,12 @@ internal static class ScoreCalculator
     /// Training grounds VP:
     /// - Areas 0+1 (iron cost 1 and 3): soldiers × castle courtiers
     /// - Area  2   (iron cost 5):        soldiers × 2 × castle courtiers
-    /// Castle courtiers = ground + mid + top (gate excluded).
+    /// Castle courtiers = steward + diplomat + top (gate excluded).
     /// </summary>
     private static int TrainingGroundsVP(Player p, GameState state)
     {
-        int castleCourtiers = p.CourtiersOnGroundFloor
-                            + p.CourtiersOnMidFloor
+        int castleCourtiers = p.CourtiersOnStewardFloor
+                            + p.CourtiersOnDiplomatFloor
                             + p.CourtiersOnTopFloor;
         if (castleCourtiers == 0) return 0;
 

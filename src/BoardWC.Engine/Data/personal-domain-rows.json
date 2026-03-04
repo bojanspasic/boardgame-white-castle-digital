@@ -17,13 +17,13 @@
       "dieColor": "White",
       "compareValue": 6,
       "figureType": "Farmer",
-      "defaultGain": { "type": "ValueItem", "amount": 1 },
+      "defaultGain": { "type": "MotherOfPearls", "amount": 1 },
       "spots": [
-        { "type": "ValueItem", "amount": 1 },
-        { "type": "ValueItem", "amount": 1 },
-        { "type": "ValueItem", "amount": 1 },
-        { "type": "ValueItem", "amount": 1 },
-        { "type": "ValueItem", "amount": 1 }
+        { "type": "MotherOfPearls", "amount": 1 },
+        { "type": "MotherOfPearls", "amount": 1 },
+        { "type": "MotherOfPearls", "amount": 1 },
+        { "type": "MotherOfPearls", "amount": 1 },
+        { "type": "MotherOfPearls", "amount": 1 }
       ]
     },
     {

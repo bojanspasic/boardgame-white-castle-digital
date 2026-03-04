@@ -67,7 +67,7 @@ public class SnapshotCoverageTests
             _ = p.LanternScore;
             _ = p.Influence;
             _ = p.Coins;
-            _ = p.MonarchialSeals;
+            _ = p.DaimyoSeals;
             _ = p.SoldiersAvailable;
             _ = p.CourtiersAvailable;
             _ = p.FarmersAvailable;
@@ -83,8 +83,8 @@ public class SnapshotCoverageTests
             _ = p.PendingPersonalDomainRowChoice;
             _ = p.PendingNewCardActivation;
             _ = p.CourtiersAtGate;
-            _ = p.CourtiersOnGroundFloor;
-            _ = p.CourtiersOnMidFloor;
+            _ = p.CourtiersOnStewardFloor;
+            _ = p.CourtiersOnDiplomatFloor;
             _ = p.CourtiersOnTopFloor;
             _ = p.DiceInHand;
             _ = p.SeedCard;
@@ -132,8 +132,8 @@ public class SnapshotCoverageTests
         _ = b.Castle;
         _ = b.Well;
         _ = b.Outside;
-        _ = b.GroundFloorDeckRemaining;
-        _ = b.MidFloorDeckRemaining;
+        _ = b.StewardFloorDeckRemaining;
+        _ = b.DiplomatFloorDeckRemaining;
         _ = b.TrainingGrounds;
         _ = b.FarmingLands;
         _ = b.TotalDiceRemaining;
@@ -211,7 +211,7 @@ public class SnapshotCoverageTests
         _ = chainGain.GainType;
         _ = chainGain.Amount;
         var chainItem = new LanternChainItemSnapshot(
-            "card-1", "GroundFloor",
+            "card-1", "StewardFloor",
             new[] { chainGain }.ToList().AsReadOnly());
         _ = chainItem.SourceCardId;
         _ = chainItem.SourceCardType;

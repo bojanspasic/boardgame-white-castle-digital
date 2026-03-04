@@ -15,7 +15,7 @@ internal sealed class Player
     /// <summary>Influence amount pending a threshold-payment decision; 0 = no pending gain.</summary>
     internal int PendingInfluenceGain { get; set; }
 
-    /// <summary>Monarchial seals owed if the player accepts the pending influence gain.</summary>
+    /// <summary>Daimyo seals owed if the player accepts the pending influence gain.</summary>
     internal int PendingInfluenceSealCost { get; set; }
 
     /// <summary>
@@ -24,7 +24,7 @@ internal sealed class Player
     /// </summary>
     internal int InfluenceGainOrder { get; set; }
 
-    internal int MonarchialSeals { get; set; }
+    internal int DaimyoSeals { get; set; }
     internal int SoldiersAvailable { get; set; } = 5;
     internal int CourtiersAvailable { get; set; } = 5;
     internal int FarmersAvailable { get; set; } = 5;
@@ -57,8 +57,8 @@ internal sealed class Player
     internal RoomCard? PendingNewCardActivation { get; set; }
 
     internal int CourtiersAtGate { get; set; }
-    internal int CourtiersOnGroundFloor { get; set; }
-    internal int CourtiersOnMidFloor { get; set; }
+    internal int CourtiersOnStewardFloor { get; set; }
+    internal int CourtiersOnDiplomatFloor { get; set; }
     internal int CourtiersOnTopFloor { get; set; }
 
     /// <summary>Dice the player has taken from bridges this round.</summary>
@@ -73,17 +73,17 @@ internal sealed class Player
     /// <summary>Ordered list of chain entries; fires left-to-right whenever a Lantern gain triggers.</summary>
     internal List<LanternChainItem> LanternChain { get; } = new();
 
-    /// <summary>Room cards acquired from ground/mid floor castle rooms; fields activate on personal domain row placement.</summary>
+    /// <summary>Room cards acquired from steward/diplomat floor castle rooms; fields activate on personal domain row placement.</summary>
     internal List<RoomCard> PersonalDomainCards { get; } = new();
 
     public PlayerSnapshot ToSnapshot() => new(
         Id, Name, Color, IsAI,
         Resources, LanternScore, Influence, Coins,
-        MonarchialSeals, SoldiersAvailable, CourtiersAvailable, FarmersAvailable,
+        DaimyoSeals, SoldiersAvailable, CourtiersAvailable, FarmersAvailable,
         PendingAnyResourceChoices, PendingTrainingGroundsActions, PendingFarmActions, CastlePlaceRemaining, CastleAdvanceRemaining,
         PendingOutsideActivationSlot, PendingInfluenceGain, PendingInfluenceSealCost,
         PendingCastleCardFieldFilter, PendingPersonalDomainRowChoice, PendingNewCardActivation?.ToSnapshot(),
-        CourtiersAtGate, CourtiersOnGroundFloor, CourtiersOnMidFloor, CourtiersOnTopFloor,
+        CourtiersAtGate, CourtiersOnStewardFloor, CourtiersOnDiplomatFloor, CourtiersOnTopFloor,
         DiceInHand.Select(d => d.ToSnapshot()).ToList().AsReadOnly(),
         PersonalDomainRows.Select(r => r.ToSnapshot(UncoveredCount(r.Config.FigureType))).ToList().AsReadOnly(),
         SeedCard?.ToSnapshot(),

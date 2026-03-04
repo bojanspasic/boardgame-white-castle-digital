@@ -285,7 +285,7 @@ public class LegalActionGeneratorTests
         {
             p.CastleAdvanceRemaining = 1;
             p.CourtiersAtGate        = 1;
-            p.Resources              = new ResourceBag(ValueItem: 2); // >= 2 but < 5
+            p.Resources              = new ResourceBag(MotherOfPearls: 2); // >= 2 but < 5
         });
 
         var advances = LegalActionGenerator.Generate(alice.Id, state)
@@ -304,7 +304,7 @@ public class LegalActionGeneratorTests
         {
             p.CastleAdvanceRemaining = 1;
             p.CourtiersAtGate        = 1;
-            p.Resources              = new ResourceBag(ValueItem: 5); // >= 5
+            p.Resources              = new ResourceBag(MotherOfPearls: 5); // >= 5
         });
 
         var advances = LegalActionGenerator.Generate(alice.Id, state)
@@ -323,7 +323,7 @@ public class LegalActionGeneratorTests
         {
             p.CastleAdvanceRemaining = 1;
             p.CourtiersAtGate        = 1;
-            p.Resources              = new ResourceBag(ValueItem: 0); // < 2
+            p.Resources              = new ResourceBag(MotherOfPearls: 0); // < 2
         });
 
         var advances = LegalActionGenerator.Generate(alice.Id, state)
@@ -333,13 +333,13 @@ public class LegalActionGeneratorTests
     }
 
     [Fact]
-    public void ValidAdvances_GroundFloor_Vi2_OffersGFPlus1()
+    public void ValidAdvances_StewardFloor_Vi2_OffersGFPlus1()
     {
         var (alice, _, state) = MakeState(setupAlice: p =>
         {
             p.CastleAdvanceRemaining = 1;
-            p.CourtiersOnGroundFloor = 1;
-            p.Resources              = new ResourceBag(ValueItem: 2);
+            p.CourtiersOnStewardFloor = 1;
+            p.Resources              = new ResourceBag(MotherOfPearls: 2);
         });
 
         var advances = LegalActionGenerator.Generate(alice.Id, state)
@@ -347,18 +347,18 @@ public class LegalActionGeneratorTests
 
         // GF+1 → 2 mid-floor room choices
         Assert.Equal(2, advances.Count);
-        Assert.All(advances, a => Assert.Equal(CourtierPosition.GroundFloor, a.From));
+        Assert.All(advances, a => Assert.Equal(CourtierPosition.StewardFloor, a.From));
         Assert.All(advances, a => Assert.Equal(1, a.Levels));
     }
 
     [Fact]
-    public void ValidAdvances_GroundFloor_Vi5_OffersGFPlus1AndGFPlus2()
+    public void ValidAdvances_StewardFloor_Vi5_OffersGFPlus1AndGFPlus2()
     {
         var (alice, _, state) = MakeState(setupAlice: p =>
         {
             p.CastleAdvanceRemaining = 1;
-            p.CourtiersOnGroundFloor = 1;
-            p.Resources              = new ResourceBag(ValueItem: 5);
+            p.CourtiersOnStewardFloor = 1;
+            p.Resources              = new ResourceBag(MotherOfPearls: 5);
         });
 
         var advances = LegalActionGenerator.Generate(alice.Id, state)
@@ -371,20 +371,20 @@ public class LegalActionGeneratorTests
     }
 
     [Fact]
-    public void ValidAdvances_MidFloor_Vi2_OffersMFPlus1()
+    public void ValidAdvances_DiplomatFloor_Vi2_OffersMFPlus1()
     {
         var (alice, _, state) = MakeState(setupAlice: p =>
         {
             p.CastleAdvanceRemaining = 1;
-            p.CourtiersOnMidFloor    = 1;
-            p.Resources              = new ResourceBag(ValueItem: 2);
+            p.CourtiersOnDiplomatFloor    = 1;
+            p.Resources              = new ResourceBag(MotherOfPearls: 2);
         });
 
         var advances = LegalActionGenerator.Generate(alice.Id, state)
             .OfType<CastleAdvanceCourtierAction>().ToList();
 
         var advance = Assert.Single(advances);
-        Assert.Equal(CourtierPosition.MidFloor, advance.From);
+        Assert.Equal(CourtierPosition.DiplomatFloor, advance.From);
         Assert.Equal(1, advance.Levels);
     }
 

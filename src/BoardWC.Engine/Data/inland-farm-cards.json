@@ -19,7 +19,7 @@
     {
       "id": "farm_inland_03",
       "foodCost": 2,
-      "gainItems": [{ "type": "ValueItem", "amount": 3 }],
+      "gainItems": [{ "type": "MotherOfPearls", "amount": 3 }],
       "actionDescription": "",
       "actionCost": [],
       "victoryPoints": 2
@@ -43,7 +43,7 @@
     {
       "id": "farm_inland_06",
       "foodCost": 2,
-      "gainItems": [{ "type": "MonarchialSeal", "amount": 1 }],
+      "gainItems": [{ "type": "DaimyoSeal", "amount": 1 }],
       "actionDescription": "",
       "actionCost": [],
       "victoryPoints": 2

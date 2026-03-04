@@ -23,9 +23,9 @@ internal sealed class ChooseInfluencePayHandler : IActionHandler
         if (player.PendingInfluenceGain <= 0)
             return ValidationResult.Fail("No pending influence gain to resolve.");
 
-        if (a.WillPay && player.MonarchialSeals < player.PendingInfluenceSealCost)
+        if (a.WillPay && player.DaimyoSeals < player.PendingInfluenceSealCost)
             return ValidationResult.Fail(
-                $"Not enough seals. Need {player.PendingInfluenceSealCost}, have {player.MonarchialSeals}.");
+                $"Not enough seals. Need {player.PendingInfluenceSealCost}, have {player.DaimyoSeals}.");
 
         return ValidationResult.Ok();
     }
@@ -41,7 +41,7 @@ internal sealed class ChooseInfluencePayHandler : IActionHandler
         int sealsPaid = 0;
         if (a.WillPay)
         {
-            player.MonarchialSeals  -= sealCost;
+            player.DaimyoSeals  -= sealCost;
             player.Influence        += gain;
             player.InfluenceGainOrder = ++state.InfluenceGainCounter;
             sealsPaid                = sealCost;

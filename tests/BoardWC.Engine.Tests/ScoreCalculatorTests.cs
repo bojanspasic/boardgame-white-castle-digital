@@ -36,9 +36,9 @@ public class ScoreCalculatorTests
         {
             p.LanternScore           = 3;
             p.CourtiersAtGate        = 1;    // 1 VP
-            p.CourtiersOnGroundFloor = 1;    // 3 VP
+            p.CourtiersOnStewardFloor = 1;    // 3 VP
             p.Coins                  = 10;   // 2 VP
-            p.MonarchialSeals        = 5;    // 1 VP
+            p.DaimyoSeals        = 5;    // 1 VP
             p.Resources              = new ResourceBag(Food: 4); // 1 VP
             p.Influence              = 7;    // 3 VP (6-10 band)
         });
@@ -64,14 +64,14 @@ public class ScoreCalculatorTests
     [Fact]
     public void ScoreCalculator_CourtiersOnGround_ThreeVPEach()
     {
-        var (state, _) = MakeState(p => p.CourtiersOnGroundFloor = 2);
+        var (state, _) = MakeState(p => p.CourtiersOnStewardFloor = 2);
         Assert.Equal(6, ScoreCalculator.Calculate(state)[0].CourtierPoints);
     }
 
     [Fact]
     public void ScoreCalculator_CourtiersOnMid_SixVPEach()
     {
-        var (state, _) = MakeState(p => p.CourtiersOnMidFloor = 2);
+        var (state, _) = MakeState(p => p.CourtiersOnDiplomatFloor = 2);
         Assert.Equal(12, ScoreCalculator.Calculate(state)[0].CourtierPoints);
     }
 
@@ -88,8 +88,8 @@ public class ScoreCalculatorTests
         var (state, _) = MakeState(p =>
         {
             p.CourtiersAtGate        = 1;   // 1
-            p.CourtiersOnGroundFloor = 1;   // 3
-            p.CourtiersOnMidFloor    = 1;   // 6
+            p.CourtiersOnStewardFloor = 1;   // 3
+            p.CourtiersOnDiplomatFloor    = 1;   // 6
             p.CourtiersOnTopFloor    = 1;   // 10
         });
         Assert.Equal(20, ScoreCalculator.Calculate(state)[0].CourtierPoints);
@@ -137,14 +137,14 @@ public class ScoreCalculatorTests
     [Fact]
     public void ScoreCalculator_FiveSeals_OneVP()
     {
-        var (state, _) = MakeState(p => p.MonarchialSeals = 5);
+        var (state, _) = MakeState(p => p.DaimyoSeals = 5);
         Assert.Equal(1, ScoreCalculator.Calculate(state)[0].SealPoints);
     }
 
     [Fact]
     public void ScoreCalculator_FourSeals_ZeroVP()
     {
-        var (state, _) = MakeState(p => p.MonarchialSeals = 4);
+        var (state, _) = MakeState(p => p.DaimyoSeals = 4);
         Assert.Equal(0, ScoreCalculator.Calculate(state)[0].SealPoints);
     }
 
@@ -176,23 +176,23 @@ public class ScoreCalculatorTests
     [InlineData(0, 0)]
     [InlineData(4, 1)]
     [InlineData(7, 2)]
-    public void ScoreCalculator_ValueItemResourceVP(int amount, int expectedVP)
+    public void ScoreCalculator_MotherOfPearlsResourceVP(int amount, int expectedVP)
     {
-        var (state, _) = MakeState(p => p.Resources = new ResourceBag(ValueItem: amount));
+        var (state, _) = MakeState(p => p.Resources = new ResourceBag(MotherOfPearls: amount));
         Assert.Equal(expectedVP, ScoreCalculator.Calculate(state)[0].ResourcePoints);
     }
 
     [Fact]
     public void ScoreCalculator_AllThreeResources_AtSeven_SixResourcePoints()
     {
-        var (state, _) = MakeState(p => p.Resources = new ResourceBag(Food: 7, Iron: 7, ValueItem: 7));
+        var (state, _) = MakeState(p => p.Resources = new ResourceBag(Food: 7, Iron: 7, MotherOfPearls: 7));
         Assert.Equal(6, ScoreCalculator.Calculate(state)[0].ResourcePoints);
     }
 
     [Fact]
     public void ScoreCalculator_MultipleResourceTypes_Accumulate()
     {
-        var (state, _) = MakeState(p => p.Resources = new ResourceBag(Food: 4, Iron: 7, ValueItem: 3));
+        var (state, _) = MakeState(p => p.Resources = new ResourceBag(Food: 4, Iron: 7, MotherOfPearls: 3));
         // Food=4→1VP, Iron=7→2VP, VI=3→0VP = 3
         Assert.Equal(3, ScoreCalculator.Calculate(state)[0].ResourcePoints);
     }
@@ -248,7 +248,7 @@ public class ScoreCalculatorTests
     [Fact]
     public void ScoreCalculator_TG_Areas0And1_SoldiersTimesCourtiers()
     {
-        var (state, player) = MakeState(p => p.CourtiersOnGroundFloor = 2);
+        var (state, player) = MakeState(p => p.CourtiersOnStewardFloor = 2);
         // 1 soldier in area 0, 2 soldiers in area 1 → (1+2) × 2 = 6
         state.Board.TrainingGrounds.Areas[0].AddSoldier(player.Name);
         state.Board.TrainingGrounds.Areas[1].AddSoldier(player.Name);
@@ -260,7 +260,7 @@ public class ScoreCalculatorTests
     [Fact]
     public void ScoreCalculator_TG_Area2_DoublesSoldierCountTimesCourtiers()
     {
-        var (state, player) = MakeState(p => p.CourtiersOnGroundFloor = 3);
+        var (state, player) = MakeState(p => p.CourtiersOnStewardFloor = 3);
         // 2 soldiers in area 2 → 2 × 2 × 3 = 12
         state.Board.TrainingGrounds.Areas[2].AddSoldier(player.Name);
         state.Board.TrainingGrounds.Areas[2].AddSoldier(player.Name);
@@ -273,8 +273,8 @@ public class ScoreCalculatorTests
     {
         var (state, player) = MakeState(p =>
         {
-            p.CourtiersOnGroundFloor = 1;
-            p.CourtiersOnMidFloor    = 1;
+            p.CourtiersOnStewardFloor = 1;
+            p.CourtiersOnDiplomatFloor    = 1;
             p.CourtiersOnTopFloor    = 1;
         });
         // castleCourtiers = 3
@@ -297,7 +297,7 @@ public class ScoreCalculatorTests
     [Fact]
     public void ScoreCalculator_TG_NoSoldiers_ZeroVP()
     {
-        var (state, _) = MakeState(p => p.CourtiersOnGroundFloor = 3);
+        var (state, _) = MakeState(p => p.CourtiersOnStewardFloor = 3);
         Assert.Equal(0, ScoreCalculator.Calculate(state)[0].TrainingGroundsPoints);
     }
 
@@ -305,7 +305,7 @@ public class ScoreCalculatorTests
     public void ScoreCalculator_TG_OtherPlayerSoldiers_NotCountedForPlayer()
     {
         var player2 = new Player { Name = "Bob" };
-        var player1 = new Player { Name = "Alice", CourtiersOnGroundFloor = 2 };
+        var player1 = new Player { Name = "Alice", CourtiersOnStewardFloor = 2 };
         var state = new GameState(new List<Player> { player1, player2 });
         state.Board.SetupFarmingLands(new Random(0));
         state.Board.SetupTrainingGrounds(new Random(0));

@@ -35,7 +35,7 @@
     {
       "id": "farm_outside_05",
       "foodCost": 1,
-      "gainItems": [{ "type": "ValueItem", "amount": 1 }],
+      "gainItems": [{ "type": "MotherOfPearls", "amount": 1 }],
       "actionDescription": "",
       "actionCost": [],
       "victoryPoints": 1

@@ -4,8 +4,8 @@ namespace BoardWC.Engine.Domain;
 
 // ── Enums ─────────────────────────────────────────────────────────────────────
 
-internal enum CardGainType { Food, Iron, ValueItem, Coin, MonarchialSeal, Lantern, AnyResource, Influence, VictoryPoint }
-internal enum CardCostType { Coin, MonarchialSeal }
+internal enum CardGainType { Food, Iron, MotherOfPearls, Coin, DaimyoSeal, Lantern, AnyResource, Influence, VictoryPoint }
+internal enum CardCostType { Coin, DaimyoSeal }
 
 // ── Value objects ─────────────────────────────────────────────────────────────
 
@@ -53,7 +53,7 @@ internal sealed class RoomCard
     /// </summary>
     public IReadOnlyList<CardField> Fields { get; }
 
-    /// <summary>null for ground-floor cards; "DoubleTop" or "DoubleBottom" for mid-floor.</summary>
+    /// <summary>null for steward-floor cards; "DoubleTop" or "DoubleBottom" for diplomat-floor.</summary>
     public string? Layout { get; }
 
     /// <summary>The gain on the card's back, added to the lantern chain when the card is placed there.</summary>
@@ -87,10 +87,10 @@ internal sealed class FloorCardDeck
     public RoomCard? Deal() =>
         _drawPile.TryDequeue(out var card) ? card : null;
 
-    public static FloorCardDeck LoadGroundFloor(Random rng) =>
+    public static FloorCardDeck LoadStewardFloor(Random rng) =>
         Load("BoardWC.Engine.Data.ground-floor-cards.json", isMidFloor: false, rng);
 
-    public static FloorCardDeck LoadMidFloor(Random rng) =>
+    public static FloorCardDeck LoadDiplomatFloor(Random rng) =>
         Load("BoardWC.Engine.Data.mid-floor-cards.json", isMidFloor: true, rng);
 
     private static FloorCardDeck Load(string resourceName, bool isMidFloor, Random rng)
@@ -103,16 +103,16 @@ internal sealed class FloorCardDeck
         var cards = doc.RootElement
             .GetProperty("cards")
             .EnumerateArray()
-            .Select(el => isMidFloor ? ParseMidFloorCard(el) : ParseGroundFloorCard(el))
+            .Select(el => isMidFloor ? ParseDiplomatFloorCard(el) : ParseStewardFloorCard(el))
             .OrderBy(_ => rng.Next())
             .ToList();
 
         return new FloorCardDeck(cards);
     }
 
-    // ── Ground floor: gain1(i=0), gain2(i=1), action(i=2) ────────────────────
+    // ── Steward floor: gain1(i=0), gain2(i=1), action(i=2) ───────────────────
 
-    private static RoomCard ParseGroundFloorCard(JsonElement el)
+    private static RoomCard ParseStewardFloorCard(JsonElement el)
     {
         var id   = el.GetProperty("id").GetString()!;
         var name = el.GetProperty("name").GetString()!;
@@ -128,9 +128,9 @@ internal sealed class FloorCardDeck
         return new RoomCard(id, name, fields.AsReadOnly()) { Back = back };
     }
 
-    // ── Mid floor: field1(i=0), field2(i=1), plus layout ─────────────────────
+    // ── Diplomat floor: field1(i=0), field2(i=1), plus layout ────────────────
 
-    private static RoomCard ParseMidFloorCard(JsonElement el)
+    private static RoomCard ParseDiplomatFloorCard(JsonElement el)
     {
         var id     = el.GetProperty("id").GetString()!;
         var name   = el.GetProperty("name").GetString()!;

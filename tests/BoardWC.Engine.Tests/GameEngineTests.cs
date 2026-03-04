@@ -658,13 +658,13 @@ public class GameEngineTests
     [Fact]
     public void ResourceBag_Add_WorksCorrectly()
     {
-        var a = new ResourceBag(Iron: 2, ValueItem: 1);
+        var a = new ResourceBag(Iron: 2, MotherOfPearls: 1);
         var b = new ResourceBag(Iron: 1, Food: 3);
 
         var result = a + b;
 
         Assert.Equal(3, result.Iron);
-        Assert.Equal(1, result.ValueItem);
+        Assert.Equal(1, result.MotherOfPearls);
         Assert.Equal(3, result.Food);
     }
 
@@ -698,12 +698,12 @@ public class GameEngineTests
     }
 
     [Fact]
-    public void NewPlayer_HasZeroMonarchialSeals()
+    public void NewPlayer_HasZeroDaimyoSeals()
     {
         var engine = CreateTwoPlayerGame();
         var alice  = engine.GetCurrentState().Players[0];
 
-        Assert.Equal(0, alice.MonarchialSeals);
+        Assert.Equal(0, alice.DaimyoSeals);
     }
 
     // ── Well effects ─────────────────────────────────────────────────────────
@@ -728,13 +728,13 @@ public class GameEngineTests
     {
         var engine = StartedGame();
         var alice  = engine.GetCurrentState().Players[0];
-        int sealsBefore = alice.MonarchialSeals; // may be >0 if seed card included a seal gain
+        int sealsBefore = alice.DaimyoSeals; // may be >0 if seed card included a seal gain
 
         TakeAndPlaceAtWellForPlayer(engine, alice.Id);
         ResolveAllPendingChoices(engine, alice.Id);
 
         var aliceAfter = engine.GetCurrentState().Players.First(p => p.Id == alice.Id);
-        Assert.Equal(sealsBefore + 1, aliceAfter.MonarchialSeals);
+        Assert.Equal(sealsBefore + 1, aliceAfter.DaimyoSeals);
     }
 
     [Fact]
@@ -749,7 +749,7 @@ public class GameEngineTests
         // Alice may have resources from seed selection; add well gains on top, capped at 7
         int expectedFood = Math.Min(alice.Resources.Food + wellTokens.Count(t => t.ResourceSide == TokenResource.Food) + anyResourceCount, 7);
         int expectedIron = Math.Min(alice.Resources.Iron + wellTokens.Count(t => t.ResourceSide == TokenResource.Iron), 7);
-        int expectedVI   = Math.Min(alice.Resources.ValueItem + wellTokens.Count(t => t.ResourceSide == TokenResource.ValueItem), 7);
+        int expectedVI   = Math.Min(alice.Resources.MotherOfPearls + wellTokens.Count(t => t.ResourceSide == TokenResource.MotherOfPearls), 7);
 
         TakeAndPlaceAtWellForPlayer(engine, alice.Id);
         ResolveAllPendingChoices(engine, alice.Id);
@@ -757,7 +757,7 @@ public class GameEngineTests
         var aliceAfter = engine.GetCurrentState().Players.First(p => p.Id == alice.Id);
         Assert.Equal(expectedFood, aliceAfter.Resources.Food);
         Assert.Equal(expectedIron, aliceAfter.Resources.Iron);
-        Assert.Equal(expectedVI,   aliceAfter.Resources.ValueItem);
+        Assert.Equal(expectedVI,   aliceAfter.Resources.MotherOfPearls);
     }
 
     [Fact]
@@ -913,7 +913,7 @@ public class GameEngineTests
     // ── Room cards ────────────────────────────────────────────────────────────
 
     [Fact]
-    public void StartGame_PlacesOneCardInEachGroundFloorRoom()
+    public void StartGame_PlacesOneCardInEachStewardFloorRoom()
     {
         var engine = StartedGame();
         var floors = engine.GetCurrentState().Board.Castle.Floors;
@@ -922,7 +922,7 @@ public class GameEngineTests
     }
 
     [Fact]
-    public void StartGame_PlacesOneCardInEachMidFloorRoom()
+    public void StartGame_PlacesOneCardInEachDiplomatFloorRoom()
     {
         var engine = StartedGame();
         var floors = engine.GetCurrentState().Board.Castle.Floors;
@@ -931,7 +931,7 @@ public class GameEngineTests
     }
 
     [Fact]
-    public void StartGame_GroundFloorCard_HasThreeFields()
+    public void StartGame_StewardFloorCard_HasThreeFields()
     {
         var engine = StartedGame();
         var floors = engine.GetCurrentState().Board.Castle.Floors;
@@ -940,7 +940,7 @@ public class GameEngineTests
     }
 
     [Fact]
-    public void StartGame_MidFloorCard_HasTwoFields()
+    public void StartGame_DiplomatFloorCard_HasTwoFields()
     {
         var engine = StartedGame();
         var floors = engine.GetCurrentState().Board.Castle.Floors;
@@ -949,7 +949,7 @@ public class GameEngineTests
     }
 
     [Fact]
-    public void StartGame_MidFloorCard_HasLayout()
+    public void StartGame_DiplomatFloorCard_HasLayout()
     {
         var engine = StartedGame();
         var floors = engine.GetCurrentState().Board.Castle.Floors;
@@ -966,10 +966,10 @@ public class GameEngineTests
         var state  = engine.GetCurrentState();
         var alice  = state.Players[0];
 
-        // Find a ground floor room where:
+        // Find a steward floor room where:
         //   - a gain field exists at position i
         //   - the token at position i has a die color matching an available bridge with a high die
-        //   - the die value is affordable (≥ 3, since ground floor value = 3)
+        //   - the die value is affordable (≥ 3, since steward floor value = 3)
         for (int r = 0; r < state.Board.Castle.Floors[0].Count; r++)
         {
             var room = state.Board.Castle.Floors[0][r];
@@ -987,7 +987,7 @@ public class GameEngineTests
                 // Found a valid setup — take the die and place it
                 var coinsBefore     = alice.Coins;
                 var resourcesBefore = alice.Resources;
-                var sealsBefore     = alice.MonarchialSeals;
+                var sealsBefore     = alice.DaimyoSeals;
                 var lanternBefore   = alice.LanternScore;
 
                 engine.ProcessAction(new TakeDieFromBridgeAction(alice.Id, bridge.Color, DiePosition.High));

@@ -226,7 +226,7 @@ internal sealed class ConsoleRenderer
         {
             TokenResource.Food        => "Fd",
             TokenResource.Iron        => "Fe",
-            TokenResource.ValueItem   => "VI",
+            TokenResource.MotherOfPearls   => "VI",
             TokenResource.AnyResource => "Any",
             TokenResource.Coin        => "Coin",
             _                         => "?",
@@ -272,10 +272,10 @@ internal sealed class ConsoleRenderer
             var r = p.Resources;
             System.Console.WriteLine(
                 $"  {p.Name,-16} " +
-                $"Fd:{r.Food,2} Fe:{r.Iron,2} VI:{r.ValueItem,2} " +
-                $"Coins:{p.Coins,3} Seals:{p.MonarchialSeals} " +
+                $"Fd:{r.Food,2} Fe:{r.Iron,2} VI:{r.MotherOfPearls,2} " +
+                $"Coins:{p.Coins,3} Seals:{p.DaimyoSeals} " +
                 $"S:{p.SoldiersAvailable} F:{p.FarmersAvailable} " +
-                $"Courtiers: hand={p.CourtiersAvailable} gate={p.CourtiersAtGate} grnd={p.CourtiersOnGroundFloor} mid={p.CourtiersOnMidFloor} top={p.CourtiersOnTopFloor}  " +
+                $"Courtiers: hand={p.CourtiersAvailable} gate={p.CourtiersAtGate} grnd={p.CourtiersOnStewardFloor} mid={p.CourtiersOnDiplomatFloor} top={p.CourtiersOnTopFloor}  " +
                 $"Lanterns:{p.LanternScore}" +
                 (p.IsAI ? " [AI]" : ""));
         }
@@ -351,8 +351,8 @@ internal sealed class ConsoleRenderer
             var fromStr = from switch
             {
                 CourtierPosition.Gate        => "gate",
-                CourtierPosition.GroundFloor => "ground",
-                CourtierPosition.MidFloor    => "mid",
+                CourtierPosition.StewardFloor => "ground",
+                CourtierPosition.DiplomatFloor    => "mid",
                 _                            => "?",
             };
             int viCost = x.LevelsAdvanced == 1 ? 2 : 5;
@@ -468,7 +468,7 @@ internal sealed class ConsoleRenderer
 
     private static string FormatRoomCardAcquired(RoomCardAcquiredEvent x)
     {
-        string floor = x.Floor == 0 ? "ground floor" : "mid floor";
+        string floor = x.Floor == 0 ? "steward floor" : "diplomat floor";
         return $"{PlayerName(x.PlayerId, x)} acquired '{x.CardName}' from {floor} castle room";
     }
 

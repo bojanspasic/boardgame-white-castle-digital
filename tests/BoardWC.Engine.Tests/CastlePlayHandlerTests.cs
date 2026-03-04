@@ -98,7 +98,7 @@ public class CastlePlayHandlerTests
         {
             p.CastleAdvanceRemaining = 1;
             p.CourtiersAtGate        = 1;
-            p.Resources              = new ResourceBag(ValueItem: 5);
+            p.Resources              = new ResourceBag(MotherOfPearls: 5);
         });
         var result = handler.Validate(
             new CastleAdvanceCourtierAction(alice.Id, CourtierPosition.Gate, 0, -1), state);
@@ -113,7 +113,7 @@ public class CastlePlayHandlerTests
         {
             p.CastleAdvanceRemaining = 1;
             p.CourtiersAtGate        = 1;
-            p.Resources              = new ResourceBag(ValueItem: 5);
+            p.Resources              = new ResourceBag(MotherOfPearls: 5);
         });
         var result = handler.Validate(
             new CastleAdvanceCourtierAction(alice.Id, CourtierPosition.Gate, 3, -1), state);
@@ -122,16 +122,16 @@ public class CastlePlayHandlerTests
     }
 
     [Fact]
-    public void ValidateAdvance_MidFloorTwoLevels_Fails()
+    public void ValidateAdvance_DiplomatFloorTwoLevels_Fails()
     {
         var (alice, _, state, handler) = MakeState(p =>
         {
             p.CastleAdvanceRemaining = 1;
-            p.CourtiersOnMidFloor    = 1;
-            p.Resources              = new ResourceBag(ValueItem: 5);
+            p.CourtiersOnDiplomatFloor    = 1;
+            p.Resources              = new ResourceBag(MotherOfPearls: 5);
         });
         var result = handler.Validate(
-            new CastleAdvanceCourtierAction(alice.Id, CourtierPosition.MidFloor, 2, -1), state);
+            new CastleAdvanceCourtierAction(alice.Id, CourtierPosition.DiplomatFloor, 2, -1), state);
         Assert.False(result.IsValid);
         Assert.Contains("exceed top floor", result.Reason);
     }
@@ -143,7 +143,7 @@ public class CastlePlayHandlerTests
         {
             p.CastleAdvanceRemaining = 1;
             p.CourtiersAtGate        = 0;
-            p.Resources              = new ResourceBag(ValueItem: 5);
+            p.Resources              = new ResourceBag(MotherOfPearls: 5);
         });
         var result = handler.Validate(
             new CastleAdvanceCourtierAction(alice.Id, CourtierPosition.Gate, 1, -1), state);
@@ -152,33 +152,33 @@ public class CastlePlayHandlerTests
     }
 
     [Fact]
-    public void ValidateAdvance_NoCourtierAtGroundFloor_Fails()
+    public void ValidateAdvance_NoCourtierAtStewardFloor_Fails()
     {
         var (alice, _, state, handler) = MakeState(p =>
         {
             p.CastleAdvanceRemaining    = 1;
-            p.CourtiersOnGroundFloor    = 0;
-            p.Resources                 = new ResourceBag(ValueItem: 5);
+            p.CourtiersOnStewardFloor    = 0;
+            p.Resources                 = new ResourceBag(MotherOfPearls: 5);
         });
         var result = handler.Validate(
-            new CastleAdvanceCourtierAction(alice.Id, CourtierPosition.GroundFloor, 1, -1), state);
+            new CastleAdvanceCourtierAction(alice.Id, CourtierPosition.StewardFloor, 1, -1), state);
         Assert.False(result.IsValid);
-        Assert.Contains("No courtiers at GroundFloor", result.Reason);
+        Assert.Contains("No courtiers at StewardFloor", result.Reason);
     }
 
     [Fact]
-    public void ValidateAdvance_NoCourtierAtMidFloor_Fails()
+    public void ValidateAdvance_NoCourtierAtDiplomatFloor_Fails()
     {
         var (alice, _, state, handler) = MakeState(p =>
         {
             p.CastleAdvanceRemaining  = 1;
-            p.CourtiersOnMidFloor     = 0;
-            p.Resources               = new ResourceBag(ValueItem: 5);
+            p.CourtiersOnDiplomatFloor     = 0;
+            p.Resources               = new ResourceBag(MotherOfPearls: 5);
         });
         var result = handler.Validate(
-            new CastleAdvanceCourtierAction(alice.Id, CourtierPosition.MidFloor, 1, -1), state);
+            new CastleAdvanceCourtierAction(alice.Id, CourtierPosition.DiplomatFloor, 1, -1), state);
         Assert.False(result.IsValid);
-        Assert.Contains("No courtiers at MidFloor", result.Reason);
+        Assert.Contains("No courtiers at DiplomatFloor", result.Reason);
     }
 
     [Fact]
@@ -188,7 +188,7 @@ public class CastlePlayHandlerTests
         {
             p.CastleAdvanceRemaining = 1;
             p.CourtiersAtGate        = 1;
-            p.Resources              = new ResourceBag(ValueItem: 1); // need 2
+            p.Resources              = new ResourceBag(MotherOfPearls: 1); // need 2
         });
         var result = handler.Validate(
             new CastleAdvanceCourtierAction(alice.Id, CourtierPosition.Gate, 1, -1), state);
@@ -203,7 +203,7 @@ public class CastlePlayHandlerTests
         {
             p.CastleAdvanceRemaining = 1;
             p.CourtiersAtGate        = 1;
-            p.Resources              = new ResourceBag(ValueItem: 4); // need 5
+            p.Resources              = new ResourceBag(MotherOfPearls: 4); // need 5
         });
         var result = handler.Validate(
             new CastleAdvanceCourtierAction(alice.Id, CourtierPosition.Gate, 2, -1), state);
@@ -215,73 +215,73 @@ public class CastlePlayHandlerTests
     // RoomIndex=-1 skips room-card and top-floor code, so no board access needed.
 
     [Fact]
-    public void ApplyAdvance_GroundFloorToMidFloor_UpdatesCourtierCounts()
+    public void ApplyAdvance_StewardFloorToDiplomatFloor_UpdatesCourtierCounts()
     {
         var (alice, _, state, handler) = MakeState(p =>
         {
             p.CastleAdvanceRemaining  = 1;
-            p.CourtiersOnGroundFloor  = 1;
-            p.Resources               = new ResourceBag(ValueItem: 2);
+            p.CourtiersOnStewardFloor  = 1;
+            p.Resources               = new ResourceBag(MotherOfPearls: 2);
         });
         var events = new List<IDomainEvent>();
 
         handler.Apply(
-            new CastleAdvanceCourtierAction(alice.Id, CourtierPosition.GroundFloor, 1, -1),
+            new CastleAdvanceCourtierAction(alice.Id, CourtierPosition.StewardFloor, 1, -1),
             state, events);
 
-        Assert.Equal(0, alice.CourtiersOnGroundFloor);
-        Assert.Equal(1, alice.CourtiersOnMidFloor);
-        Assert.Equal(0, alice.Resources.ValueItem);
+        Assert.Equal(0, alice.CourtiersOnStewardFloor);
+        Assert.Equal(1, alice.CourtiersOnDiplomatFloor);
+        Assert.Equal(0, alice.Resources.MotherOfPearls);
 
         var evt = Assert.Single(events.OfType<CastlePlayExecutedEvent>());
         Assert.Equal(state.GameId,              evt.GameId);
         Assert.Equal(alice.Id,                  evt.PlayerId);
         Assert.False(evt.PlacedAtGate);
-        Assert.Equal(CourtierPosition.GroundFloor, evt.AdvancedFrom);
+        Assert.Equal(CourtierPosition.StewardFloor, evt.AdvancedFrom);
         Assert.Equal(1,                         evt.LevelsAdvanced);
         Assert.True(evt.OccurredAt > DateTimeOffset.MinValue);
     }
 
     [Fact]
-    public void ApplyAdvance_GroundFloorToTopFloor_UpdatesCourtierCounts()
+    public void ApplyAdvance_StewardFloorToTopFloor_UpdatesCourtierCounts()
     {
-        // GroundFloor+2 → TopFloor triggers TryTakeSlot; board needs top floor set up.
+        // StewardFloor+2 → TopFloor triggers TryTakeSlot; board needs top floor set up.
         var (alice, _, state, handler) = MakeState(p =>
         {
             p.CastleAdvanceRemaining  = 1;
-            p.CourtiersOnGroundFloor  = 1;
-            p.Resources               = new ResourceBag(ValueItem: 5);
+            p.CourtiersOnStewardFloor  = 1;
+            p.Resources               = new ResourceBag(MotherOfPearls: 5);
         });
         state.Board.SetupTopFloorCard(state.Rng);
         var events = new List<IDomainEvent>();
 
         handler.Apply(
-            new CastleAdvanceCourtierAction(alice.Id, CourtierPosition.GroundFloor, 2, -1),
+            new CastleAdvanceCourtierAction(alice.Id, CourtierPosition.StewardFloor, 2, -1),
             state, events);
 
-        Assert.Equal(0, alice.CourtiersOnGroundFloor);
+        Assert.Equal(0, alice.CourtiersOnStewardFloor);
         Assert.Equal(1, alice.CourtiersOnTopFloor);
-        // Resources after advance: spent 5 ValueItem but top-floor slot grants random bonuses,
+        // Resources after advance: spent 5 MotherOfPearls but top-floor slot grants random bonuses,
         // so we only verify the courtier movement (the primary intent of this test).
     }
 
     [Fact]
-    public void ApplyAdvance_MidFloorToTopFloor_UpdatesCourtierCounts()
+    public void ApplyAdvance_DiplomatFloorToTopFloor_UpdatesCourtierCounts()
     {
         var (alice, _, state, handler) = MakeState(p =>
         {
             p.CastleAdvanceRemaining = 1;
-            p.CourtiersOnMidFloor    = 1;
-            p.Resources              = new ResourceBag(ValueItem: 2);
+            p.CourtiersOnDiplomatFloor    = 1;
+            p.Resources              = new ResourceBag(MotherOfPearls: 2);
         });
         state.Board.SetupTopFloorCard(state.Rng);
         var events = new List<IDomainEvent>();
 
         handler.Apply(
-            new CastleAdvanceCourtierAction(alice.Id, CourtierPosition.MidFloor, 1, -1),
+            new CastleAdvanceCourtierAction(alice.Id, CourtierPosition.DiplomatFloor, 1, -1),
             state, events);
 
-        Assert.Equal(0, alice.CourtiersOnMidFloor);
+        Assert.Equal(0, alice.CourtiersOnDiplomatFloor);
         Assert.Equal(1, alice.CourtiersOnTopFloor);
     }
 
@@ -309,14 +309,14 @@ public class CastlePlayHandlerTests
         var (alice, _, state, handler) = MakeState(p =>
         {
             p.CastleAdvanceRemaining = 1;
-            p.CourtiersOnMidFloor    = 1;
-            p.Resources              = new ResourceBag(ValueItem: 2);
+            p.CourtiersOnDiplomatFloor    = 1;
+            p.Resources              = new ResourceBag(MotherOfPearls: 2);
         });
         state.Board.SetupTopFloorCard(state.Rng);
         var events = new List<IDomainEvent>();
 
         handler.Apply(
-            new CastleAdvanceCourtierAction(alice.Id, CourtierPosition.MidFloor, 1, -1),
+            new CastleAdvanceCourtierAction(alice.Id, CourtierPosition.DiplomatFloor, 1, -1),
             state, events);
 
         var evt = events.OfType<TopFloorSlotFilledEvent>().FirstOrDefault();
@@ -344,7 +344,7 @@ public class CastlePlayHandlerTests
             Name                    = "Alice",
             CastleAdvanceRemaining  = 1,
             CourtiersAtGate         = 1,
-            Resources               = new ResourceBag(ValueItem: 2),
+            Resources               = new ResourceBag(MotherOfPearls: 2),
         };
         var bob2   = new Player { Name = "Bob" };
         var state2 = new GameState(new List<Player> { alice2, bob2 });
@@ -426,7 +426,7 @@ public class CastlePlayHandlerTests
             p.CastlePlaceRemaining   = 1;
             p.CastleAdvanceRemaining = 0;
             p.CourtiersAtGate        = 1;
-            p.Resources              = new ResourceBag(ValueItem: 2);
+            p.Resources              = new ResourceBag(MotherOfPearls: 2);
         });
         var result = handler.Validate(
             new CastleAdvanceCourtierAction(alice.Id, CourtierPosition.Gate, 1, -1), state);
@@ -486,17 +486,17 @@ public class CastlePlayHandlerTests
         Assert.Equal(0, evt.LevelsAdvanced);
     }
 
-    // ── ApplyAdvance — Gate→MidFloor (else branch) ───────────────────────────
+    // ── ApplyAdvance — Gate→DiplomatFloor (else branch) ───────────────────────────
 
     [Fact]
-    public void ApplyAdvance_GateToMidFloor_UpdatesCourtierCounts()
+    public void ApplyAdvance_GateToDiplomatFloor_UpdatesCourtierCounts()
     {
-        // Gate+2 levels covers the else branch of ApplyAdvance Gate case (CourtiersOnMidFloor++).
+        // Gate+2 levels covers the else branch of ApplyAdvance Gate case (CourtiersOnDiplomatFloor++).
         var (alice, _, state, handler) = MakeState(p =>
         {
             p.CastleAdvanceRemaining = 1;
             p.CourtiersAtGate        = 1;
-            p.Resources              = new ResourceBag(ValueItem: 5);
+            p.Resources              = new ResourceBag(MotherOfPearls: 5);
         });
         var events = new List<IDomainEvent>();
         handler.Apply(
@@ -504,8 +504,8 @@ public class CastlePlayHandlerTests
             state, events);
 
         Assert.Equal(0, alice.CourtiersAtGate);
-        Assert.Equal(1, alice.CourtiersOnMidFloor);
-        Assert.Equal(0, alice.Resources.ValueItem);
+        Assert.Equal(1, alice.CourtiersOnDiplomatFloor);
+        Assert.Equal(0, alice.Resources.MotherOfPearls);
 
         var evt = Assert.Single(events.OfType<CastlePlayExecutedEvent>());
         Assert.Equal(CourtierPosition.Gate, evt.AdvancedFrom);
@@ -515,7 +515,7 @@ public class CastlePlayHandlerTests
     // ── Room card acquisition ─────────────────────────────────────────────────
 
     [Fact]
-    public void ApplyAdvance_AcquiresGroundFloorCard_WhenDeckHasCards()
+    public void ApplyAdvance_AcquiresStewardFloorCard_WhenDeckHasCards()
     {
         // Gate+1 / RoomIndex=0 with PlaceCards called → deck has replacements,
         // room has a card → acquisition block (true branch of inner if) fires.
@@ -523,7 +523,7 @@ public class CastlePlayHandlerTests
         {
             p.CastleAdvanceRemaining = 1;
             p.CourtiersAtGate        = 1;
-            p.Resources              = new ResourceBag(ValueItem: 2);
+            p.Resources              = new ResourceBag(MotherOfPearls: 2);
         });
         state.Board.PlaceCards(state.Rng);
         var events = new List<IDomainEvent>();
@@ -545,20 +545,20 @@ public class CastlePlayHandlerTests
     }
 
     [Fact]
-    public void ApplyAdvance_AcquiresMidFloorCard_WhenDeckHasCards()
+    public void ApplyAdvance_AcquiresDiplomatFloorCard_WhenDeckHasCards()
     {
-        // GF+1 / RoomIndex=0 → enteringMidFloor=true, floorIdx=1, TryDealMidReplacement().
+        // GF+1 / RoomIndex=0 → enteringDiplomatFloor=true, floorIdx=1, TryDealMidReplacement().
         var (alice, _, state, handler) = MakeState(p =>
         {
             p.CastleAdvanceRemaining = 1;
-            p.CourtiersOnGroundFloor = 1;
-            p.Resources              = new ResourceBag(ValueItem: 2);
+            p.CourtiersOnStewardFloor = 1;
+            p.Resources              = new ResourceBag(MotherOfPearls: 2);
         });
         state.Board.PlaceCards(state.Rng);
         var events = new List<IDomainEvent>();
 
         handler.Apply(
-            new CastleAdvanceCourtierAction(alice.Id, CourtierPosition.GroundFloor, 1, 0),
+            new CastleAdvanceCourtierAction(alice.Id, CourtierPosition.StewardFloor, 1, 0),
             state, events);
 
         Assert.NotNull(alice.PendingNewCardActivation);
@@ -580,7 +580,7 @@ public class CastlePlayHandlerTests
         {
             p.CastleAdvanceRemaining = 1;
             p.CourtiersAtGate        = 1;
-            p.Resources              = new ResourceBag(ValueItem: 2);
+            p.Resources              = new ResourceBag(MotherOfPearls: 2);
         });
         state.Board.PlaceCards(state.Rng);
 
@@ -599,13 +599,13 @@ public class CastlePlayHandlerTests
         Assert.Equal("back-test", alice.PendingNewCardActivation.Id);
         var chainItem = Assert.Single(alice.LanternChain);
         Assert.Equal("back-test",   chainItem.SourceCardId);
-        Assert.Equal("GroundFloor", chainItem.SourceCardType);
+        Assert.Equal("StewardFloor", chainItem.SourceCardType);
 
         var chainEvt = Assert.Single(events.OfType<LanternChainItemAddedEvent>());
         Assert.Equal(state.GameId,   chainEvt.GameId);
         Assert.Equal(alice.Id,       chainEvt.PlayerId);
         Assert.Equal("back-test",    chainEvt.SourceCardId);
-        Assert.Equal("GroundFloor",  chainEvt.SourceCardType);
+        Assert.Equal("StewardFloor",  chainEvt.SourceCardType);
         Assert.NotEmpty(chainEvt.Gains);
         Assert.True(chainEvt.OccurredAt > DateTimeOffset.MinValue);
     }

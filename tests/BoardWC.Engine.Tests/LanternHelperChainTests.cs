@@ -132,7 +132,7 @@ public class LanternHelperChainTests
         var evt = Assert.Single(events.OfType<LanternChainActivatedEvent>());
         Assert.Equal(3, evt.Resources.Food);
         Assert.Equal(0, evt.Resources.Iron);
-        Assert.Equal(0, evt.Resources.ValueItem);
+        Assert.Equal(0, evt.Resources.MotherOfPearls);
         Assert.Equal(0, evt.Coins);
         Assert.Equal(0, evt.Seals);
         Assert.Equal(0, evt.VpGained);
@@ -152,16 +152,16 @@ public class LanternHelperChainTests
     }
 
     [Fact]
-    public void FireChain_ValueItemGain_GrantsValueItem()
+    public void FireChain_MotherOfPearlsGain_GrantsMotherOfPearls()
     {
-        var player = MakePlayerWithChain((CardGainType.ValueItem, 2));
+        var player = MakePlayerWithChain((CardGainType.MotherOfPearls, 2));
         var events = new List<IDomainEvent>();
 
         LanternHelper.Apply(player, 1, AnyGameId, events);
 
-        Assert.Equal(2, player.Resources.ValueItem);
+        Assert.Equal(2, player.Resources.MotherOfPearls);
         var evt = Assert.Single(events.OfType<LanternChainActivatedEvent>());
-        Assert.Equal(2, evt.Resources.ValueItem);
+        Assert.Equal(2, evt.Resources.MotherOfPearls);
     }
 
     [Fact]
@@ -178,28 +178,28 @@ public class LanternHelperChainTests
     }
 
     [Fact]
-    public void FireChain_MonarchialSealGain_GrantsSeal()
+    public void FireChain_DaimyoSealGain_GrantsSeal()
     {
-        var player = MakePlayerWithChain((CardGainType.MonarchialSeal, 1));
+        var player = MakePlayerWithChain((CardGainType.DaimyoSeal, 1));
         var events = new List<IDomainEvent>();
 
         LanternHelper.Apply(player, 1, AnyGameId, events);
 
-        Assert.Equal(1, player.MonarchialSeals);
+        Assert.Equal(1, player.DaimyoSeals);
         var evt = Assert.Single(events.OfType<LanternChainActivatedEvent>());
         Assert.Equal(1, evt.Seals);
     }
 
     [Fact]
-    public void FireChain_MonarchialSealGain_CappedAtFive()
+    public void FireChain_DaimyoSealGain_CappedAtFive()
     {
-        var player = MakePlayerWithChain((CardGainType.MonarchialSeal, 10));
-        player.MonarchialSeals = 3; // 3 + 10 = 13, should cap at 5
+        var player = MakePlayerWithChain((CardGainType.DaimyoSeal, 10));
+        player.DaimyoSeals = 3; // 3 + 10 = 13, should cap at 5
         var events = new List<IDomainEvent>();
 
         LanternHelper.Apply(player, 1, AnyGameId, events);
 
-        Assert.Equal(5, player.MonarchialSeals);
+        Assert.Equal(5, player.DaimyoSeals);
     }
 
     [Fact]
@@ -226,13 +226,13 @@ public class LanternHelperChainTests
         player.LanternChain.Add(new LanternChainItem
         {
             SourceCardId   = "card1",
-            SourceCardType = "GroundFloor",
+            SourceCardType = "StewardFloor",
             Gains          = new[] { new LanternChainGain(CardGainType.Food, 1) }.AsReadOnly(),
         });
         player.LanternChain.Add(new LanternChainItem
         {
             SourceCardId   = "card2",
-            SourceCardType = "MidFloor",
+            SourceCardType = "DiplomatFloor",
             Gains          = new[] { new LanternChainGain(CardGainType.Iron, 2) }.AsReadOnly(),
         });
 

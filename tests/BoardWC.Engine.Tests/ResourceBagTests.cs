@@ -15,7 +15,7 @@ public class ResourceBagTests
         var bag = new ResourceBag().Add(ResourceType.Food, 3);
         Assert.Equal(3, bag.Food);
         Assert.Equal(0, bag.Iron);
-        Assert.Equal(0, bag.ValueItem);
+        Assert.Equal(0, bag.MotherOfPearls);
     }
 
     [Fact]
@@ -24,16 +24,16 @@ public class ResourceBagTests
         var bag = new ResourceBag().Add(ResourceType.Iron, 2);
         Assert.Equal(0, bag.Food);
         Assert.Equal(2, bag.Iron);
-        Assert.Equal(0, bag.ValueItem);
+        Assert.Equal(0, bag.MotherOfPearls);
     }
 
     [Fact]
-    public void Add_ValueItem_IncreasesValueItem()
+    public void Add_MotherOfPearls_IncreasesMotherOfPearls()
     {
-        var bag = new ResourceBag().Add(ResourceType.ValueItem, 1);
+        var bag = new ResourceBag().Add(ResourceType.MotherOfPearls, 1);
         Assert.Equal(0, bag.Food);
         Assert.Equal(0, bag.Iron);
-        Assert.Equal(1, bag.ValueItem);
+        Assert.Equal(1, bag.MotherOfPearls);
     }
 
     [Fact]
@@ -55,12 +55,12 @@ public class ResourceBagTests
     [Fact]
     public void Add_ResourceBag_SumsAllFields()
     {
-        var a = new ResourceBag(Food: 1, Iron: 2, ValueItem: 3);
-        var b = new ResourceBag(Food: 4, Iron: 1, ValueItem: 2);
+        var a = new ResourceBag(Food: 1, Iron: 2, MotherOfPearls: 3);
+        var b = new ResourceBag(Food: 4, Iron: 1, MotherOfPearls: 2);
         var result = a.Add(b);
         Assert.Equal(5, result.Food);
         Assert.Equal(3, result.Iron);
-        Assert.Equal(5, result.ValueItem);
+        Assert.Equal(5, result.MotherOfPearls);
     }
 
     // ── operator+ ────────────────────────────────────────────────────────────
@@ -68,12 +68,12 @@ public class ResourceBagTests
     [Fact]
     public void OperatorPlus_SumsAllFields()
     {
-        var a = new ResourceBag(Food: 2, Iron: 0, ValueItem: 1);
-        var b = new ResourceBag(Food: 1, Iron: 3, ValueItem: 0);
+        var a = new ResourceBag(Food: 2, Iron: 0, MotherOfPearls: 1);
+        var b = new ResourceBag(Food: 1, Iron: 3, MotherOfPearls: 0);
         var result = a + b;
         Assert.Equal(3, result.Food);
         Assert.Equal(3, result.Iron);
-        Assert.Equal(1, result.ValueItem);
+        Assert.Equal(1, result.MotherOfPearls);
     }
 
     // ── Subtract ──────────────────────────────────────────────────────────────
@@ -81,12 +81,12 @@ public class ResourceBagTests
     [Fact]
     public void Subtract_SubtractsAllFields()
     {
-        var bag  = new ResourceBag(Food: 5, Iron: 3, ValueItem: 2);
-        var cost = new ResourceBag(Food: 2, Iron: 1, ValueItem: 1);
+        var bag  = new ResourceBag(Food: 5, Iron: 3, MotherOfPearls: 2);
+        var cost = new ResourceBag(Food: 2, Iron: 1, MotherOfPearls: 1);
         var result = bag.Subtract(cost);
         Assert.Equal(3, result.Food);
         Assert.Equal(2, result.Iron);
-        Assert.Equal(1, result.ValueItem);
+        Assert.Equal(1, result.MotherOfPearls);
     }
 
     // ── CanAfford ─────────────────────────────────────────────────────────────
@@ -94,40 +94,40 @@ public class ResourceBagTests
     [Fact]
     public void CanAfford_Affordable_ReturnsTrue()
     {
-        var bag  = new ResourceBag(Food: 5, Iron: 3, ValueItem: 2);
-        var cost = new ResourceBag(Food: 3, Iron: 3, ValueItem: 2);
+        var bag  = new ResourceBag(Food: 5, Iron: 3, MotherOfPearls: 2);
+        var cost = new ResourceBag(Food: 3, Iron: 3, MotherOfPearls: 2);
         Assert.True(bag.CanAfford(cost));
     }
 
     [Fact]
     public void CanAfford_ExactlyAffordable_ReturnsTrue()
     {
-        var bag  = new ResourceBag(Food: 2, Iron: 1, ValueItem: 1);
-        var cost = new ResourceBag(Food: 2, Iron: 1, ValueItem: 1);
+        var bag  = new ResourceBag(Food: 2, Iron: 1, MotherOfPearls: 1);
+        var cost = new ResourceBag(Food: 2, Iron: 1, MotherOfPearls: 1);
         Assert.True(bag.CanAfford(cost));
     }
 
     [Fact]
     public void CanAfford_NotEnoughFood_ReturnsFalse()
     {
-        var bag  = new ResourceBag(Food: 1, Iron: 5, ValueItem: 5);
-        var cost = new ResourceBag(Food: 2, Iron: 1, ValueItem: 1);
+        var bag  = new ResourceBag(Food: 1, Iron: 5, MotherOfPearls: 5);
+        var cost = new ResourceBag(Food: 2, Iron: 1, MotherOfPearls: 1);
         Assert.False(bag.CanAfford(cost));
     }
 
     [Fact]
     public void CanAfford_NotEnoughIron_ReturnsFalse()
     {
-        var bag  = new ResourceBag(Food: 5, Iron: 0, ValueItem: 5);
-        var cost = new ResourceBag(Food: 1, Iron: 1, ValueItem: 1);
+        var bag  = new ResourceBag(Food: 5, Iron: 0, MotherOfPearls: 5);
+        var cost = new ResourceBag(Food: 1, Iron: 1, MotherOfPearls: 1);
         Assert.False(bag.CanAfford(cost));
     }
 
     [Fact]
-    public void CanAfford_NotEnoughValueItem_ReturnsFalse()
+    public void CanAfford_NotEnoughMotherOfPearls_ReturnsFalse()
     {
-        var bag  = new ResourceBag(Food: 5, Iron: 5, ValueItem: 0);
-        var cost = new ResourceBag(Food: 1, Iron: 1, ValueItem: 1);
+        var bag  = new ResourceBag(Food: 5, Iron: 5, MotherOfPearls: 0);
+        var cost = new ResourceBag(Food: 1, Iron: 1, MotherOfPearls: 1);
         Assert.False(bag.CanAfford(cost));
     }
 
@@ -136,21 +136,21 @@ public class ResourceBagTests
     [Fact]
     public void Clamp_AboveMax_ClampsAllFields()
     {
-        var bag = new ResourceBag(Food: 8, Iron: 3, ValueItem: 6);
+        var bag = new ResourceBag(Food: 8, Iron: 3, MotherOfPearls: 6);
         var clamped = bag.Clamp(5);
         Assert.Equal(5, clamped.Food);
         Assert.Equal(3, clamped.Iron);
-        Assert.Equal(5, clamped.ValueItem);
+        Assert.Equal(5, clamped.MotherOfPearls);
     }
 
     [Fact]
     public void Clamp_BelowMax_UnchangedFields()
     {
-        var bag = new ResourceBag(Food: 2, Iron: 3, ValueItem: 1);
+        var bag = new ResourceBag(Food: 2, Iron: 3, MotherOfPearls: 1);
         var clamped = bag.Clamp(7);
         Assert.Equal(2, clamped.Food);
         Assert.Equal(3, clamped.Iron);
-        Assert.Equal(1, clamped.ValueItem);
+        Assert.Equal(1, clamped.MotherOfPearls);
     }
 
     // ── Total ────────────────────────────────────────────────────────────────
@@ -158,7 +158,7 @@ public class ResourceBagTests
     [Fact]
     public void Total_SumsAllThreeResources()
     {
-        var bag = new ResourceBag(Food: 2, Iron: 3, ValueItem: 1);
+        var bag = new ResourceBag(Food: 2, Iron: 3, MotherOfPearls: 1);
         Assert.Equal(6, bag.Total);
     }
 
@@ -173,7 +173,7 @@ public class ResourceBagTests
     [Fact]
     public void ToString_ContainsFoodIronVI()
     {
-        var bag = new ResourceBag(Food: 1, Iron: 2, ValueItem: 3);
+        var bag = new ResourceBag(Food: 1, Iron: 2, MotherOfPearls: 3);
         var str = bag.ToString();
         Assert.Contains("Food", str);
         Assert.Contains("Iron", str);
@@ -187,7 +187,7 @@ public class ResourceBagTests
     {
         Assert.Equal(0, ResourceBag.Empty.Food);
         Assert.Equal(0, ResourceBag.Empty.Iron);
-        Assert.Equal(0, ResourceBag.Empty.ValueItem);
+        Assert.Equal(0, ResourceBag.Empty.MotherOfPearls);
     }
 
     // ── Equals(ResourceBag) ───────────────────────────────────────────────────
@@ -195,16 +195,16 @@ public class ResourceBagTests
     [Fact]
     public void Equals_SameBag_ReturnsTrue()
     {
-        var a = new ResourceBag(Food: 1, Iron: 2, ValueItem: 3);
-        var b = new ResourceBag(Food: 1, Iron: 2, ValueItem: 3);
+        var a = new ResourceBag(Food: 1, Iron: 2, MotherOfPearls: 3);
+        var b = new ResourceBag(Food: 1, Iron: 2, MotherOfPearls: 3);
         Assert.True(a.Equals(b));
     }
 
     [Fact]
     public void Equals_DifferentBag_ReturnsFalse()
     {
-        var a = new ResourceBag(Food: 1, Iron: 2, ValueItem: 3);
-        var b = new ResourceBag(Food: 9, Iron: 2, ValueItem: 3);
+        var a = new ResourceBag(Food: 1, Iron: 2, MotherOfPearls: 3);
+        var b = new ResourceBag(Food: 9, Iron: 2, MotherOfPearls: 3);
         Assert.False(a.Equals(b));
     }
 
@@ -213,8 +213,8 @@ public class ResourceBagTests
     [Fact]
     public void Equals_Object_BoxedSameBag_ReturnsTrue()
     {
-        var    a     = new ResourceBag(Food: 1, Iron: 2, ValueItem: 3);
-        object boxed = new ResourceBag(Food: 1, Iron: 2, ValueItem: 3);
+        var    a     = new ResourceBag(Food: 1, Iron: 2, MotherOfPearls: 3);
+        object boxed = new ResourceBag(Food: 1, Iron: 2, MotherOfPearls: 3);
         Assert.True(a.Equals(boxed));
     }
 
@@ -230,8 +230,8 @@ public class ResourceBagTests
     [Fact]
     public void GetHashCode_EqualBags_SameHash()
     {
-        var a = new ResourceBag(Food: 3, Iron: 1, ValueItem: 2);
-        var b = new ResourceBag(Food: 3, Iron: 1, ValueItem: 2);
+        var a = new ResourceBag(Food: 3, Iron: 1, MotherOfPearls: 2);
+        var b = new ResourceBag(Food: 3, Iron: 1, MotherOfPearls: 2);
         Assert.Equal(a.GetHashCode(), b.GetHashCode());
     }
 
@@ -240,8 +240,8 @@ public class ResourceBagTests
     [Fact]
     public void OperatorEqual_SameBag_ReturnsTrue()
     {
-        var a = new ResourceBag(Food: 1, Iron: 2, ValueItem: 3);
-        var b = new ResourceBag(Food: 1, Iron: 2, ValueItem: 3);
+        var a = new ResourceBag(Food: 1, Iron: 2, MotherOfPearls: 3);
+        var b = new ResourceBag(Food: 1, Iron: 2, MotherOfPearls: 3);
         Assert.True(a == b);
     }
 
@@ -264,8 +264,8 @@ public class ResourceBagTests
     [Fact]
     public void OperatorNotEqual_SameBag_ReturnsFalse()
     {
-        var a = new ResourceBag(Food: 5, Iron: 3, ValueItem: 1);
-        var b = new ResourceBag(Food: 5, Iron: 3, ValueItem: 1);
+        var a = new ResourceBag(Food: 5, Iron: 3, MotherOfPearls: 1);
+        var b = new ResourceBag(Food: 5, Iron: 3, MotherOfPearls: 1);
         Assert.False(a != b);
     }
 
@@ -274,7 +274,7 @@ public class ResourceBagTests
     [Fact]
     public void Deconstruct_YieldsAllThreeFields()
     {
-        var bag = new ResourceBag(Food: 4, Iron: 2, ValueItem: 1);
+        var bag = new ResourceBag(Food: 4, Iron: 2, MotherOfPearls: 1);
         var (food, iron, vi) = bag;
         Assert.Equal(4, food);
         Assert.Equal(2, iron);

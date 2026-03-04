@@ -89,19 +89,19 @@ public class FarmHandlerTests
     }
 
     [Fact]
-    public void ApplyCardEffect_GainCard_ValueItem_GrantsValueItem()
+    public void ApplyCardEffect_GainCard_MotherOfPearls_GrantsMotherOfPearls()
     {
         var player = new Player { Name = "Alice" };
         var card   = new FarmCard(
             "f3", foodCost: 0,
-            gainItems: new[] { new FarmGainItem("ValueItem", 2) }.AsReadOnly(),
+            gainItems: new[] { new FarmGainItem("MotherOfPearls", 2) }.AsReadOnly(),
             actionDescription: "",
             victoryPoints: 0);
 
         var (resources, _, _, _, _) = FarmHandler.ApplyCardEffect(card, player);
 
-        Assert.Equal(2, resources.ValueItem);
-        Assert.Equal(2, player.Resources.ValueItem);
+        Assert.Equal(2, resources.MotherOfPearls);
+        Assert.Equal(2, player.Resources.MotherOfPearls);
     }
 
     [Fact]
@@ -121,19 +121,19 @@ public class FarmHandlerTests
     }
 
     [Fact]
-    public void ApplyCardEffect_GainCard_MonarchialSeal_GrantsSeal()
+    public void ApplyCardEffect_GainCard_DaimyoSeal_GrantsSeal()
     {
         var player = new Player { Name = "Alice" };
         var card   = new FarmCard(
             "f5", foodCost: 0,
-            gainItems: new[] { new FarmGainItem("MonarchialSeal", 1) }.AsReadOnly(),
+            gainItems: new[] { new FarmGainItem("DaimyoSeal", 1) }.AsReadOnly(),
             actionDescription: "",
             victoryPoints: 0);
 
         var (_, _, seals, _, _) = FarmHandler.ApplyCardEffect(card, player);
 
         Assert.Equal(1, seals);
-        Assert.Equal(1, player.MonarchialSeals);
+        Assert.Equal(1, player.DaimyoSeals);
     }
 
     [Fact]
@@ -205,7 +205,7 @@ public class FarmHandlerTests
     }
 
     [Fact]
-    public void ApplyCardEffect_ActionCard_Gain1MonarchialSeal_GrantsSeal()
+    public void ApplyCardEffect_ActionCard_Gain1DaimyoSeal_GrantsSeal()
     {
         var player = new Player { Name = "Alice" };
         var card   = new FarmCard(
@@ -218,7 +218,7 @@ public class FarmHandlerTests
 
         Assert.Equal("Gain 1 monarchial seal", action);
         Assert.Equal(1, seals);
-        Assert.Equal(1, player.MonarchialSeals);
+        Assert.Equal(1, player.DaimyoSeals);
     }
 
     [Fact]
@@ -320,20 +320,20 @@ public class FarmHandlerTests
         Assert.Contains("farmer", result.Reason);
     }
 
-    // ── MonarchialSeal cap ────────────────────────────────────────────────────
+    // ── DaimyoSeal cap ────────────────────────────────────────────────────
 
     [Fact]
-    public void ApplyCardEffect_GainCard_MonarchialSeal_CappedAtFive()
+    public void ApplyCardEffect_GainCard_DaimyoSeal_CappedAtFive()
     {
-        var player = new Player { Name = "Alice", MonarchialSeals = 4 };
+        var player = new Player { Name = "Alice", DaimyoSeals = 4 };
         var card   = new FarmCard(
             "f-cap", foodCost: 0,
-            gainItems: new[] { new FarmGainItem("MonarchialSeal", 3) }.AsReadOnly(),
+            gainItems: new[] { new FarmGainItem("DaimyoSeal", 3) }.AsReadOnly(),
             actionDescription: "",
             victoryPoints: 0);
 
         FarmHandler.ApplyCardEffect(card, player);
 
-        Assert.Equal(5, player.MonarchialSeals); // capped
+        Assert.Equal(5, player.DaimyoSeals); // capped
     }
 }

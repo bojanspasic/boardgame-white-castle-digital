@@ -37,16 +37,16 @@ internal static class LanternHelper
                 {
                     case CardGainType.Food:           resources = resources.Add(ResourceType.Food,      g.Amount); break;
                     case CardGainType.Iron:           resources = resources.Add(ResourceType.Iron,      g.Amount); break;
-                    case CardGainType.ValueItem:      resources = resources.Add(ResourceType.ValueItem, g.Amount); break;
+                    case CardGainType.MotherOfPearls:      resources = resources.Add(ResourceType.MotherOfPearls, g.Amount); break;
                     case CardGainType.Coin:           coins += g.Amount; break;
-                    case CardGainType.MonarchialSeal: seals += g.Amount; break;
+                    case CardGainType.DaimyoSeal: seals += g.Amount; break;
                     case CardGainType.VictoryPoint:   vp    += g.Amount; break;
                     // Influence and others: deferred — no-op
                 }
 
         player.Resources       = (player.Resources + resources).Clamp(7);
         player.Coins          += coins;
-        player.MonarchialSeals = Math.Min(player.MonarchialSeals + seals, 5);
+        player.DaimyoSeals = Math.Min(player.DaimyoSeals + seals, 5);
         player.LanternScore   += vp;
 
         events.Add(new LanternChainActivatedEvent(gameId, player.Id, resources, coins, seals, vp));

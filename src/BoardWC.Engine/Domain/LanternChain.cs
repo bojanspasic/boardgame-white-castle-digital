@@ -5,7 +5,7 @@ internal sealed record LanternChainGain(CardGainType Type, int Amount);
 internal sealed class LanternChainItem
 {
     public string SourceCardId   { get; init; } = "";
-    public string SourceCardType { get; init; } = ""; // "ResourceSeed" | "ActionSeed" | "GroundFloor" | "MidFloor" | "Decree"
+    public string SourceCardType { get; init; } = ""; // "ResourceSeed" | "ActionSeed" | "StewardFloor" | "DiplomatFloor" | "Decree"
     public IReadOnlyList<LanternChainGain> Gains { get; init; } = [];
 
     public LanternChainItemSnapshot ToSnapshot() => new(

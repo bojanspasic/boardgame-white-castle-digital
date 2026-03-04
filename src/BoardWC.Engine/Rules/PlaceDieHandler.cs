@@ -110,11 +110,11 @@ internal sealed class PlaceDieHandler : IActionHandler
                                 resources = resources.Add(ResourceType.Food, item.Amount); break;
                             case CardGainType.Iron:
                                 resources = resources.Add(ResourceType.Iron, item.Amount); break;
-                            case CardGainType.ValueItem:
-                                resources = resources.Add(ResourceType.ValueItem, item.Amount); break;
+                            case CardGainType.MotherOfPearls:
+                                resources = resources.Add(ResourceType.MotherOfPearls, item.Amount); break;
                             case CardGainType.Coin:
                                 coins += item.Amount; break;
-                            case CardGainType.MonarchialSeal:
+                            case CardGainType.DaimyoSeal:
                                 seals += item.Amount; break;
                             case CardGainType.Lantern:
                                 lantern += item.Amount; break;
@@ -127,7 +127,7 @@ internal sealed class PlaceDieHandler : IActionHandler
 
                     player.Resources = (player.Resources + resources).Clamp(7);
                     player.Coins += coins;
-                    player.MonarchialSeals = Math.Min(player.MonarchialSeals + seals, 5);
+                    player.DaimyoSeals = Math.Min(player.DaimyoSeals + seals, 5);
                     LanternHelper.Apply(player, lantern, state.GameId, events);
                     player.LanternScore += vp;
                     InfluenceHelper.Apply(player, influence, state, events);
@@ -183,7 +183,7 @@ internal sealed class PlaceDieHandler : IActionHandler
         // Well token effects — apply when die is placed in the well
         if (a.Target is WellTarget)
         {
-            player.MonarchialSeals = Math.Min(player.MonarchialSeals + 1, 5);
+            player.DaimyoSeals = Math.Min(player.DaimyoSeals + 1, 5);
 
             var resourcesGained = new ResourceBag();
             int coinsGained     = 0;
@@ -195,7 +195,7 @@ internal sealed class PlaceDieHandler : IActionHandler
                 {
                     case TokenResource.Food:        resourcesGained = resourcesGained.Add(ResourceType.Food,      1); break;
                     case TokenResource.Iron:        resourcesGained = resourcesGained.Add(ResourceType.Iron,      1); break;
-                    case TokenResource.ValueItem:   resourcesGained = resourcesGained.Add(ResourceType.ValueItem, 1); break;
+                    case TokenResource.MotherOfPearls: resourcesGained = resourcesGained.Add(ResourceType.MotherOfPearls, 1); break;
                     case TokenResource.Coin:        coinsGained++;    break;
                     case TokenResource.AnyResource: pendingChoices++; break;
                 }
@@ -275,9 +275,9 @@ internal sealed class PlaceDieHandler : IActionHandler
                     {
                         case CardGainType.Food:           res = res.Add(ResourceType.Food,      item.Amount); break;
                         case CardGainType.Iron:           res = res.Add(ResourceType.Iron,      item.Amount); break;
-                        case CardGainType.ValueItem:      res = res.Add(ResourceType.ValueItem, item.Amount); break;
+                        case CardGainType.MotherOfPearls:      res = res.Add(ResourceType.MotherOfPearls, item.Amount); break;
                         case CardGainType.Coin:           coins     += item.Amount; break;
-                        case CardGainType.MonarchialSeal: seals     += item.Amount; break;
+                        case CardGainType.DaimyoSeal: seals     += item.Amount; break;
                         case CardGainType.Lantern:        lantern   += item.Amount; break;
                         case CardGainType.VictoryPoint:   vp        += item.Amount; break;
                         case CardGainType.Influence:      influence += item.Amount; break;
@@ -286,7 +286,7 @@ internal sealed class PlaceDieHandler : IActionHandler
 
                 player.Resources       = (player.Resources + res).Clamp(7);
                 player.Coins          += coins;
-                player.MonarchialSeals = Math.Min(player.MonarchialSeals + seals, 5);
+                player.DaimyoSeals = Math.Min(player.DaimyoSeals + seals, 5);
                 LanternHelper.Apply(player, lantern, state.GameId, events);
                 player.LanternScore += vp;
                 InfluenceHelper.Apply(player, influence, state, events);
@@ -348,9 +348,9 @@ internal sealed class PlaceDieHandler : IActionHandler
     /// <summary>
     /// Returns which field index of <paramref name="card"/> applies when a die is placed
     /// in <paramref name="rowIndex"/> (0=Red/Courtier, 1=White/Farmer, 2=Black/Soldier).
-    /// Ground-floor cards (Layout=null, 3 fields): field[rowIndex].
-    /// Mid-floor DoubleTop (2 fields): field[0] spans rows 0+1, field[1] is row 2.
-    /// Mid-floor DoubleBottom (2 fields): field[0] is row 0, field[1] spans rows 1+2.
+    /// Steward-floor cards (Layout=null, 3 fields): field[rowIndex].
+    /// Diplomat-floor DoubleTop (2 fields): field[0] spans rows 0+1, field[1] is row 2.
+    /// Diplomat-floor DoubleBottom (2 fields): field[0] is row 0, field[1] spans rows 1+2.
     /// </summary>
     private static int? GetFieldIndexForRow(RoomCard card, int rowIndex) =>
         card.Layout switch

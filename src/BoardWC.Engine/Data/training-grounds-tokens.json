@@ -12,7 +12,7 @@
     },
     {
       "id": "tg_03",
-      "resourceSide": [{ "type": "ValueItem", "amount": 2 }],
+      "resourceSide": [{ "type": "MotherOfPearls", "amount": 2 }],
       "actionSide": "Play black castle card field"
     },
     {
@@ -22,7 +22,7 @@
     },
     {
       "id": "tg_05",
-      "resourceSide": [{ "type": "MonarchialSeal", "amount": 1 }],
+      "resourceSide": [{ "type": "DaimyoSeal", "amount": 1 }],
       "actionSide": "Gain 3 coins"
     },
     {
@@ -37,7 +37,7 @@
       "id": "tg_07",
       "resourceSide": [
         { "type": "Iron", "amount": 1 },
-        { "type": "ValueItem", "amount": 1 }
+        { "type": "MotherOfPearls", "amount": 1 }
       ],
       "actionSide": "Play farm"
     },
@@ -45,7 +45,7 @@
       "id": "tg_08",
       "resourceSide": [
         { "type": "Food", "amount": 1 },
-        { "type": "ValueItem", "amount": 1 }
+        { "type": "MotherOfPearls", "amount": 1 }
       ],
       "actionSide": "Play white castle card field"
     },

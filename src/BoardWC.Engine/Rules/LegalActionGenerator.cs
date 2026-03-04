@@ -26,7 +26,7 @@ internal static class LegalActionGenerator
             {
                 actions.Add(new ChooseResourceAction(playerId, ResourceType.Food));
                 actions.Add(new ChooseResourceAction(playerId, ResourceType.Iron));
-                actions.Add(new ChooseResourceAction(playerId, ResourceType.ValueItem));
+                actions.Add(new ChooseResourceAction(playerId, ResourceType.MotherOfPearls));
                 return actions.AsReadOnly();
             }
 
@@ -55,7 +55,7 @@ internal static class LegalActionGenerator
         {
             actions.Add(new ChooseResourceAction(playerId, ResourceType.Food));
             actions.Add(new ChooseResourceAction(playerId, ResourceType.Iron));
-            actions.Add(new ChooseResourceAction(playerId, ResourceType.ValueItem));
+            actions.Add(new ChooseResourceAction(playerId, ResourceType.MotherOfPearls));
             return actions.AsReadOnly();
         }
 
@@ -249,7 +249,7 @@ internal static class LegalActionGenerator
             switch (cost.Type)
             {
                 case CardCostType.Coin          when player.Coins          < cost.Amount: return false;
-                case CardCostType.MonarchialSeal when player.MonarchialSeals < cost.Amount: return false;
+                case CardCostType.DaimyoSeal when player.DaimyoSeals < cost.Amount: return false;
             }
         }
         return true;
@@ -257,32 +257,32 @@ internal static class LegalActionGenerator
 
     private static IEnumerable<(CourtierPosition From, int Levels, int RoomIndex)> ValidAdvances(Domain.Player player)
     {
-        int vi = player.Resources.ValueItem;
+        int vi = player.Resources.MotherOfPearls;
 
         if (player.CourtiersAtGate > 0)
         {
-            // Gate + 1 → GroundFloor: player picks one of 3 ground-floor rooms
+            // Gate + 1 → GroundFloor: player picks one of 3 steward-floor rooms
             if (vi >= 2)
                 for (int r = 0; r < 3; r++)
                     yield return (CourtierPosition.Gate, 1, r);
-            // Gate + 2 → MidFloor: player picks one of 2 mid-floor rooms
+            // Gate + 2 → MidFloor: player picks one of 2 diplomat-floor rooms
             if (vi >= 5)
                 for (int r = 0; r < 2; r++)
                     yield return (CourtierPosition.Gate, 2, r);
         }
-        if (player.CourtiersOnGroundFloor > 0)
+        if (player.CourtiersOnStewardFloor > 0)
         {
-            // GroundFloor + 1 → MidFloor: player picks one of 2 mid-floor rooms
+            // GroundFloor + 1 → MidFloor: player picks one of 2 diplomat-floor rooms
             if (vi >= 2)
                 for (int r = 0; r < 2; r++)
-                    yield return (CourtierPosition.GroundFloor, 1, r);
+                    yield return (CourtierPosition.StewardFloor, 1, r);
             // GroundFloor + 2 → TopFloor: no room choice
-            if (vi >= 5) yield return (CourtierPosition.GroundFloor, 2, -1);
+            if (vi >= 5) yield return (CourtierPosition.StewardFloor, 2, -1);
         }
-        if (player.CourtiersOnMidFloor > 0)
+        if (player.CourtiersOnDiplomatFloor > 0)
         {
             // MidFloor + 1 → TopFloor: no room choice
-            if (vi >= 2) yield return (CourtierPosition.MidFloor, 1, -1);
+            if (vi >= 2) yield return (CourtierPosition.DiplomatFloor, 1, -1);
             // MidFloor + 2 is invalid (exceeds top floor)
         }
     }

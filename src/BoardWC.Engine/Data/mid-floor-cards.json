@@ -20,11 +20,11 @@
       "layout": "DoubleBottom",
       "back": { "type": "VictoryPoint", "amount": 1 },
       "field1": [
-        { "type": "MonarchialSeal", "amount": 1 },
+        { "type": "DaimyoSeal", "amount": 1 },
         { "type": "Influence", "amount": 1 }
       ],
       "field2": [
-        { "type": "ValueItem", "amount": 1 },
+        { "type": "MotherOfPearls", "amount": 1 },
         { "type": "Lantern", "amount": 1 }
       ]
     },
@@ -65,7 +65,7 @@
       "back": { "type": "VictoryPoint", "amount": 1 },
       "field1": {
         "cost": [
-          { "type": "MonarchialSeal", "amount": 1 }
+          { "type": "DaimyoSeal", "amount": 1 }
         ],
         "description": "Play training grounds"
       },
@@ -80,11 +80,11 @@
       "layout": "DoubleBottom",
       "back": { "type": "VictoryPoint", "amount": 1 },
       "field1": [
-        { "type": "ValueItem", "amount": 2 }
+        { "type": "MotherOfPearls", "amount": 2 }
       ],
       "field2": [
         { "type": "Coin", "amount": 1 },
-        { "type": "MonarchialSeal", "amount": 1 },
+        { "type": "DaimyoSeal", "amount": 1 },
         { "type": "Influence", "amount": 2 }
       ]
     }

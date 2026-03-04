@@ -283,8 +283,8 @@ internal sealed class InteractiveConsole
             System.Console.ForegroundColor = isActive ? ConsoleColor.White : ConsoleColor.Gray;
             System.Console.WriteLine(
                 $"    {(isActive ? "*" : " ")}{p.Name,-16} " +
-                $"Fd:{r.Food,2} Fe:{r.Iron,2} VI:{r.ValueItem,2} " +
-                $"Coins:{p.Coins,3} Seals:{p.MonarchialSeals}" +
+                $"Fd:{r.Food,2} Fe:{r.Iron,2} VI:{r.MotherOfPearls,2} " +
+                $"Coins:{p.Coins,3} Seals:{p.DaimyoSeals}" +
                 vpStr + infStr + seedStr + chainStr +
                 (p.IsAI ? " [AI]" : ""));
             System.Console.ResetColor();
@@ -442,7 +442,7 @@ internal sealed class InteractiveConsole
         options.Add(Header("Castle rooms:"));
         for (int f = 0; f < state.Board.Castle.Floors.Count; f++)
         {
-            var floorName = f == 0 ? "Ground Floor" : "Mid Floor";
+            var floorName = f == 0 ? "Steward Floor" : "Diplomat Floor";
             var rooms     = state.Board.Castle.Floors[f];
             for (int r = 0; r < rooms.Count; r++)
             {
@@ -571,21 +571,21 @@ internal sealed class InteractiveConsole
 
         // Advance options
         var advances = legal.OfType<CastleAdvanceCourtierAction>().ToList();
-        int vi = player.Resources.ValueItem;
+        int vi = player.Resources.MotherOfPearls;
 
         // Room-entering advances: enumerate one entry per room (player picks which room to enter)
         var roomAdvances = new[]
         {
             (From: CourtierPosition.Gate,        Levels: 1, Label: "Gate \u2192 Ground",  ViCost: 2, FloorIdx: 0, RoomCount: 3),
             (From: CourtierPosition.Gate,        Levels: 2, Label: "Gate \u2192 Mid",     ViCost: 5, FloorIdx: 1, RoomCount: 2),
-            (From: CourtierPosition.GroundFloor, Levels: 1, Label: "Ground \u2192 Mid",   ViCost: 2, FloorIdx: 1, RoomCount: 2),
+            (From: CourtierPosition.StewardFloor, Levels: 1, Label: "Ground \u2192 Mid",   ViCost: 2, FloorIdx: 1, RoomCount: 2),
         };
         foreach (var adv in roomAdvances)
         {
             int atFrom = adv.From switch
             {
                 CourtierPosition.Gate        => player.CourtiersAtGate,
-                CourtierPosition.GroundFloor => player.CourtiersOnGroundFloor,
+                CourtierPosition.StewardFloor => player.CourtiersOnStewardFloor,
                 _                            => 0,
             };
             string? why = atFrom <= 0 ? $"no courtiers at {adv.From}"
@@ -612,16 +612,16 @@ internal sealed class InteractiveConsole
         // Top-floor advances: no room choice
         var topAdvances = new[]
         {
-            (From: CourtierPosition.GroundFloor, Levels: 2, Label: "Ground \u2192 Top", ViCost: 5),
-            (From: CourtierPosition.MidFloor,    Levels: 1, Label: "Mid \u2192 Top",    ViCost: 2),
+            (From: CourtierPosition.StewardFloor, Levels: 2, Label: "Ground \u2192 Top", ViCost: 5),
+            (From: CourtierPosition.DiplomatFloor,    Levels: 1, Label: "Mid \u2192 Top",    ViCost: 2),
         };
         foreach (var adv in topAdvances)
         {
             var action = advances.FirstOrDefault(a => a.From == adv.From && a.Levels == adv.Levels);
             int atFrom = adv.From switch
             {
-                CourtierPosition.GroundFloor => player.CourtiersOnGroundFloor,
-                CourtierPosition.MidFloor    => player.CourtiersOnMidFloor,
+                CourtierPosition.StewardFloor => player.CourtiersOnStewardFloor,
+                CourtierPosition.DiplomatFloor    => player.CourtiersOnDiplomatFloor,
                 _                            => 0,
             };
             string? why = atFrom <= 0 ? $"no courtiers at {adv.From}"
@@ -720,7 +720,7 @@ internal sealed class InteractiveConsole
         [
             Choose(ResourceType.Food,      "Food")!,
             Choose(ResourceType.Iron,      "Iron")!,
-            Choose(ResourceType.ValueItem, "Value Item")!,
+            Choose(ResourceType.MotherOfPearls, "Mother of Pearls")!,
         ];
     }
 
@@ -732,12 +732,12 @@ internal sealed class InteractiveConsole
     {
         var payAction    = legal.OfType<ChooseInfluencePayAction>().FirstOrDefault(x => x.WillPay);
         var refuseAction = legal.OfType<ChooseInfluencePayAction>().FirstOrDefault(x => !x.WillPay);
-        bool canAfford   = player.MonarchialSeals >= player.PendingInfluenceSealCost;
+        bool canAfford   = player.DaimyoSeals >= player.PendingInfluenceSealCost;
         return
         [
             new ActionEntry(
                 $"Pay {player.PendingInfluenceSealCost} seal(s) → gain +{player.PendingInfluenceGain} Influence",
-                canAfford ? $"(have {player.MonarchialSeals} seal(s))" : $"[insufficient seals: have {player.MonarchialSeals}]",
+                canAfford ? $"(have {player.DaimyoSeals} seal(s))" : $"[insufficient seals: have {player.DaimyoSeals}]",
                 payAction != null && canAfford,
                 payAction),
             new ActionEntry(
@@ -894,7 +894,7 @@ internal sealed class InteractiveConsole
         {
             TokenResource.Food        => "Fd",
             TokenResource.Iron        => "Fe",
-            TokenResource.ValueItem   => "VI",
+            TokenResource.MotherOfPearls   => "VI",
             TokenResource.AnyResource => "Any",
             TokenResource.Coin        => "Coin",
             _                         => "?",
@@ -906,7 +906,7 @@ internal sealed class InteractiveConsole
     {
         TokenResource.Food        => "+1 Food",
         TokenResource.Iron        => "+1 Iron",
-        TokenResource.ValueItem   => "+1 VI",
+        TokenResource.MotherOfPearls   => "+1 VI",
         TokenResource.AnyResource => "+1 Any (choose)",
         TokenResource.Coin        => "+1 Coin",
         _                         => "+1 ?"
@@ -941,7 +941,7 @@ internal sealed class InteractiveConsole
         var options = new List<ActionEntry>();
         var w       = state.Board.Well.Placeholder;
         options.Add(Header("Well  (compare val=1)"));
-        options.Add(InfoRow($"Gains on placement: coins by delta  +1 Monarchial Seal"));
+        options.Add(InfoRow($"Gains on placement: coins by delta  +1 Daimyo Seal"));
         options.Add(InfoRow($"Dice placed so far: {w.PlacedDice.Count}"));
         if (w.Tokens.Count > 0)
         {
@@ -957,7 +957,7 @@ internal sealed class InteractiveConsole
     private static List<ActionEntry> BuildCastleInfoOptions(GameStateSnapshot state)
     {
         var options = new List<ActionEntry>();
-        string[] floorNames = ["Ground Floor", "Mid Floor"];
+        string[] floorNames = ["Steward Floor", "Diplomat Floor"];
 
         for (int f = 0; f < state.Board.Castle.Floors.Count; f++)
         {
@@ -1006,8 +1006,8 @@ internal sealed class InteractiveConsole
         options.Add(Header("Courtiers"));
         foreach (var p in state.Players)
             options.Add(InfoRow(
-                $"{p.Name}  gate:{p.CourtiersAtGate}  ground:{p.CourtiersOnGroundFloor}  " +
-                $"mid:{p.CourtiersOnMidFloor}  top:{p.CourtiersOnTopFloor}"));
+                $"{p.Name}  gate:{p.CourtiersAtGate}  ground:{p.CourtiersOnStewardFloor}  " +
+                $"mid:{p.CourtiersOnDiplomatFloor}  top:{p.CourtiersOnTopFloor}"));
 
         return options;
     }

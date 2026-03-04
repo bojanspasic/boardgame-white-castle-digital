@@ -50,11 +50,11 @@ internal sealed class ChooseSeedPairHandler : IActionHandler
                     resourcesGained = resourcesGained.Add(ResourceType.Food, gain.Amount); break;
                 case CardGainType.Iron:
                     resourcesGained = resourcesGained.Add(ResourceType.Iron, gain.Amount); break;
-                case CardGainType.ValueItem:
-                    resourcesGained = resourcesGained.Add(ResourceType.ValueItem, gain.Amount); break;
+                case CardGainType.MotherOfPearls:
+                    resourcesGained = resourcesGained.Add(ResourceType.MotherOfPearls, gain.Amount); break;
                 case CardGainType.Coin:
                     coinsGained   += gain.Amount; break;
-                case CardGainType.MonarchialSeal:
+                case CardGainType.DaimyoSeal:
                     sealsGained   += gain.Amount; break;
                 case CardGainType.AnyResource:
                     pendingChoices += gain.Amount; break;
@@ -63,7 +63,7 @@ internal sealed class ChooseSeedPairHandler : IActionHandler
 
         player.Resources = (player.Resources + resourcesGained).Clamp(7);
         player.Coins     += coinsGained;
-        player.MonarchialSeals = Math.Min(player.MonarchialSeals + sealsGained, 5);
+        player.DaimyoSeals = Math.Min(player.DaimyoSeals + sealsGained, 5);
         player.PendingAnyResourceChoices += pendingChoices;
 
         events.Add(new SeedPairChosenEvent(

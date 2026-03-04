@@ -204,8 +204,8 @@ public class AiStrategyTests
             Castle:              new CastleSnapshot(Array.Empty<IReadOnlyList<DicePlaceholderSnapshot>>(), new TopFloorRoomSnapshot("", Array.Empty<TopFloorSlotSnapshot>().AsReadOnly())),
             Well:                new WellSnapshot(new DicePlaceholderSnapshot(1, true, Array.Empty<DieSnapshot>().AsReadOnly(), Array.Empty<TokenSnapshot>().AsReadOnly(), null)),
             Outside:             new OutsideSnapshot(Array.Empty<DicePlaceholderSnapshot>()),
-            GroundFloorDeckRemaining: 0,
-            MidFloorDeckRemaining:    0,
+            StewardFloorDeckRemaining: 0,
+            DiplomatFloorDeckRemaining:    0,
             TrainingGrounds:     new TrainingGroundsSnapshot(Array.Empty<TgAreaSnapshot>().AsReadOnly()),
             FarmingLands:        new FarmingLandsSnapshot(Array.Empty<FarmFieldSnapshot>().AsReadOnly()));
 
@@ -226,8 +226,8 @@ public class AiStrategyTests
             Castle:              new CastleSnapshot(Array.Empty<IReadOnlyList<DicePlaceholderSnapshot>>(), new TopFloorRoomSnapshot("", Array.Empty<TopFloorSlotSnapshot>().AsReadOnly())),
             Well:                new WellSnapshot(new DicePlaceholderSnapshot(1, true, Array.Empty<DieSnapshot>().AsReadOnly(), Array.Empty<TokenSnapshot>().AsReadOnly(), null)),
             Outside:             new OutsideSnapshot(Array.Empty<DicePlaceholderSnapshot>()),
-            GroundFloorDeckRemaining: 0,
-            MidFloorDeckRemaining:    0,
+            StewardFloorDeckRemaining: 0,
+            DiplomatFloorDeckRemaining:    0,
             TrainingGrounds:     new TrainingGroundsSnapshot(Array.Empty<TgAreaSnapshot>().AsReadOnly()),
             FarmingLands:        new FarmingLandsSnapshot(Array.Empty<FarmFieldSnapshot>().AsReadOnly()));
 }
