@@ -40,7 +40,7 @@ public class FarmHandlerTests
         var evt = Assert.Single(events.OfType<FarmerPlacedEvent>());
         Assert.Equal(state.GameId, evt.GameId);
         Assert.Equal(alice.Id,     evt.PlayerId);
-        Assert.Equal(-1,           evt.AreaIndex);  // -1 = skipped
+        Assert.True(evt.WasSkipped);
         Assert.Equal(0,            evt.FoodSpent);
         Assert.Equal(new ResourceBag(), evt.ResourcesGained);
         Assert.Equal(0,            evt.CoinsGained);
@@ -211,12 +211,12 @@ public class FarmHandlerTests
         var card   = new FarmCard(
             "act-seal", foodCost: 0,
             gainItems: Array.Empty<FarmGainItem>().AsReadOnly(),
-            actionDescription: "Gain 1 monarchial seal",
+            actionDescription: "Gain 1 daimyo seal",
             victoryPoints: 0);
 
         var (_, _, seals, _, action) = FarmHandler.ApplyCardEffect(card, player);
 
-        Assert.Equal("Gain 1 monarchial seal", action);
+        Assert.Equal("Gain 1 daimyo seal", action);
         Assert.Equal(1, seals);
         Assert.Equal(1, player.DaimyoSeals);
     }
@@ -264,7 +264,7 @@ public class FarmHandlerTests
         Assert.Equal(alice.Id,       evt.PlayerId);
         Assert.Equal(BridgeColor.Red, evt.BridgeColor);
         Assert.True(evt.IsInland);
-        Assert.Equal(0,              evt.AreaIndex);       // Always 0 in Apply
+        Assert.False(evt.WasSkipped);
         Assert.True(evt.FoodSpent >= 0);
         Assert.True(evt.OccurredAt > DateTimeOffset.MinValue);
         _ = evt.ResourcesGained;

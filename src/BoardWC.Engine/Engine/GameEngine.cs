@@ -39,7 +39,7 @@ internal sealed class GameEngine : IGameEngine
             PostActionProcessor.Run(_state, events);
 
         if (IsGameOver)
-            _finalScores = ScoreCalculator.Calculate(_state);
+            _finalScores = events.OfType<GameOverEvent>().First().FinalScores;
 
         return new ActionResult.Success(_state.ToSnapshot(), events.AsReadOnly());
     }
@@ -48,4 +48,15 @@ internal sealed class GameEngine : IGameEngine
         LegalActionGenerator.Generate(playerId, _state);
 
     public IReadOnlyList<PlayerScore>? GetFinalScores() => _finalScores;
+
+    public ActionResult? PlayAiTurn(Guid playerId)
+    {
+        if (_aiStrategy is null) return null;
+        var player = _state.Players.FirstOrDefault(p => p.Id == playerId);
+        if (player is null || !player.IsAI) return null;
+
+        var legal    = LegalActionGenerator.Generate(playerId, _state);
+        var aiAction = _aiStrategy.SelectAction(_state.ToSnapshot(), legal);
+        return ProcessAction(aiAction);
+    }
 }

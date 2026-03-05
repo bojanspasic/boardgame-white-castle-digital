@@ -35,7 +35,14 @@ internal sealed class CastlePlayHandler : IActionHandler
 
     public void Apply(IGameAction action, GameState state, List<IDomainEvent> events)
     {
-        var player = state.Players.First(p => p.Id == ((dynamic)action).PlayerId);
+        Guid playerId = action switch
+        {
+            CastlePlaceCourtierAction  a => a.PlayerId,
+            CastleAdvanceCourtierAction a => a.PlayerId,
+            CastleSkipAction           a => a.PlayerId,
+            _                            => Guid.Empty,
+        };
+        var player = state.Players.First(p => p.Id == playerId);
 
         switch (action)
         {

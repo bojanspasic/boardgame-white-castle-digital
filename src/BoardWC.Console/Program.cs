@@ -6,15 +6,13 @@ using BoardWC.Engine.Engine;
 
 // ── Setup ──────────────────────────────────────────────────────────────────
 
-var aiStrategy = new GreedyResourceAiStrategy();
-
 var players = new[]
 {
     new PlayerSetup("Human Player", PlayerColor.White, IsAI: false),
     new PlayerSetup("AI Opponent",  PlayerColor.Black, IsAI: true, AiStrategyId: "greedy-resource"),
 };
 
-var engine   = GameEngineFactory.Create(players, aiStrategy, maxRounds: 3);
+var engine   = GameEngineFactory.Create(players, new GreedyResourceAiStrategy(), maxRounds: 3);
 var renderer = new ConsoleRenderer();
 var ui       = new InteractiveConsole();
 
@@ -37,9 +35,7 @@ while (!engine.IsGameOver)
         System.Console.WriteLine($"\n  [AI — {active.Name}] thinking...");
         System.Threading.Thread.Sleep(600);
 
-        var legal    = engine.GetLegalActions(active.Id);
-        var aiAction = aiStrategy.SelectAction(state, legal);
-        var aiResult = engine.ProcessAction(aiAction);
+        var aiResult = engine.PlayAiTurn(active.Id);
 
         if (aiResult is ActionResult.Success aiOk)
         {

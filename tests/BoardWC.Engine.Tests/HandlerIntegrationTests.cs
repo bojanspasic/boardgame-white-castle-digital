@@ -147,7 +147,7 @@ public class HandlerIntegrationTests
             state = engine.GetCurrentState();
             alice = state.Players[state.ActivePlayerIndex];
         }
-        Assert.True(true, "Test skipped: no affordable outside slot 0 action found.");
+        // No affordable outside slot 0 action found — test skipped.
     }
 
     [Fact]
@@ -157,7 +157,7 @@ public class HandlerIntegrationTests
         var alice  = engine.GetCurrentState().Players[0];
 
         var placed = TryPlaceAtOutsideSlot(engine, alice.Id, 0);
-        if (!placed) { Assert.True(true, "Skipped"); return; }
+        if (!placed) { return; }
 
         var result = engine.ProcessAction(new ChooseOutsideActivationAction(alice.Id, OutsideActivation.Farm));
         Assert.IsType<ActionResult.Success>(result);
@@ -173,7 +173,7 @@ public class HandlerIntegrationTests
         var alice  = engine.GetCurrentState().Players[0];
 
         var placed = TryPlaceAtOutsideSlot(engine, alice.Id, 0);
-        if (!placed) { Assert.True(true, "Skipped"); return; }
+        if (!placed) { return; }
 
         var result = engine.ProcessAction(new ChooseOutsideActivationAction(alice.Id, OutsideActivation.Castle));
         Assert.IsType<ActionResult.Success>(result);
@@ -190,7 +190,7 @@ public class HandlerIntegrationTests
         var alice  = engine.GetCurrentState().Players[0];
 
         var placed = TryPlaceAtOutsideSlot(engine, alice.Id, 0);
-        if (!placed) { Assert.True(true, "Skipped"); return; }
+        if (!placed) { return; }
 
         var result = engine.ProcessAction(
             new ChooseOutsideActivationAction(alice.Id, OutsideActivation.TrainingGrounds));
@@ -204,7 +204,7 @@ public class HandlerIntegrationTests
         var alice  = engine.GetCurrentState().Players[0];
 
         var placed = TryPlaceAtOutsideSlot(engine, alice.Id, 1);
-        if (!placed) { Assert.True(true, "Skipped"); return; }
+        if (!placed) { return; }
 
         var result = engine.ProcessAction(
             new ChooseOutsideActivationAction(alice.Id, OutsideActivation.TrainingGrounds));
@@ -221,7 +221,7 @@ public class HandlerIntegrationTests
         var alice  = engine.GetCurrentState().Players[0];
 
         var placed = TryPlaceAtOutsideSlot(engine, alice.Id, 1);
-        if (!placed) { Assert.True(true, "Skipped"); return; }
+        if (!placed) { return; }
 
         var result = engine.ProcessAction(
             new ChooseOutsideActivationAction(alice.Id, OutsideActivation.Castle));
@@ -235,7 +235,7 @@ public class HandlerIntegrationTests
         var alice  = engine.GetCurrentState().Players[0];
 
         var placed = TryPlaceAtOutsideSlot(engine, alice.Id, 1);
-        if (!placed) { Assert.True(true, "Skipped"); return; }
+        if (!placed) { return; }
 
         var result = engine.ProcessAction(
             new ChooseOutsideActivationAction(alice.Id, OutsideActivation.Farm));
@@ -249,7 +249,7 @@ public class HandlerIntegrationTests
         var alice  = engine.GetCurrentState().Players[0];
 
         var placed = TryPlaceAtOutsideSlot(engine, alice.Id, 0);
-        if (!placed) { Assert.True(true, "Skipped"); return; }
+        if (!placed) { return; }
 
         var legal = engine.GetLegalActions(alice.Id);
         Assert.All(legal, a => Assert.IsType<ChooseOutsideActivationAction>(a));
@@ -289,7 +289,7 @@ public class HandlerIntegrationTests
     {
         var engine = StartedGame();
         var alice  = GivePendingFarm(engine);
-        if (alice == Guid.Empty) { Assert.True(true, "Skipped"); return; }
+        if (alice == Guid.Empty) { return; }
 
         engine.ProcessAction(new FarmSkipAction(alice));
 
@@ -302,7 +302,7 @@ public class HandlerIntegrationTests
     {
         var engine = StartedGame();
         var alice  = GivePendingFarm(engine);
-        if (alice == Guid.Empty) { Assert.True(true, "Skipped"); return; }
+        if (alice == Guid.Empty) { return; }
 
         var result = engine.ProcessAction(new FarmSkipAction(alice));
         var success = Assert.IsType<ActionResult.Success>(result);
@@ -314,7 +314,7 @@ public class HandlerIntegrationTests
     {
         var engine = StartedGame();
         var alice  = GivePendingFarm(engine);
-        if (alice == Guid.Empty) { Assert.True(true, "Skipped"); return; }
+        if (alice == Guid.Empty) { return; }
 
         var p      = engine.GetCurrentState().Players.First(x => x.Id == alice);
         int before = p.FarmersAvailable;
@@ -322,7 +322,7 @@ public class HandlerIntegrationTests
         // Find an affordable farm field
         var legal = engine.GetLegalActions(alice);
         var place = legal.OfType<PlaceFarmerAction>().FirstOrDefault();
-        if (place is null) { engine.ProcessAction(new FarmSkipAction(alice)); Assert.True(true, "Skipped"); return; }
+        if (place is null) { engine.ProcessAction(new FarmSkipAction(alice)); return; }
 
         engine.ProcessAction(place);
 
@@ -335,7 +335,7 @@ public class HandlerIntegrationTests
     {
         var engine = StartedGame();
         var alice  = GivePendingFarm(engine);
-        if (alice == Guid.Empty) { Assert.True(true, "Skipped"); return; }
+        if (alice == Guid.Empty) { return; }
 
         // Try to place on the most expensive farm field (food cost > what player has)
         var state  = engine.GetCurrentState();
@@ -348,8 +348,7 @@ public class HandlerIntegrationTests
         if (expensive is null || p.Resources.Food >= expensive.FoodCost)
         {
             engine.ProcessAction(new FarmSkipAction(alice));
-            Assert.True(true, "Skipped");
-            return;
+            return; // precondition not met — test skipped
         }
 
         var result = engine.ProcessAction(
@@ -362,18 +361,18 @@ public class HandlerIntegrationTests
     {
         var engine = StartedGame();
         var alice  = GivePendingFarm(engine);
-        if (alice == Guid.Empty) { Assert.True(true, "Skipped"); return; }
+        if (alice == Guid.Empty) { return; }
 
         // Place a farmer on the first available field
         var legal = engine.GetLegalActions(alice);
         var place = legal.OfType<PlaceFarmerAction>().FirstOrDefault();
-        if (place is null) { engine.ProcessAction(new FarmSkipAction(alice)); Assert.True(true, "Skipped"); return; }
+        if (place is null) { engine.ProcessAction(new FarmSkipAction(alice)); return; }
 
         engine.ProcessAction(place);
 
         // Get a second farm action to attempt the same field again
         alice = GivePendingFarm(engine);
-        if (alice == Guid.Empty) { Assert.True(true, "Skipped"); return; }
+        if (alice == Guid.Empty) { return; }
 
         var result = engine.ProcessAction(
             new PlaceFarmerAction(alice, place.BridgeColor, place.IsInland));
@@ -452,7 +451,7 @@ public class HandlerIntegrationTests
     {
         var engine = StartedGame();
         var alice  = GivePendingTG(engine);
-        if (alice == Guid.Empty) { Assert.True(true, "Skipped"); return; }
+        if (alice == Guid.Empty) { return; }
 
         engine.ProcessAction(new TrainingGroundsSkipAction(alice));
 
@@ -465,14 +464,14 @@ public class HandlerIntegrationTests
     {
         var engine = StartedGame();
         var alice  = GivePendingTG(engine);
-        if (alice == Guid.Empty) { Assert.True(true, "Skipped"); return; }
+        if (alice == Guid.Empty) { return; }
 
         var p      = engine.GetCurrentState().Players.First(x => x.Id == alice);
         int before = p.SoldiersAvailable;
 
         var legal  = engine.GetLegalActions(alice);
         var place  = legal.OfType<TrainingGroundsPlaceSoldierAction>().FirstOrDefault();
-        if (place is null) { engine.ProcessAction(new TrainingGroundsSkipAction(alice)); Assert.True(true, "Skipped"); return; }
+        if (place is null) { engine.ProcessAction(new TrainingGroundsSkipAction(alice)); return; }
 
         engine.ProcessAction(place);
 
@@ -485,7 +484,7 @@ public class HandlerIntegrationTests
     {
         var engine = StartedGame();
         var alice  = GivePendingTG(engine);
-        if (alice == Guid.Empty) { Assert.True(true, "Skipped"); return; }
+        if (alice == Guid.Empty) { return; }
 
         var result = engine.ProcessAction(new TrainingGroundsPlaceSoldierAction(alice, 99));
         Assert.IsType<ActionResult.Failure>(result);
@@ -496,14 +495,14 @@ public class HandlerIntegrationTests
     {
         var engine = StartedGame();
         var alice  = GivePendingTG(engine);
-        if (alice == Guid.Empty) { Assert.True(true, "Skipped"); return; }
+        if (alice == Guid.Empty) { return; }
 
         var state    = engine.GetCurrentState();
         var p        = state.Players.First(x => x.Id == alice);
         var tgAreas  = state.Board.TrainingGrounds.Areas;
         // Find an area whose iron cost > player's current iron
         var tooExpensive = tgAreas.FirstOrDefault(a => a.IronCost > p.Resources.Iron);
-        if (tooExpensive is null) { engine.ProcessAction(new TrainingGroundsSkipAction(alice)); Assert.True(true, "Skipped"); return; }
+        if (tooExpensive is null) { engine.ProcessAction(new TrainingGroundsSkipAction(alice)); return; }
 
         int areaIdx = tooExpensive.AreaIndex;
         var result  = engine.ProcessAction(new TrainingGroundsPlaceSoldierAction(alice, areaIdx));
@@ -575,7 +574,7 @@ public class HandlerIntegrationTests
     {
         var engine = StartedGame();
         var alice  = GivePendingCastle(engine);
-        if (alice == Guid.Empty) { Assert.True(true, "Skipped"); return; }
+        if (alice == Guid.Empty) { return; }
 
         engine.ProcessAction(new CastleSkipAction(alice));
 
@@ -599,14 +598,13 @@ public class HandlerIntegrationTests
     {
         var engine = StartedGame();
         var alice  = GivePendingCastle(engine);
-        if (alice == Guid.Empty) { Assert.True(true, "Skipped"); return; }
+        if (alice == Guid.Empty) { return; }
 
         var p = engine.GetCurrentState().Players.First(x => x.Id == alice);
         if (p.Coins < 2 || p.CourtiersAvailable <= 0)
         {
             engine.ProcessAction(new CastleSkipAction(alice));
-            Assert.True(true, "Skipped");
-            return;
+            return; // precondition not met — test skipped
         }
 
         int before = p.CourtiersAtGate;
@@ -621,14 +619,13 @@ public class HandlerIntegrationTests
     {
         var engine = StartedGame();
         var alice  = GivePendingCastle(engine);
-        if (alice == Guid.Empty) { Assert.True(true, "Skipped"); return; }
+        if (alice == Guid.Empty) { return; }
 
         var p = engine.GetCurrentState().Players.First(x => x.Id == alice);
         if (p.Coins < 2 || p.CourtiersAvailable <= 0)
         {
             engine.ProcessAction(new CastleSkipAction(alice));
-            Assert.True(true, "Skipped");
-            return;
+            return; // precondition not met — test skipped
         }
 
         int coinsBefore = p.Coins;
@@ -643,14 +640,13 @@ public class HandlerIntegrationTests
     {
         var engine = StartedGame();
         var alice  = GivePendingCastle(engine);
-        if (alice == Guid.Empty) { Assert.True(true, "Skipped"); return; }
+        if (alice == Guid.Empty) { return; }
 
         var p = engine.GetCurrentState().Players.First(x => x.Id == alice);
         if (p.Coins >= 2)
         {
             engine.ProcessAction(new CastleSkipAction(alice));
-            Assert.True(true, "Skipped (player has enough coins)");
-            return;
+            return; // player has enough coins — cannot test insufficient coins path
         }
 
         var result = engine.ProcessAction(new CastlePlaceCourtierAction(alice));
@@ -662,7 +658,7 @@ public class HandlerIntegrationTests
     {
         var engine = StartedGame();
         var (alice, _) = SetupCourtiersAtGate(engine, minVI: 2);
-        if (alice == Guid.Empty) { Assert.True(true, "Skipped"); return; }
+        if (alice == Guid.Empty) { return; }
 
         var p = engine.GetCurrentState().Players.First(x => x.Id == alice);
         int groundBefore = p.CourtiersOnStewardFloor;
@@ -681,7 +677,7 @@ public class HandlerIntegrationTests
     {
         var engine = StartedGame();
         var (alice, setup) = SetupCourtiersAtGate(engine, minVI: 5);
-        if (alice == Guid.Empty) { Assert.True(true, "Skipped"); return; }
+        if (alice == Guid.Empty) { return; }
 
         var p = engine.GetCurrentState().Players.First(x => x.Id == alice);
         int before = p.CourtiersOnDiplomatFloor;
@@ -698,15 +694,14 @@ public class HandlerIntegrationTests
     {
         var engine = StartedGame();
         var alice  = GivePendingCastle(engine);
-        if (alice == Guid.Empty) { Assert.True(true, "Skipped"); return; }
+        if (alice == Guid.Empty) { return; }
 
         // Try to advance from StewardFloor when player has no courtiers there
         var p = engine.GetCurrentState().Players.First(x => x.Id == alice);
         if (p.CourtiersOnStewardFloor > 0)
         {
             engine.ProcessAction(new CastleSkipAction(alice));
-            Assert.True(true, "Skipped (has steward floor courtiers)");
-            return;
+            return; // player already has steward floor courtiers — cannot test no-courtier path
         }
 
         var result = engine.ProcessAction(
@@ -719,15 +714,14 @@ public class HandlerIntegrationTests
     {
         var engine = StartedGame();
         var alice  = GivePendingCastle(engine);
-        if (alice == Guid.Empty) { Assert.True(true, "Skipped"); return; }
+        if (alice == Guid.Empty) { return; }
 
         // Advance from gate to ground (costs 2 VI) when player has 0 VI
         var p = engine.GetCurrentState().Players.First(x => x.Id == alice);
         if (p.Resources.MotherOfPearls >= 2 || p.CourtiersAtGate == 0)
         {
             engine.ProcessAction(new CastleSkipAction(alice));
-            Assert.True(true, "Skipped");
-            return;
+            return; // precondition not met — test skipped
         }
 
         var result = engine.ProcessAction(
@@ -740,7 +734,7 @@ public class HandlerIntegrationTests
     {
         var engine = StartedGame();
         var alice  = GivePendingCastle(engine);
-        if (alice == Guid.Empty) { Assert.True(true, "Skipped"); return; }
+        if (alice == Guid.Empty) { return; }
 
         var result = engine.ProcessAction(
             new CastleAdvanceCourtierAction(alice, CourtierPosition.Gate, 3, 0));
@@ -753,7 +747,7 @@ public class HandlerIntegrationTests
         // Set up: place courtier at gate, advance to mid, get another castle use, advance to top
         var engine = StartedGame();
         var (alice, _) = SetupCourtiersAtGate(engine, minVI: 5);
-        if (alice == Guid.Empty) { Assert.True(true, "Skipped"); return; }
+        if (alice == Guid.Empty) { return; }
 
         // Advance gate → mid
         engine.ProcessAction(new CastleAdvanceCourtierAction(alice, CourtierPosition.Gate, 2, 0));
@@ -761,14 +755,13 @@ public class HandlerIntegrationTests
 
         // Need another castle action for the next advance
         alice = GivePendingCastle(engine);
-        if (alice == Guid.Empty) { Assert.True(true, "Skipped"); return; }
+        if (alice == Guid.Empty) { return; }
 
         var p = engine.GetCurrentState().Players.First(x => x.Id == alice);
         if (p.CourtiersOnDiplomatFloor == 0 || p.Resources.MotherOfPearls < 2)
         {
             engine.ProcessAction(new CastleSkipAction(alice));
-            Assert.True(true, "Skipped");
-            return;
+            return; // precondition not met — test skipped
         }
 
         int topBefore = p.CourtiersOnTopFloor;
@@ -784,7 +777,7 @@ public class HandlerIntegrationTests
     {
         var engine = StartedGame();
         var (alice, _) = SetupCourtiersAtGate(engine, minVI: 2);
-        if (alice == Guid.Empty) { Assert.True(true, "Skipped"); return; }
+        if (alice == Guid.Empty) { return; }
 
         var p = engine.GetCurrentState().Players.First(x => x.Id == alice);
         int cardsBefore = p.PersonalDomainCards.Count;
@@ -1011,7 +1004,7 @@ public class HandlerIntegrationTests
             Assert.Contains(success.Events, e => e is PersonalDomainActivatedEvent);
             return;
         }
-        Assert.True(true, "Test skipped: no affordable personal domain placement found.");
+        // No affordable personal domain placement found — test skipped.
     }
 
     [Fact]
@@ -1025,7 +1018,7 @@ public class HandlerIntegrationTests
         var row0Color = alice.PersonalDomainRows[0].DieColor;
         var wrongBridge = state.Board.Bridges
             .FirstOrDefault(b => b.Color != row0Color && b.High != null);
-        if (wrongBridge is null) { Assert.True(true, "Skipped"); return; }
+        if (wrongBridge is null) { return; }
 
         engine.ProcessAction(new TakeDieFromBridgeAction(alice.Id, wrongBridge.Color, DiePosition.High));
         var result = engine.ProcessAction(new PlaceDieAction(alice.Id, new PersonalDomainTarget(0)));
@@ -1074,7 +1067,7 @@ public class HandlerIntegrationTests
                 Assert.Contains(success.Events, e => e is SeedCardActivatedEvent);
             return;
         }
-        Assert.True(true, "Test skipped.");
+        // precondition not met — test skipped
     }
 
     // ── FirstPlayerByInfluence ────────────────────────────────────────────────
@@ -1121,8 +1114,7 @@ public class HandlerIntegrationTests
         if (gameEngine.GetCurrentState().CurrentPhase == Phase.WorkerPlacement ||
             gameEngine.GetCurrentState().CurrentPhase == Phase.GameOver)
         {
-            Assert.True(true, "Round did not end in time; skipped.");
-            return;
+            return; // round did not end in time — test skipped
         }
 
         // After round end, Bob (higher influence) should be first
@@ -1170,8 +1162,7 @@ public class HandlerIntegrationTests
         if (gameEngine.GetCurrentState().CurrentPhase == Phase.GameOver ||
             gameEngine.GetCurrentState().CurrentPhase == Phase.WorkerPlacement)
         {
-            Assert.True(true, "Skipped.");
-            return;
+            return; // precondition not met — test skipped
         }
 
         var newState = gameEngine.GetCurrentState();
@@ -1186,13 +1177,13 @@ public class HandlerIntegrationTests
         // Place a farmer on a farm field, then end round with dice still on that bridge
         var engine = StartedGame();
         var alice  = GivePendingFarm(engine);
-        if (alice == Guid.Empty) { Assert.True(true, "Skipped"); return; }
+        if (alice == Guid.Empty) { return; }
 
         // Place the farmer on a field whose bridge color has dice remaining
         var state = engine.GetCurrentState();
         var legal = engine.GetLegalActions(alice);
         var place = legal.OfType<PlaceFarmerAction>().FirstOrDefault();
-        if (place is null) { engine.ProcessAction(new FarmSkipAction(alice)); Assert.True(true, "Skipped"); return; }
+        if (place is null) { engine.ProcessAction(new FarmSkipAction(alice)); return; }
 
         engine.ProcessAction(place);
         ResolveAllPending(engine, alice);
@@ -1286,7 +1277,7 @@ public class HandlerIntegrationTests
         var alice  = state.Players[0];
 
         // Alice must have a lantern chain item (from seed card back)
-        if (alice.LanternChain.Count == 0) { Assert.True(true, "Skipped (no chain item)"); return; }
+        if (alice.LanternChain.Count == 0) { return; } // no lantern chain item on seed card
 
         // Taking a Low die fires a Lantern gain, which triggers the chain
         var result = engine.ProcessAction(

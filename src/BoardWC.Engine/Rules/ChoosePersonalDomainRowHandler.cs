@@ -57,30 +57,8 @@ internal sealed class ChoosePersonalDomainRowHandler : IActionHandler
 
             if (field is GainCardField gf)
             {
-                var res = new ResourceBag();
-                int coins = 0, seals = 0, lantern = 0, vp = 0, influence = 0;
-
-                foreach (var item in gf.Gains)
-                {
-                    switch (item.Type)
-                    {
-                        case CardGainType.Food:           res = res.Add(ResourceType.Food,      item.Amount); break;
-                        case CardGainType.Iron:           res = res.Add(ResourceType.Iron,      item.Amount); break;
-                        case CardGainType.MotherOfPearls:      res = res.Add(ResourceType.MotherOfPearls, item.Amount); break;
-                        case CardGainType.Coin:           coins     += item.Amount; break;
-                        case CardGainType.DaimyoSeal: seals     += item.Amount; break;
-                        case CardGainType.Lantern:        lantern   += item.Amount; break;
-                        case CardGainType.VictoryPoint:   vp        += item.Amount; break;
-                        case CardGainType.Influence:      influence += item.Amount; break;
-                    }
-                }
-
-                player.Resources       = (player.Resources + res).Clamp(7);
-                player.Coins          += coins;
-                player.DaimyoSeals = Math.Min(player.DaimyoSeals + seals, 5);
-                LanternHelper.Apply(player, lantern, state.GameId, events);
-                player.LanternScore   += vp;
-                InfluenceHelper.Apply(player, influence, state, events);
+                var (res, coins, seals, lantern, vp, influence) =
+                    CardFieldHelper.ApplyGainField(gf, player, state, events);
 
                 events.Add(new PersonalDomainCardFieldActivatedEvent(
                     state.GameId, player.Id, pdCard.Id, fieldIdx,
@@ -88,37 +66,7 @@ internal sealed class ChoosePersonalDomainRowHandler : IActionHandler
             }
             else if (field is ActionCardField af)
             {
-                switch (af.Description)
-                {
-                    case "Play castle":
-                        player.CastlePlaceRemaining++;
-                        player.CastleAdvanceRemaining++;
-                        break;
-                    case "Play training grounds":
-                        player.PendingTrainingGroundsActions++;
-                        break;
-                    case "Play farm":
-                        player.PendingFarmActions++;
-                        break;
-                    case "Play red castle card field":
-                        player.PendingCastleCardFieldFilter = "Red";
-                        break;
-                    case "Play black castle card field":
-                        player.PendingCastleCardFieldFilter = "Black";
-                        break;
-                    case "Play white castle card field":
-                        player.PendingCastleCardFieldFilter = "White";
-                        break;
-                    case "Play any castle card field":
-                        player.PendingCastleCardFieldFilter = "Any";
-                        break;
-                    case "Play castle gain field":
-                        player.PendingCastleCardFieldFilter = "GainOnly";
-                        break;
-                    case "Play personal domain row":
-                        player.PendingPersonalDomainRowChoice = true;
-                        break;
-                }
+                CardFieldHelper.ApplyActionDescription(af.Description, player);
                 events.Add(new PersonalDomainCardFieldActivatedEvent(
                     state.GameId, player.Id, pdCard.Id, fieldIdx,
                     new ResourceBag(), 0, 0, 0, 0, 0));

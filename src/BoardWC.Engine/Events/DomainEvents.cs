@@ -161,8 +161,8 @@ public sealed record FarmerPlacedEvent(
     Guid GameId,
     Guid PlayerId,
     BridgeColor BridgeColor,
-    bool IsInland,            // false and BridgeColor ignored when skipped (AreaIndex == -1)
-    int AreaIndex,            // -1 = skipped
+    bool IsInland,            // false and BridgeColor ignored when WasSkipped
+    bool WasSkipped,          // true = player skipped the farm action
     int FoodSpent,
     ResourceBag ResourcesGained,
     int CoinsGained,
@@ -324,7 +324,7 @@ public sealed record PersonalDomainCardFieldActivatedEvent(
 
 /// <summary>
 /// Fired when an influence gain crosses a threshold (5, 10, or 15) and the player
-/// must decide whether to pay the Monarchial Seal cost.
+/// must decide whether to pay the Daimyo Seal cost.
 /// </summary>
 public sealed record InfluenceGainPendingEvent(
     Guid GameId,

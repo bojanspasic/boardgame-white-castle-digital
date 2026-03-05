@@ -44,14 +44,20 @@ internal sealed class FarmHandler : IActionHandler
 
     public void Apply(IGameAction action, GameState state, List<IDomainEvent> events)
     {
-        var player = state.Players.First(p => p.Id == ((dynamic)action).PlayerId);
+        Guid playerId = action switch
+        {
+            PlaceFarmerAction a => a.PlayerId,
+            FarmSkipAction    a => a.PlayerId,
+            _                   => Guid.Empty,
+        };
+        var player = state.Players.First(p => p.Id == playerId);
 
         if (action is FarmSkipAction)
         {
             player.PendingFarmActions = 0;
             events.Add(new FarmerPlacedEvent(
                 state.GameId, player.Id,
-                BridgeColor.Red, false, -1, 0, new ResourceBag(), 0, 0, 0, null));
+                BridgeColor.Red, false, true, 0, new ResourceBag(), 0, 0, 0, null));
             return;
         }
 
@@ -75,7 +81,7 @@ internal sealed class FarmHandler : IActionHandler
 
         events.Add(new FarmerPlacedEvent(
             state.GameId, player.Id,
-            place.BridgeColor, place.IsInland, 0,
+            place.BridgeColor, place.IsInland, false,
             card.FoodCost, resourcesGained, coinsGained, sealsGained, lanternGained,
             actionTriggered));
     }
@@ -121,53 +127,23 @@ internal sealed class FarmHandler : IActionHandler
         string description, Domain.Player player,
         ref int coinsGained, ref int sealsGained, ref int lanternGained)
     {
+        if (CardFieldHelper.ApplyActionDescription(description, player))
+            return;
+
         switch (description)
         {
-            case "Play castle":
-                player.CastlePlaceRemaining++;
-                player.CastleAdvanceRemaining++;
-                break;
-
-            case "Play training grounds":
-                player.PendingTrainingGroundsActions++;
-                break;
-
             case "Gain 3 coins":
                 coinsGained += 3;
                 player.Coins += 3;
                 break;
 
-            case "Gain 1 monarchial seal":
+            case "Gain 1 daimyo seal":
                 sealsGained++;
                 player.DaimyoSeals = Math.Min(player.DaimyoSeals + 1, 5);
                 break;
 
             case "Gain 1 lantern":
                 lanternGained++;
-                break;
-
-            case "Play red castle card field":
-                player.PendingCastleCardFieldFilter = "Red";
-                break;
-
-            case "Play black castle card field":
-                player.PendingCastleCardFieldFilter = "Black";
-                break;
-
-            case "Play white castle card field":
-                player.PendingCastleCardFieldFilter = "White";
-                break;
-
-            case "Play any castle card field":
-                player.PendingCastleCardFieldFilter = "Any";
-                break;
-
-            case "Play castle gain field":
-                player.PendingCastleCardFieldFilter = "GainOnly";
-                break;
-
-            case "Play personal domain row":
-                player.PendingPersonalDomainRowChoice = true;
                 break;
         }
     }

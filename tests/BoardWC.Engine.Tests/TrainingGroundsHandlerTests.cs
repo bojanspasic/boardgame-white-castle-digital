@@ -309,7 +309,7 @@ public class TrainingGroundsHandlerTests
         var (alice, state, handler) = MakeStateWithCustomArea(
             areaIndex: 1,
             ironCost:  3,
-            area => area.AssignActionSide("Gain 1 monarchial seal"),
+            area => area.AssignActionSide("Gain 1 daimyo seal"),
             playerIron: 10);
 
         var events = new List<IDomainEvent>();
@@ -318,7 +318,7 @@ public class TrainingGroundsHandlerTests
         Assert.Equal(1, alice.DaimyoSeals);
 
         var evt = Assert.Single(events.OfType<TrainingGroundsUsedEvent>());
-        Assert.Equal("Gain 1 monarchial seal", evt.ActionTriggered);
+        Assert.Equal("Gain 1 daimyo seal", evt.ActionTriggered);
     }
 
     [Fact]

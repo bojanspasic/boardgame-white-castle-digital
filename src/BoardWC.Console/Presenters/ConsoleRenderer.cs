@@ -403,7 +403,7 @@ internal sealed class ConsoleRenderer
 
     private static string FormatFarmerPlaced(FarmerPlacedEvent x)
     {
-        if (x.AreaIndex == -1)
+        if (x.WasSkipped)
             return $"{PlayerName(x.PlayerId, x)} farm: skipped";
 
         var field = $"{x.BridgeColor} {(x.IsInland ? "inland" : "outside")}";

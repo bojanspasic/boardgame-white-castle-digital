@@ -597,7 +597,7 @@ public class GameEngineTests
     }
 
     [Fact]
-    public void AllLegalActions_AreAcceptedByEngine()
+    public void FirstNonPassLegalAction_IsAcceptedByEngine()
     {
         var engine  = StartedGame();
         var state   = engine.GetCurrentState();
@@ -1001,7 +1001,7 @@ public class GameEngineTests
                 return;
             }
         }
-        Assert.True(true, "Test skipped (no suitable room/bridge combination found).");
+        // no suitable room/bridge combination found — test skipped
     }
 
     // ── Castle room color restriction ─────────────────────────────────────────
@@ -1029,7 +1029,7 @@ public class GameEngineTests
             Assert.IsType<ActionResult.Failure>(result);
             return;
         }
-        Assert.True(true, "Test skipped (no suitable room found).");
+        // no suitable room found — test skipped
     }
 
     [Fact]
@@ -1054,7 +1054,7 @@ public class GameEngineTests
             Assert.IsType<ActionResult.Success>(result);
             return;
         }
-        Assert.True(true, "Test skipped (no affordable matching bridge found).");
+        // no affordable matching bridge found — test skipped
     }
 
     [Fact]
@@ -1082,6 +1082,6 @@ public class GameEngineTests
                 crt.Floor == 1 && crt.RoomIndex == r);
             return;
         }
-        Assert.True(true, "Test skipped (no suitable room found).");
+        // no suitable room found — test skipped
     }
 }

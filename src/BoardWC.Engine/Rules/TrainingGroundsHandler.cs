@@ -43,7 +43,13 @@ internal sealed class TrainingGroundsHandler : IActionHandler
 
     public void Apply(IGameAction action, GameState state, List<IDomainEvent> events)
     {
-        var player = state.Players.First(p => p.Id == ((dynamic)action).PlayerId);
+        Guid playerId = action switch
+        {
+            TrainingGroundsPlaceSoldierAction a => a.PlayerId,
+            TrainingGroundsSkipAction         a => a.PlayerId,
+            _                                   => Guid.Empty,
+        };
+        var player = state.Players.First(p => p.Id == playerId);
 
         if (action is TrainingGroundsSkipAction)
         {
@@ -106,51 +112,21 @@ internal sealed class TrainingGroundsHandler : IActionHandler
 
     private static void ApplyNamedAction(string description, Domain.Player player, ref int lanternGained)
     {
+        if (CardFieldHelper.ApplyActionDescription(description, player))
+            return;
+
         switch (description)
         {
-            case "Play castle":
-                player.CastlePlaceRemaining++;
-                player.CastleAdvanceRemaining++;
-                break;
-
             case "Gain 3 coins":
                 player.Coins += 3;
                 break;
 
-            case "Gain 1 monarchial seal":
+            case "Gain 1 daimyo seal":
                 player.DaimyoSeals = Math.Min(player.DaimyoSeals + 1, 5);
                 break;
 
             case "Gain 1 lantern":
                 lanternGained += 1;
-                break;
-
-            case "Play farm":
-                player.PendingFarmActions++;
-                break;
-
-            case "Play red castle card field":
-                player.PendingCastleCardFieldFilter = "Red";
-                break;
-
-            case "Play black castle card field":
-                player.PendingCastleCardFieldFilter = "Black";
-                break;
-
-            case "Play white castle card field":
-                player.PendingCastleCardFieldFilter = "White";
-                break;
-
-            case "Play any castle card field":
-                player.PendingCastleCardFieldFilter = "Any";
-                break;
-
-            case "Play castle gain field":
-                player.PendingCastleCardFieldFilter = "GainOnly";
-                break;
-
-            case "Play personal domain row":
-                player.PendingPersonalDomainRowChoice = true;
                 break;
         }
     }

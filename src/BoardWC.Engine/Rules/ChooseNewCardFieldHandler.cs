@@ -71,27 +71,8 @@ internal sealed class ChooseNewCardFieldHandler : IActionHandler
 
         if (field is GainCardField gf)
         {
-            foreach (var item in gf.Gains)
-            {
-                switch (item.Type)
-                {
-                    case CardGainType.Food:           resources = resources.Add(ResourceType.Food,      item.Amount); break;
-                    case CardGainType.Iron:           resources = resources.Add(ResourceType.Iron,      item.Amount); break;
-                    case CardGainType.MotherOfPearls:      resources = resources.Add(ResourceType.MotherOfPearls, item.Amount); break;
-                    case CardGainType.Coin:           coins     += item.Amount; break;
-                    case CardGainType.DaimyoSeal: seals     += item.Amount; break;
-                    case CardGainType.Lantern:        lantern   += item.Amount; break;
-                    case CardGainType.VictoryPoint:   vp        += item.Amount; break;
-                    case CardGainType.Influence:      influence += item.Amount; break;
-                }
-            }
-
-            player.Resources       = (player.Resources + resources).Clamp(7);
-            player.Coins          += coins;
-            player.DaimyoSeals = Math.Min(player.DaimyoSeals + seals, 5);
-            LanternHelper.Apply(player, lantern, state.GameId, events);
-            player.LanternScore   += vp;
-            InfluenceHelper.Apply(player, influence, state, events);
+            (resources, coins, seals, lantern, vp, influence) =
+                CardFieldHelper.ApplyGainField(gf, player, state, events);
         }
         else if (field is ActionCardField af)
         {
@@ -100,13 +81,13 @@ internal sealed class ChooseNewCardFieldHandler : IActionHandler
             {
                 switch (cost.Type)
                 {
-                    case CardCostType.Coin:          player.Coins          -= cost.Amount; break;
+                    case CardCostType.Coin:       player.Coins       -= cost.Amount; break;
                     case CardCostType.DaimyoSeal: player.DaimyoSeals -= cost.Amount; break;
                 }
             }
 
             actionTriggered = af.Description;
-            ApplyActionDescription(af.Description, player);
+            CardFieldHelper.ApplyActionDescription(af.Description, player);
         }
 
         events.Add(new NewCardFieldChosenEvent(
@@ -114,38 +95,4 @@ internal sealed class ChooseNewCardFieldHandler : IActionHandler
             resources, coins, seals, lantern, vp, influence, actionTriggered));
     }
 
-    private static void ApplyActionDescription(string description, Domain.Player player)
-    {
-        switch (description)
-        {
-            case "Play castle":
-                player.CastlePlaceRemaining++;
-                player.CastleAdvanceRemaining++;
-                break;
-            case "Play training grounds":
-                player.PendingTrainingGroundsActions++;
-                break;
-            case "Play farm":
-                player.PendingFarmActions++;
-                break;
-            case "Play red castle card field":
-                player.PendingCastleCardFieldFilter = "Red";
-                break;
-            case "Play black castle card field":
-                player.PendingCastleCardFieldFilter = "Black";
-                break;
-            case "Play white castle card field":
-                player.PendingCastleCardFieldFilter = "White";
-                break;
-            case "Play any castle card field":
-                player.PendingCastleCardFieldFilter = "Any";
-                break;
-            case "Play castle gain field":
-                player.PendingCastleCardFieldFilter = "GainOnly";
-                break;
-            case "Play personal domain row":
-                player.PendingPersonalDomainRowChoice = true;
-                break;
-        }
-    }
 }

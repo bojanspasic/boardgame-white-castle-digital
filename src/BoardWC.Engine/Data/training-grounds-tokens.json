@@ -18,7 +18,7 @@
     {
       "id": "tg_04",
       "resourceSide": [{ "type": "Coin", "amount": 3 }],
-      "actionSide": "Gain 1 monarchial seal"
+      "actionSide": "Gain 1 daimyo seal"
     },
     {
       "id": "tg_05",

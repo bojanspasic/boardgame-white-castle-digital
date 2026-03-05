@@ -62,7 +62,7 @@ public class EventPropertyCoverageTests
             GameId, PlayerId,
             BridgeColor: BridgeColor.Red,
             IsInland:    true,
-            AreaIndex:   0,
+            WasSkipped:  false,
             FoodSpent:   1,
             ResourcesGained: res,
             CoinsGained: 0,
@@ -74,7 +74,7 @@ public class EventPropertyCoverageTests
         Assert.Equal(PlayerId,        evt.PlayerId);
         Assert.Equal(BridgeColor.Red, evt.BridgeColor);
         Assert.True(evt.IsInland);
-        Assert.Equal(0,               evt.AreaIndex);
+        Assert.False(evt.WasSkipped);
         Assert.Equal(1,               evt.FoodSpent);
         Assert.Equal(2,               evt.ResourcesGained.Food);
         Assert.Equal(0,               evt.CoinsGained);
@@ -89,7 +89,7 @@ public class EventPropertyCoverageTests
     public void FarmerPlacedEvent_WithActionTriggered()
     {
         var evt = new FarmerPlacedEvent(
-            GameId, PlayerId, BridgeColor.Black, false, 0, 2,
+            GameId, PlayerId, BridgeColor.Black, false, false, 2,
             new ResourceBag(), 3, 0, 1, "Play castle");
 
         Assert.Equal("Play castle",      evt.ActionTriggered);

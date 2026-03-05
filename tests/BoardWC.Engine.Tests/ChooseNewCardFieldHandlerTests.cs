@@ -1,0 +1,186 @@
+using BoardWC.Engine.Actions;
+using BoardWC.Engine.Domain;
+using BoardWC.Engine.Events;
+using BoardWC.Engine.Rules;
+
+namespace BoardWC.Engine.Tests;
+
+/// <summary>
+/// Unit tests for ChooseNewCardFieldHandler — validation and field activation on newly acquired cards.
+/// </summary>
+public class ChooseNewCardFieldHandlerTests
+{
+    // ── helpers ───────────────────────────────────────────────────────────────
+
+    private static RoomCard MakeCard(params CardField[] fields) =>
+        new RoomCard("c1", "Test Card", new List<CardField>(fields).AsReadOnly());
+
+    private static (Player Alice, GameState State, ChooseNewCardFieldHandler Handler)
+        MakeState(RoomCard? pendingCard = null)
+    {
+        var alice = new Player
+        {
+            Name                   = "Alice",
+            PendingNewCardActivation = pendingCard,
+            Coins                  = 5,
+        };
+        var state = new GameState(new List<Player> { alice });
+        return (alice, state, new ChooseNewCardFieldHandler());
+    }
+
+    // ── Validation — guard failures ───────────────────────────────────────────
+
+    [Fact]
+    public void Validate_NoPendingCard_Fails()
+    {
+        var (alice, state, handler) = MakeState(pendingCard: null);
+
+        var result = handler.Validate(new ChooseNewCardFieldAction(alice.Id, 0), state);
+
+        Assert.False(result.IsValid);
+        Assert.Contains("pending", result.Reason);
+    }
+
+    [Fact]
+    public void Validate_InvalidFieldIndex_Fails()
+    {
+        var card = MakeCard(new GainCardField(
+            new[] { new CardGainItem(CardGainType.Coin, 1) }.AsReadOnly()));
+        var (alice, state, handler) = MakeState(card);
+
+        var result = handler.Validate(new ChooseNewCardFieldAction(alice.Id, 5), state);
+
+        Assert.False(result.IsValid);
+        Assert.Contains("Invalid field", result.Reason);
+    }
+
+    [Fact]
+    public void Validate_Skip_IsAlwaysValid()
+    {
+        var card = MakeCard(new GainCardField(
+            new[] { new CardGainItem(CardGainType.Coin, 1) }.AsReadOnly()));
+        var (alice, state, handler) = MakeState(card);
+
+        var result = handler.Validate(new ChooseNewCardFieldAction(alice.Id, -1), state);
+
+        Assert.True(result.IsValid);
+    }
+
+    [Fact]
+    public void Validate_ActionField_InsufficientCoins_Fails()
+    {
+        var card = MakeCard(new ActionCardField("Play castle",
+            new[] { new CardCostItem(CardCostType.Coin, 10) }.AsReadOnly()));
+        var (alice, state, handler) = MakeState(card);
+        // alice has 5 coins, cost is 10
+
+        var result = handler.Validate(new ChooseNewCardFieldAction(alice.Id, 0), state);
+
+        Assert.False(result.IsValid);
+        Assert.Contains("coins", result.Reason);
+    }
+
+    // ── Apply — skip ──────────────────────────────────────────────────────────
+
+    [Fact]
+    public void Apply_Skip_AddsCardToPersonalDomainWithNoEffect()
+    {
+        var card = MakeCard(new GainCardField(
+            new[] { new CardGainItem(CardGainType.Coin, 3) }.AsReadOnly()));
+        var (alice, state, handler) = MakeState(card);
+        var events = new List<IDomainEvent>();
+
+        handler.Apply(new ChooseNewCardFieldAction(alice.Id, -1), state, events);
+
+        Assert.Null(alice.PendingNewCardActivation);
+        Assert.Single(alice.PersonalDomainCards);
+        Assert.Equal(5, alice.Coins); // no coins gained
+
+        var evt = Assert.Single(events.OfType<NewCardFieldChosenEvent>());
+        Assert.Equal(-1, evt.FieldIndex);
+        Assert.Equal("c1", evt.CardId);
+    }
+
+    // ── Apply — gain field ────────────────────────────────────────────────────
+
+    [Fact]
+    public void Apply_GainField_Food_GrantsFood()
+    {
+        var card = MakeCard(new GainCardField(
+            new[] { new CardGainItem(CardGainType.Food, 3) }.AsReadOnly()));
+        var (alice, state, handler) = MakeState(card);
+        var events = new List<IDomainEvent>();
+
+        handler.Apply(new ChooseNewCardFieldAction(alice.Id, 0), state, events);
+
+        Assert.Equal(3, alice.Resources.Food);
+        Assert.Single(alice.PersonalDomainCards);
+        Assert.Null(alice.PendingNewCardActivation);
+
+        var evt = Assert.Single(events.OfType<NewCardFieldChosenEvent>());
+        Assert.Equal(0, evt.FieldIndex);
+        Assert.Equal(3, evt.ResourcesGained.Food);
+    }
+
+    [Fact]
+    public void Apply_GainField_DaimyoSeal_GrantsSealCappedAtFive()
+    {
+        var card = MakeCard(new GainCardField(
+            new[] { new CardGainItem(CardGainType.DaimyoSeal, 10) }.AsReadOnly()));
+        var (alice, state, handler) = MakeState(card);
+        var events = new List<IDomainEvent>();
+
+        handler.Apply(new ChooseNewCardFieldAction(alice.Id, 0), state, events);
+
+        Assert.Equal(5, alice.DaimyoSeals); // capped at 5
+    }
+
+    // ── Apply — action field ──────────────────────────────────────────────────
+
+    [Fact]
+    public void Apply_ActionField_PlayTrainingGrounds_SetsTrainingGroundsPending()
+    {
+        var card = MakeCard(new ActionCardField("Play training grounds", Array.Empty<CardCostItem>()));
+        var (alice, state, handler) = MakeState(card);
+        var events = new List<IDomainEvent>();
+
+        handler.Apply(new ChooseNewCardFieldAction(alice.Id, 0), state, events);
+
+        Assert.Equal(1, alice.PendingTrainingGroundsActions);
+        Assert.Null(alice.PendingNewCardActivation);
+        Assert.Single(alice.PersonalDomainCards);
+
+        var evt = Assert.Single(events.OfType<NewCardFieldChosenEvent>());
+        Assert.Equal("Play training grounds", evt.ActionTriggered);
+    }
+
+    [Fact]
+    public void Apply_ActionField_PlayCastle_SetsCastlePending()
+    {
+        var card = MakeCard(new ActionCardField("Play castle", Array.Empty<CardCostItem>()));
+        var (alice, state, handler) = MakeState(card);
+        var events = new List<IDomainEvent>();
+
+        handler.Apply(new ChooseNewCardFieldAction(alice.Id, 0), state, events);
+
+        Assert.Equal(1, alice.CastlePlaceRemaining);
+        Assert.Equal(1, alice.CastleAdvanceRemaining);
+
+        var evt = Assert.Single(events.OfType<NewCardFieldChosenEvent>());
+        Assert.Equal("Play castle", evt.ActionTriggered);
+    }
+
+    [Fact]
+    public void Apply_ActionField_WithSealCost_DeductsSeals()
+    {
+        var card = MakeCard(new ActionCardField("Play castle",
+            new[] { new CardCostItem(CardCostType.DaimyoSeal, 2) }.AsReadOnly()));
+        var (alice, state, handler) = MakeState(card);
+        alice.DaimyoSeals = 3;
+        var events = new List<IDomainEvent>();
+
+        handler.Apply(new ChooseNewCardFieldAction(alice.Id, 0), state, events);
+
+        Assert.Equal(1, alice.DaimyoSeals); // 3 - 2
+    }
+}

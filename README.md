@@ -46,3 +46,11 @@ In one go, with help with tests, Claude was able to make large-scale ambiguous r
 
 # go over documents and code and look for tbds and deferreds
 
+Done in one pass, but consumed insanely large amount of tokens. Wanted to execute a Python script to do it, but I wanted it to do it on its own, without Python, so I denied its request to execute it.
+
+# Code review
+
+I asked Claude to do a code review, which it did, and had some interesting findings, especially in test code. Again, I am not looking at the code and I am trusting it to do the job.
+It uncovered that game AI lies about what it is, so we'll have to deal with that as well.
+
+

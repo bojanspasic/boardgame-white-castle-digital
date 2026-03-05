@@ -23,13 +23,13 @@ internal sealed class Board
     private TrainingGrounds? _trainingGrounds;
     private FarmingLands?    _farmingLands;
     private TopFloorRoom?    _topFloorRoom;
+    private readonly IReadOnlyList<IReadOnlyList<DicePlaceholder>> _castleFloorsView;
     public int StewardFloorDeckRemaining  => _groundDeck?.Remaining ?? 0;
     public int DiplomatFloorDeckRemaining => _midDeck?.Remaining   ?? 0;
 
     public IReadOnlyList<Bridge> Bridges => _bridges;
 
-    public IReadOnlyList<IReadOnlyList<DicePlaceholder>> CastleFloors =>
-        _castleRooms.Select(row => (IReadOnlyList<DicePlaceholder>)row).ToArray();
+    public IReadOnlyList<IReadOnlyList<DicePlaceholder>> CastleFloors => _castleFloorsView;
 
     public DicePlaceholder                Well         => _well;
     public IReadOnlyList<DicePlaceholder> OutsideSlots => _outsideSlots;
@@ -53,6 +53,9 @@ internal sealed class Board
             new Bridge(BridgeColor.Black),
             new Bridge(BridgeColor.White),
         ];
+        _castleFloorsView = _castleRooms
+            .Select(row => (IReadOnlyList<DicePlaceholder>)row)
+            .ToArray();
     }
 
     public Bridge          GetBridge(BridgeColor color)       => _bridges.First(b => b.Color == color);

@@ -35,7 +35,7 @@ internal static class InfluenceHelper
     }
 
     /// <summary>
-    /// Returns the total Monarchial Seal cost to move from <paramref name="current"/>
+    /// Returns the total Daimyo Seal cost to move from <paramref name="current"/>
     /// influence to <paramref name="newTotal"/>, crossing any of the thresholds 5, 10, 15.
     /// </summary>
     public static int SealCost(int current, int newTotal)

@@ -20,4 +20,10 @@ public interface IGameEngine
 
     /// <summary>Final scores — only populated once IsGameOver is true.</summary>
     IReadOnlyList<PlayerScore>? GetFinalScores();
+
+    /// <summary>
+    /// Let the engine pick and apply one action for an AI player using its configured strategy.
+    /// Returns null if no strategy was configured or the player is not AI.
+    /// </summary>
+    ActionResult? PlayAiTurn(Guid playerId);
 }
