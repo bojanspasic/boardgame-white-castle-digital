@@ -2,10 +2,10 @@
 
 ## Documentation Maintenance
 **Whenever rules or architecture change, update `CLAUDE.md`, `gamerules.md`, `architecture.md`, and `EngineAPI.md`.**
-- `gamerules.md` — source of truth for board game rules as described by the user.
+- `gamerules.md` — source of truth for board game rules as described by the user. **Consult this file before implementing or changing any game mechanic.**
 - `CLAUDE.md` — source of truth for codebase architecture, patterns, and conventions.
 - `architecture.md` — full description of implemented architecture.
-- `EnginaAPI.md` — full description of engine api.
+- `EngineAPI.md` — full description of engine api.
 
 ---
 
@@ -87,19 +87,14 @@ Castle room placement is restricted to rooms that contain a token matching the d
 When triggered: placement areas clear, dice reroll (or game ends).
 
 ## Player State
-Each player tracks:
-- **Resources**: Food, Iron, Mother of Pearls (max 7 each)
-- **Coins**: earned/spent when placing dice
-- **Daimyo Seals**: separate currency (max 5); +1 gained each time a die is placed at the well
-- **Lantern score**: victory points from lanterns
-- **Dice in hand**: die taken from bridge awaiting placement
-- **PendingAnyResourceChoices**: unresolved AnyResource token choices from the well
-- **Personnel**: 5 Soldiers, 5 Courtiers, 5 Farmers — placement rules TBD
-- **LanternChain**: ordered list of `LanternChainItem` entries; fires left-to-right whenever a Lantern gain triggers (see `LanternHelper`)
-- **PersonalDomainCards**: room cards acquired from ground/mid castle floors; each card's fields activate whenever a die is placed in the corresponding personal domain row
-- **Influence**: separate currency gained from card fields (`CardGainType.Influence`); tracked as `player.Influence`; displayed in player summary
-- **PendingInfluenceGain / PendingInfluenceSealCost**: set when an influence gain crosses a threshold; player must decide to pay seals or forfeit the gain (resolved by `ChooseInfluencePayHandler`)
-- **InfluenceGainOrder**: set to `GameState.InfluenceGainCounter++` each time the player actually gains influence; used at round end to break ties in first-player order
+See `gamerules.md` for game rules. Key implementation field names on `Player`:
+- `PendingAnyResourceChoices` — unresolved AnyResource well token choices (each resolved by `ChooseResourceHandler`)
+- `PendingInfluenceGain` / `PendingInfluenceSealCost` — pending influence threshold prompt (resolved by `ChooseInfluencePayHandler`)
+- `InfluenceGainOrder` — set to `GameState.InfluenceGainCounter++` each time influence is actually gained; used for round-start player-order tiebreaking
+- `CastlePlaceRemaining` / `CastleAdvanceRemaining` — pending castle uses (resolved by `CastlePlayHandler`)
+- `PendingTrainingGroundsActions` / `PendingFarmActions` — pending secondary actions
+- `PendingCastleCardFieldFilter` / `PendingPersonalDomainRowChoice` — pending card field choices
+- `PendingOutsideActivationSlot` — which outside slot's activation choice is pending
 
 ## Common Commands
 ```bash
@@ -146,14 +141,5 @@ dotnet run --project src/BoardWC.Console          # play in console
 | Console input | `src/BoardWC.Console/Input/ConsoleInputParser.cs` |
 | Tests | `tests/BoardWC.Engine.Tests/GameEngineTests.cs` |
 
-### Personal Domain Card Field Mapping
-When a room card is acquired and a die later placed in a personal domain row, that card's field fires:
-| Card type | Layout | Row 0 (Red/Courtier) | Row 1 (White/Farmer) | Row 2 (Black/Soldier) |
-|-----------|--------|----------------------|----------------------|------------------------|
-| Ground floor | null (3 fields) | field[0] | field[1] | field[2] |
-| Mid floor | DoubleTop | field[0] | field[0] | field[1] |
-| Mid floor | DoubleBottom | field[0] | field[1] | field[1] |
-
-
-### Excplicit Quality Requirements
+### Explicit Quality Requirements
 For each implementation change make sure that appropirate tests are added and that code coverage is at maximum

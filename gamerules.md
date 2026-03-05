@@ -1,7 +1,6 @@
 # The White Castle — Game Rules (Implemented Subset)
 
 > This document captures the rules as described and implemented so far.
-> Sections marked **[DEFERRED]** are known but not yet coded.
 
 ## Overview
 2–4 players compete to earn the most victory points over 3 rounds by placing dice on the
@@ -20,7 +19,7 @@ Middle dice slide down as High/Low dice are taken.
 ### Main Castle (3 floors)
 - **Ground floor** — 3 rooms, compare value = **3**
 - **Mid floor** — 2 rooms, compare value = **4**
-- **Top floor** — 1 room — **[DEFERRED — die cannot be placed here; purpose TBD]**
+- **Top floor** — 1 room — courtiers advance here for VP (10 VP each); dice cannot be placed here; holds card slots filled by advancing courtiers
 
 **Die-color restriction**: A die may only be placed in a castle room if the room contains
 at least one token whose die-color side matches the die's color.
@@ -66,7 +65,10 @@ The player immediately receives:
 When AnyResource tokens are present, the player must resolve each choice before their turn advances.
 In the console, use: `choose food`, `choose iron`, or `choose motherofpearls`.
 
-**Effect when die placed in a castle room:** **[DEFERRED]**
+**Effect when die placed in a castle room:**
+The token(s) in the room whose die-color side matches the placed die activate the corresponding card field(s).
+- **Gain fields** grant resources, coins, seals, lanterns, and/or VP immediately.
+- **Action fields** trigger secondary actions: Play Castle, Play Training Grounds, Play Farm, play a specific color card field, or play a personal domain row.
 
 ### Outside Slot Activation
 
@@ -99,11 +101,24 @@ The player must then resolve each use before acting further. For each use, they 
 - The taken card's **back** goes into the lantern chain
 - The taken card is placed in the player's **personal domain** (see Personal Domain Cards)
 
-### Gate **[DEFERRED]**
+### Gate
 
-### Training Grounds **[DEFERRED]**
+The gate is the entry point for courtiers. Placing a courtier at the gate costs 2 coins
+and increments `CourtiersAtGate`. Courtiers then advance from the gate to castle floors.
 
-### Farming Lands **[DEFERRED]**
+### Training Grounds
+
+Players may place soldiers in training grounds areas (index 0–2) using `TrainingGroundsSoldierAction`.
+- Costs iron (loaded from token data; varies by area).
+- Areas 0 and 2 have a resource-side gain; area 1 has an action side.
+- `TrainingGroundsSkipAction` forfeits remaining training grounds uses.
+
+### Farming Lands
+
+Players may place farmers on farm fields using `PlaceFarmerAction(PlayerId, BridgeColor, IsInland)`.
+- Costs food (loaded from card data).
+- Each card has a VP value (scored at game end) and may have an action side effect.
+- `FarmSkipAction` forfeits remaining farm actions.
 
 ---
 
@@ -161,7 +176,7 @@ that fire whenever the Lantern Effect triggers.
 
 **Card backs (all cards have a back):**
 - Resource seed cards: one resource (Food/Iron/MotherOfPearls)
-- Action seed cards: one Influence (**deferred**)
+- Action seed cards: one Influence (chain fires but Influence gain from the chain is a no-op — `InfluenceHelper` is not called from `LanternHelper`)
 - Ground floor castle cards: one Coin
 - Mid floor castle cards: one VictoryPoint (**maps to LanternScore**)
 

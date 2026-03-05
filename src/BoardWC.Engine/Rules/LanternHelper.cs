@@ -41,7 +41,8 @@ internal static class LanternHelper
                     case CardGainType.Coin:           coins += g.Amount; break;
                     case CardGainType.DaimyoSeal: seals += g.Amount; break;
                     case CardGainType.VictoryPoint:   vp    += g.Amount; break;
-                    // Influence and others: deferred — no-op
+                    // Influence chain gains are intentionally no-op here;
+                    // InfluenceHelper is only called by individual handlers, not the chain
                 }
 
         player.Resources       = (player.Resources + resources).Clamp(7);
