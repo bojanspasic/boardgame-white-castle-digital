@@ -13,8 +13,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Data\ground-floor-cards.json" />
-    <EmbeddedResource Include="Data\mid-floor-cards.json" />
+    <EmbeddedResource Include="Data\steward-floor-cards.json" />
+    <EmbeddedResource Include="Data\diplomat-floor-cards.json" />
     <EmbeddedResource Include="Data\training-grounds-tokens.json" />
     <EmbeddedResource Include="Data\inland-farm-cards.json" />
     <EmbeddedResource Include="Data\outside-farm-cards.json" />

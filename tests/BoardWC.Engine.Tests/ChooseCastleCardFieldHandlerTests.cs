@@ -13,7 +13,7 @@ public class ChooseCastleCardFieldHandlerTests
     // ── helpers ───────────────────────────────────────────────────────────────
 
     private static RoomCard MakeCard(params CardField[] fields) =>
-        new RoomCard("c1", "Test", new List<CardField>(fields).AsReadOnly());
+        new RoomCard("c1", new List<CardField>(fields).AsReadOnly());
 
     private static (Player Alice, GameState State, ChooseCastleCardFieldHandler Handler)
         MakeState(string filter, int floor = 0, int room = 0,

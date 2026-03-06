@@ -297,7 +297,6 @@ public sealed record RoomCardAcquiredEvent(
     Guid GameId,
     Guid PlayerId,
     string CardId,
-    string CardName,
     int Floor   // 0 = steward floor, 1 = diplomat floor
 ) : IDomainEvent
 {

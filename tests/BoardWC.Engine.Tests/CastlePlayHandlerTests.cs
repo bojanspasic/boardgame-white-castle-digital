@@ -540,7 +540,6 @@ public class CastlePlayHandlerTests
         Assert.Equal(alice.Id,     evt.PlayerId);
         Assert.Equal(0,            evt.Floor);
         Assert.NotEmpty(evt.CardId);
-        Assert.NotEmpty(evt.CardName);
         Assert.True(evt.OccurredAt > DateTimeOffset.MinValue);
     }
 
@@ -584,7 +583,7 @@ public class CastlePlayHandlerTests
         });
         state.Board.PlaceCards(state.Rng);
 
-        var customCard = new RoomCard("back-test", "BackCard", Array.Empty<CardField>().AsReadOnly())
+        var customCard = new RoomCard("back-test", Array.Empty<CardField>().AsReadOnly())
         {
             Back = (CardGainType.Food, 1)
         };

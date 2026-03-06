@@ -305,15 +305,13 @@ public class EventPropertyCoverageTests
     {
         var evt = new RoomCardAcquiredEvent(
             GameId, PlayerId,
-            CardId:   "room-1",
-            CardName: "Grand Room",
-            Floor:    0);
+            CardId: "room-1",
+            Floor:  0);
 
-        Assert.Equal(GameId,       evt.GameId);
-        Assert.Equal(PlayerId,     evt.PlayerId);
-        Assert.Equal("room-1",     evt.CardId);
-        Assert.Equal("Grand Room", evt.CardName);
-        Assert.Equal(0,            evt.Floor);
+        Assert.Equal(GameId,   evt.GameId);
+        Assert.Equal(PlayerId, evt.PlayerId);
+        Assert.Equal("room-1", evt.CardId);
+        Assert.Equal(0,        evt.Floor);
         Assert.True(evt.OccurredAt > DateTimeOffset.MinValue);
         Assert.Equal(nameof(RoomCardAcquiredEvent), evt.EventType);
     }

@@ -45,7 +45,6 @@ internal sealed record ActionCardField(
 internal sealed class RoomCard
 {
     public string Id { get; }
-    public string Name { get; }
 
     /// <summary>
     /// Ordered fields — same count as the room's token list.
@@ -59,16 +58,15 @@ internal sealed class RoomCard
     /// <summary>The gain on the card's back, added to the lantern chain when the card is placed there.</summary>
     public (CardGainType GainType, int Amount)? Back { get; init; }
 
-    internal RoomCard(string id, string name, IReadOnlyList<CardField> fields, string? layout = null)
+    internal RoomCard(string id, IReadOnlyList<CardField> fields, string? layout = null)
     {
         Id     = id;
-        Name   = name;
         Fields = fields;
         Layout = layout;
     }
 
     public RoomCardSnapshot ToSnapshot() => new(
-        Id, Name,
+        Id,
         Fields.Select(f => f.ToSnapshot()).ToList().AsReadOnly(),
         Layout);
 }
@@ -88,10 +86,10 @@ internal sealed class FloorCardDeck
         _drawPile.TryDequeue(out var card) ? card : null;
 
     public static FloorCardDeck LoadStewardFloor(Random rng) =>
-        Load("BoardWC.Engine.Data.ground-floor-cards.json", isMidFloor: false, rng);
+        Load("BoardWC.Engine.Data.steward-floor-cards.json", isMidFloor: false, rng);
 
     public static FloorCardDeck LoadDiplomatFloor(Random rng) =>
-        Load("BoardWC.Engine.Data.mid-floor-cards.json", isMidFloor: true, rng);
+        Load("BoardWC.Engine.Data.diplomat-floor-cards.json", isMidFloor: true, rng);
 
     private static FloorCardDeck Load(string resourceName, bool isMidFloor, Random rng)
     {
@@ -115,7 +113,6 @@ internal sealed class FloorCardDeck
     private static RoomCard ParseStewardFloorCard(JsonElement el)
     {
         var id   = el.GetProperty("id").GetString()!;
-        var name = el.GetProperty("name").GetString()!;
         var back = ParseBack(el);
 
         var fields = new CardField[]
@@ -125,7 +122,7 @@ internal sealed class FloorCardDeck
             ParseActionField(el.GetProperty("action")),
         };
 
-        return new RoomCard(id, name, fields.AsReadOnly()) { Back = back };
+        return new RoomCard(id, fields.AsReadOnly()) { Back = back };
     }
 
     // ── Diplomat floor: field1(i=0), field2(i=1), plus layout ────────────────
@@ -133,7 +130,6 @@ internal sealed class FloorCardDeck
     private static RoomCard ParseDiplomatFloorCard(JsonElement el)
     {
         var id     = el.GetProperty("id").GetString()!;
-        var name   = el.GetProperty("name").GetString()!;
         var layout = el.GetProperty("layout").GetString();
         var back   = ParseBack(el);
 
@@ -143,7 +139,7 @@ internal sealed class FloorCardDeck
             ParseAnyField(el.GetProperty("field2")),
         };
 
-        return new RoomCard(id, name, fields.AsReadOnly(), layout) { Back = back };
+        return new RoomCard(id, fields.AsReadOnly(), layout) { Back = back };
     }
 
     private static (CardGainType GainType, int Amount)? ParseBack(JsonElement el)

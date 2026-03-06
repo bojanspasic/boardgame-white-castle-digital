@@ -2,7 +2,6 @@
   "cards": [
     {
       "id": "card_001",
-      "name": "Card Name",
       "back": { "type": "Coin", "amount": 1 },
       "gain1": [
         { "type": "Influence", "amount": 1 }
@@ -19,7 +18,6 @@
     },
     {
       "id": "card_002",
-      "name": "Card Name",
       "back": { "type": "Coin", "amount": 1 },
       "gain1": [
         { "type": "DaimyoSeal", "amount": 1 },
@@ -38,7 +36,6 @@
     },
     {
       "id": "card_003",
-      "name": "Card Name",
       "back": { "type": "Coin", "amount": 1 },
       "gain1": [
         { "type": "MotherOfPearls", "amount": 2 }
@@ -56,7 +53,6 @@
     },
     {
       "id": "card_004",
-      "name": "Card Name",
       "back": { "type": "Coin", "amount": 1 },
       "action": {
         "cost": [
@@ -75,7 +71,6 @@
     },
     {
       "id": "card_005",
-      "name": "Card Name",
       "back": { "type": "Coin", "amount": 1 },
       "action": {
         "cost": [
@@ -93,7 +88,6 @@
     },
     {
       "id": "card_006",
-      "name": "Card Name",
       "back": { "type": "Coin", "amount": 1 },
       "gain1": [
         { "type": "Coin", "amount": 1 },
@@ -111,7 +105,6 @@
     },
     {
       "id": "card_007",
-      "name": "Card Name",
       "back": { "type": "Coin", "amount": 1 },
       "gain1": [
         { "type": "Influence", "amount": 1 }
@@ -128,7 +121,6 @@
     },
     {
       "id": "card_008",
-      "name": "Card Name",
       "back": { "type": "Coin", "amount": 1 },
       "gain1": [
         { "type": "Iron", "amount": 2 }
@@ -145,7 +137,6 @@
     },
     {
       "id": "card_009",
-      "name": "Card Name",
       "back": { "type": "Coin", "amount": 1 },
       "action": {
         "cost": [

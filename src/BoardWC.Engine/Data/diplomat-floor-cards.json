@@ -2,7 +2,6 @@
   "cards": [
     {
       "id": "mid_001",
-      "name": "Card Name",
       "layout": "DoubleTop",
       "back": { "type": "VictoryPoint", "amount": 1 },
       "field1": [
@@ -13,7 +12,6 @@
     },
     {
       "id": "mid_002",
-      "name": "Card Name",
       "layout": "DoubleBottom",
       "back": { "type": "VictoryPoint", "amount": 1 },
       "field1": [
@@ -24,7 +22,6 @@
     },
     {
       "id": "mid_003",
-      "name": "Card Name",
       "layout": "DoubleBottom",
       "back": { "type": "VictoryPoint", "amount": 1 },
       "field1": { "description": "Play castle" },
@@ -35,7 +32,6 @@
     },
     {
       "id": "mid_004",
-      "name": "Card Name",
       "layout": "DoubleBottom",
       "back": { "type": "VictoryPoint", "amount": 1 },
       "field1": { "description": "Play training grounds" },
@@ -45,7 +41,6 @@
     },
     {
       "id": "mid_005",
-      "name": "Card Name",
       "layout": "DoubleTop",
       "back": { "type": "VictoryPoint", "amount": 1 },
       "field1": [
@@ -56,7 +51,6 @@
     },
     {
       "id": "mid_006",
-      "name": "Card Name",
       "layout": "DoubleBottom",
       "back": { "type": "VictoryPoint", "amount": 1 },
       "field1": [
@@ -66,7 +60,6 @@
     },
     {
       "id": "mid_007",
-      "name": "Card Name",
       "layout": "DoubleBottom",
       "back": { "type": "VictoryPoint", "amount": 1 },
       "field1": { "description": "Play training grounds" },
@@ -76,7 +69,6 @@
     },
     {
       "id": "mid_008",
-      "name": "Card Name",
       "layout": "DoubleBottom",
       "back": { "type": "VictoryPoint", "amount": 1 },
       "field1": { "description": "Play castle" },
@@ -86,7 +78,6 @@
     },
     {
       "id": "mid_009",
-      "name": "Card Name",
       "layout": "DoubleBottom",
       "back": { "type": "VictoryPoint", "amount": 1 },
       "field1": { "description": "Play castle" },

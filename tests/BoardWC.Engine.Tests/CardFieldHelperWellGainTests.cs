@@ -14,7 +14,7 @@ public class CardFieldHelperWellGainTests
     // ── helpers ───────────────────────────────────────────────────────────────
 
     private static RoomCard MakeCard(params CardField[] fields) =>
-        new RoomCard("w1", "Well Card", new List<CardField>(fields).AsReadOnly());
+        new RoomCard("w1", new List<CardField>(fields).AsReadOnly());
 
     private static (Player Alice, GameState State, ChooseCastleCardFieldHandler Handler)
         MakeState(int seals = 2)

@@ -99,7 +99,7 @@ public class PlaceDieHandlerTests
             new CardGainItem(CardGainType.VictoryPoint,   1),
         }.AsReadOnly();
 
-        var card = new RoomCard("test-gain", "Test Gain Card",
+        var card = new RoomCard("test-gain",
             new CardField[] { new GainCardField(gains) }.AsReadOnly());
         room.SetCard(card);
 
@@ -153,7 +153,7 @@ public class PlaceDieHandlerTests
         {
             new CardGainItem(CardGainType.Influence, 5),
         }.AsReadOnly();
-        var card = new RoomCard("test-inf", "Influence Card",
+        var card = new RoomCard("test-inf",
             new CardField[] { new GainCardField(gains) }.AsReadOnly());
         room.SetCard(card);
 
@@ -186,7 +186,7 @@ public class PlaceDieHandlerTests
         var room = state.Board.GetCastleRoom(0, 0);
         room.AddToken(new Token(BridgeColor.Red, TokenResource.Food));
 
-        var card = new RoomCard("test-action", "Castle Action",
+        var card = new RoomCard("test-action",
             new CardField[] { new ActionCardField("Play castle", []) }.AsReadOnly());
         room.SetCard(card);
 
@@ -215,7 +215,7 @@ public class PlaceDieHandlerTests
         var room = state.Board.GetCastleRoom(0, 0);
         room.AddToken(new Token(BridgeColor.Red, TokenResource.Food));
 
-        var card = new RoomCard("test-tg", "TG Action",
+        var card = new RoomCard("test-tg",
             new CardField[] { new ActionCardField("Play training grounds", []) }.AsReadOnly());
         room.SetCard(card);
 
@@ -238,7 +238,7 @@ public class PlaceDieHandlerTests
         var room = state.Board.GetCastleRoom(0, 0);
         room.AddToken(new Token(BridgeColor.Red, TokenResource.Food));
 
-        var card = new RoomCard("test-farm", "Farm Action",
+        var card = new RoomCard("test-farm",
             new CardField[] { new ActionCardField("Play farm", []) }.AsReadOnly());
         room.SetCard(card);
 
@@ -508,7 +508,7 @@ public class PlaceDieHandlerTests
         // Inject a ground-floor room card with 3 GainCardFields (one per row)
         // Field[rowIndex] activates when die placed in that row.
         // Row 0 = index 0 → Field[0] activates.
-        var pdCard = new RoomCard("pd-card", "PD Test",
+        var pdCard = new RoomCard("pd-card",
             new CardField[]
             {
                 new GainCardField(new[] { new CardGainItem(CardGainType.Food, 2) }.AsReadOnly()),
@@ -552,7 +552,7 @@ public class PlaceDieHandlerTests
         state.CurrentPhase = Phase.WorkerPlacement;
 
         // ActionCardField with "Play castle" at row 0 → sets castle pending
-        var pdCard = new RoomCard("pd-action", "PD Action",
+        var pdCard = new RoomCard("pd-action",
             new CardField[]
             {
                 new ActionCardField("Play castle", []),

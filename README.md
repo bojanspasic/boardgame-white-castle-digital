@@ -59,10 +59,7 @@ However it seems that it broke the logic during the process. All the tests (420 
 Tokens are burning at incredible rate now. Without any guardrails it keeps burning like crazy
 
 ## TODO
-Well gain support in cards (both Steward and Diplomat)
-Change name of the decks (both Steward and Diplomat)
 Add more cards and logic for 3-4 players
-Fix the bug preventing round 1 to finish
 Make better AI
 Speed up
 

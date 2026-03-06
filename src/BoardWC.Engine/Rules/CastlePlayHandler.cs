@@ -79,7 +79,7 @@ internal sealed class CastlePlayHandler : IActionHandler
                         room.SetCard(replacement);
                         player.PendingNewCardActivation = takenCard;
                         events.Add(new RoomCardAcquiredEvent(
-                            state.GameId, player.Id, takenCard.Id, takenCard.Name, floorIdx));
+                            state.GameId, player.Id, takenCard.Id, floorIdx));
 
                         if (takenCard.Back is { } back)
                         {

@@ -469,7 +469,7 @@ internal sealed class ConsoleRenderer
     private static string FormatRoomCardAcquired(RoomCardAcquiredEvent x)
     {
         string floor = x.Floor == 0 ? "steward floor" : "diplomat floor";
-        return $"{PlayerName(x.PlayerId, x)} acquired '{x.CardName}' from {floor} castle room";
+        return $"{PlayerName(x.PlayerId, x)} acquired '{x.CardId}' from {floor} castle room";
     }
 
     private static string FormatPdCardFieldActivated(PersonalDomainCardFieldActivatedEvent x)

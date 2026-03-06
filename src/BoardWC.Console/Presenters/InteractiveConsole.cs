@@ -602,7 +602,7 @@ internal sealed class InteractiveConsole
                                && r < state.Board.Castle.Floors[adv.FloorIdx].Count
                     ? state.Board.Castle.Floors[adv.FloorIdx][r].Card
                     : null;
-                string cardDesc = roomCard is not null ? roomCard.Name : "(no card)";
+                string cardDesc = roomCard is not null ? roomCard.Id : "(no card)";
                 var action = advances.FirstOrDefault(
                     a => a.From == adv.From && a.Levels == adv.Levels && a.RoomIndex == r);
                 options.Add(new ActionEntry($"  Room {r}: {cardDesc}", null, action != null, action));
@@ -1075,7 +1075,7 @@ internal sealed class InteractiveConsole
             {
                 string pdField = PdCardFieldForRow(pdCard, r);
                 if (pdField.Length > 0)
-                    sb.Append($"  {pdCard.Name}:{pdField}");
+                    sb.Append($"  {pdCard.Id}:{pdField}");
             }
             options.Add(InfoRow(sb.ToString()));
         }
@@ -1107,7 +1107,7 @@ internal sealed class InteractiveConsole
             foreach (var pdCard in player.PersonalDomainCards)
             {
                 string layoutDesc = pdCard.Layout ?? "3-field";
-                options.Add(InfoRow($"  {pdCard.Name}  ({layoutDesc})"));
+                options.Add(InfoRow($"  {pdCard.Id}  ({layoutDesc})"));
                 for (int r = 0; r < 3; r++)
                 {
                     string fieldDesc = PdCardFieldForRow(pdCard, r);

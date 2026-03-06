@@ -241,7 +241,6 @@ public class SnapshotCoverageTests
     private static void ReadRoomCardSnapshot(RoomCardSnapshot card)
     {
         _ = card.Id;
-        _ = card.Name;
         _ = card.Fields;
         _ = card.Layout;
         foreach (var field in card.Fields)

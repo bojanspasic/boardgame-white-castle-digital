@@ -123,7 +123,6 @@ public sealed record CardFieldSnapshot(
 
 public sealed record RoomCardSnapshot(
     string Id,
-    string Name,
     IReadOnlyList<CardFieldSnapshot> Fields,
     string? Layout
 );
