@@ -1,0 +1,15 @@
+{
+  "stryker-config": {
+    "project": "BoardWC.Engine.csproj",
+    "test-projects": [
+      "tests/BoardWC.Engine.Tests/BoardWC.Engine.Tests.csproj"
+    ],
+    "reporters": ["html", "progress", "cleartext"],
+    "mutation-level": "Standard",
+    "thresholds": {
+      "high": 80,
+      "low": 60,
+      "break": 0
+    }
+  }
+}

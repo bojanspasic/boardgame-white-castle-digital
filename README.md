@@ -54,12 +54,26 @@ I asked Claude to do a code review, which it did, and had some interesting findi
 It uncovered that game AI lies about what it is, so we'll have to deal with that as well.
 However it seems that it broke the logic during the process. All the tests (420 in total) are passing, so there is that. Will have to fix the logic to be able to complete the round.
 
+It’s like the fox guarding the henhouse.
+
 # the larger the codebase the bigger the burn
 
 Tokens are burning at incredible rate now. Without any guardrails it keeps burning like crazy
 
+# mutation testing (1st pass)
+Overall mutation score: 65.27% (1945 mutants, 736 killed, 307 survived, 119 timeout)
+
+Rating	Files
+🟢 100%	ResourceBag, GameState, LanternHelper, IActionHandler
+🟢 90%+	ScoreCalculator (93%), InfluenceHelper (94%), PassHandler (91%)
+🟡 75-82%	CastlePlayHandler, TrainingGroundsHandler, StartGameHandler, FarmHandler
+🟠 55-70%	PlaceDieHandler (55%), CardFieldHelper (69%), PostActionProcessor (61%)
+🔴 Critical	ChoosePersonalDomainRowHandler (0% — compile error), LanternChain (0%), PersonalDomain (5%), Player (13%), CompositeActionHandler (29%)
+
 ## TODO
+Add PlayAnyWhite to the cards
+Correct inland farm cards json and training grounds token JSON 
+Add CRAP 
 Add more cards and logic for 3-4 players
 Make better AI
 Speed up
-

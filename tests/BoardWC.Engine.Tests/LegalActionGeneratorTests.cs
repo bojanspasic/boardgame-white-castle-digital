@@ -643,4 +643,446 @@ public class LegalActionGeneratorTests
         var action = Assert.Single(actions);
         Assert.IsType<PassAction>(action);
     }
+
+    // ── PendingPersonalDomainRowChoice ────────────────────────────────────────
+
+    [Fact]
+    public void WorkerPlacement_PendingPersonalDomainRowChoice_OffersRowChoices()
+    {
+        var rowConfigs = PersonalDomainRowConfig.Load();
+        var (alice, _, state) = MakeState(setupAlice: p =>
+        {
+            p.PendingPersonalDomainRowChoice = true;
+            p.PersonalDomainRows = rowConfigs.Select(c => new PersonalDomainRow(c)).ToArray();
+        });
+
+        var actions = LegalActionGenerator.Generate(alice.Id, state);
+
+        Assert.Equal(3, actions.Count); // one per personal domain row
+        Assert.All(actions, a => Assert.IsType<ChoosePersonalDomainRowAction>(a));
+    }
+
+    [Fact]
+    public void WorkerPlacement_PendingPersonalDomainRowChoice_ColorsMatchRows()
+    {
+        var rowConfigs = PersonalDomainRowConfig.Load();
+        var (alice, _, state) = MakeState(setupAlice: p =>
+        {
+            p.PendingPersonalDomainRowChoice = true;
+            p.PersonalDomainRows = rowConfigs.Select(c => new PersonalDomainRow(c)).ToArray();
+        });
+
+        var actions = LegalActionGenerator.Generate(alice.Id, state);
+        var colors  = actions.Cast<ChoosePersonalDomainRowAction>().Select(a => a.RowColor).ToList();
+
+        Assert.Contains(BridgeColor.Red,   colors);
+        Assert.Contains(BridgeColor.White, colors);
+        Assert.Contains(BridgeColor.Black, colors);
+    }
+
+    // ── PendingNewCardActivation ──────────────────────────────────────────────
+
+    [Fact]
+    public void WorkerPlacement_PendingNewCardActivation_OffersSkipAndAffordableFields()
+    {
+        var gains   = new[] { new CardGainItem(CardGainType.Food, 1) }.AsReadOnly();
+        var afCost  = new[] { new CardCostItem(CardCostType.Coin, 2) }.AsReadOnly();
+        var fields  = new CardField[]
+        {
+            new GainCardField(gains),                   // always affordable (gain, no cost)
+            new ActionCardField("Play castle", afCost), // costs 2 coins
+        };
+        var card = new RoomCard("pending-card", fields.AsReadOnly());
+
+        var (alice, _, state) = MakeState(setupAlice: p =>
+        {
+            p.PendingNewCardActivation = card;
+            p.Coins = 5; // can afford the 2-coin cost
+        });
+
+        var actions = LegalActionGenerator.Generate(alice.Id, state);
+
+        // Skip (fi=-1) + both fields
+        Assert.Contains(actions, a => a is ChooseNewCardFieldAction cn && cn.FieldIndex == -1);
+        Assert.Contains(actions, a => a is ChooseNewCardFieldAction cn && cn.FieldIndex == 0);
+        Assert.Contains(actions, a => a is ChooseNewCardFieldAction cn && cn.FieldIndex == 1);
+    }
+
+    [Fact]
+    public void WorkerPlacement_PendingNewCardActivation_UnaffordableField_Excluded()
+    {
+        var afCost = new[] { new CardCostItem(CardCostType.Coin, 5) }.AsReadOnly();
+        var fields = new CardField[]
+        {
+            new ActionCardField("Play castle", afCost), // costs 5 coins
+        };
+        var card = new RoomCard("pending-card", fields.AsReadOnly());
+
+        var (alice, _, state) = MakeState(setupAlice: p =>
+        {
+            p.PendingNewCardActivation = card;
+            p.Coins = 0; // cannot afford
+        });
+
+        var actions = LegalActionGenerator.Generate(alice.Id, state);
+
+        // Only skip offered
+        Assert.Contains(actions, a => a is ChooseNewCardFieldAction cn && cn.FieldIndex == -1);
+        Assert.DoesNotContain(actions, a => a is ChooseNewCardFieldAction cn && cn.FieldIndex == 0);
+    }
+
+    [Fact]
+    public void WorkerPlacement_PendingNewCardActivation_DaimyoSealCost_Affordable_Offered()
+    {
+        var sealCost = new[] { new CardCostItem(CardCostType.DaimyoSeal, 2) }.AsReadOnly();
+        var fields   = new CardField[] { new ActionCardField("Play castle", sealCost) };
+        var card     = new RoomCard("seal-card", fields.AsReadOnly());
+
+        var (alice, _, state) = MakeState(setupAlice: p =>
+        {
+            p.PendingNewCardActivation = card;
+            p.DaimyoSeals = 3; // >= 2 required
+        });
+
+        var actions = LegalActionGenerator.Generate(alice.Id, state);
+
+        Assert.Contains(actions, a => a is ChooseNewCardFieldAction cn && cn.FieldIndex == 0);
+    }
+
+    [Fact]
+    public void WorkerPlacement_PendingNewCardActivation_DaimyoSealCost_Unaffordable_Excluded()
+    {
+        var sealCost = new[] { new CardCostItem(CardCostType.DaimyoSeal, 3) }.AsReadOnly();
+        var fields   = new CardField[] { new ActionCardField("Play castle", sealCost) };
+        var card     = new RoomCard("seal-card", fields.AsReadOnly());
+
+        var (alice, _, state) = MakeState(setupAlice: p =>
+        {
+            p.PendingNewCardActivation = card;
+            p.DaimyoSeals = 1; // < 3 required
+        });
+
+        var actions = LegalActionGenerator.Generate(alice.Id, state);
+
+        Assert.DoesNotContain(actions, a => a is ChooseNewCardFieldAction cn && cn.FieldIndex == 0);
+    }
+
+    // ── PendingCastleCardFieldFilter ──────────────────────────────────────────
+
+    private static void SetupCastleWithCard(GameState state, int floor, int room, RoomCard card, BridgeColor tokenColor)
+    {
+        var placeholder = state.Board.GetCastleRoom(floor, room);
+        placeholder.AddToken(new Token(tokenColor, TokenResource.Food));
+        placeholder.SetCard(card);
+    }
+
+    [Fact]
+    public void PendingCastleCardFieldFilter_Red_OffersRedRoomsOnly()
+    {
+        var gains  = new[] { new CardGainItem(CardGainType.Food, 1) }.AsReadOnly();
+        var card   = new RoomCard("red-card", new CardField[] { new GainCardField(gains) }.AsReadOnly());
+
+        var (alice, _, state) = MakeState(setupAlice: p => p.PendingCastleCardFieldFilter = "Red");
+        SetupCastleWithCard(state, 0, 0, card, BridgeColor.Red);
+
+        var actions = LegalActionGenerator.Generate(alice.Id, state);
+
+        Assert.Contains(actions, a => a is ChooseCastleCardFieldAction cc && cc.Floor == 0 && cc.RoomIndex == 0);
+    }
+
+    [Fact]
+    public void PendingCastleCardFieldFilter_Red_ExcludesNonRedRooms()
+    {
+        var gains  = new[] { new CardGainItem(CardGainType.Food, 1) }.AsReadOnly();
+        var card   = new RoomCard("black-card", new CardField[] { new GainCardField(gains) }.AsReadOnly());
+
+        var (alice, _, state) = MakeState(setupAlice: p => p.PendingCastleCardFieldFilter = "Red");
+        SetupCastleWithCard(state, 0, 1, card, BridgeColor.Black); // Black token, not Red
+
+        var actions = LegalActionGenerator.Generate(alice.Id, state);
+
+        Assert.DoesNotContain(actions, a => a is ChooseCastleCardFieldAction cc && cc.Floor == 0 && cc.RoomIndex == 1);
+    }
+
+    [Fact]
+    public void PendingCastleCardFieldFilter_Black_OffersBlackRooms()
+    {
+        var gains = new[] { new CardGainItem(CardGainType.Food, 1) }.AsReadOnly();
+        var card  = new RoomCard("blk-card", new CardField[] { new GainCardField(gains) }.AsReadOnly());
+
+        var (alice, _, state) = MakeState(setupAlice: p => p.PendingCastleCardFieldFilter = "Black");
+        SetupCastleWithCard(state, 0, 0, card, BridgeColor.Black);
+
+        var actions = LegalActionGenerator.Generate(alice.Id, state);
+
+        Assert.Contains(actions, a => a is ChooseCastleCardFieldAction cc && cc.Floor == 0 && cc.RoomIndex == 0);
+    }
+
+    [Fact]
+    public void PendingCastleCardFieldFilter_White_OffersWhiteRooms()
+    {
+        var gains = new[] { new CardGainItem(CardGainType.Food, 1) }.AsReadOnly();
+        var card  = new RoomCard("wht-card", new CardField[] { new GainCardField(gains) }.AsReadOnly());
+
+        var (alice, _, state) = MakeState(setupAlice: p => p.PendingCastleCardFieldFilter = "White");
+        SetupCastleWithCard(state, 0, 0, card, BridgeColor.White);
+
+        var actions = LegalActionGenerator.Generate(alice.Id, state);
+
+        Assert.Contains(actions, a => a is ChooseCastleCardFieldAction cc && cc.Floor == 0 && cc.RoomIndex == 0);
+    }
+
+    [Fact]
+    public void PendingCastleCardFieldFilter_GainOnly_ExcludesActionFields()
+    {
+        var afCost  = new[] { new CardCostItem(CardCostType.Coin, 0) }.AsReadOnly();
+        var fields  = new CardField[]
+        {
+            new GainCardField(new[] { new CardGainItem(CardGainType.Food, 1) }.AsReadOnly()),
+            new ActionCardField("Play castle", afCost),
+        };
+        var card = new RoomCard("mixed-card", fields.AsReadOnly());
+
+        var (alice, _, state) = MakeState(setupAlice: p =>
+        {
+            p.PendingCastleCardFieldFilter = "GainOnly";
+            p.Coins = 5;
+        });
+        SetupCastleWithCard(state, 0, 0, card, BridgeColor.Red);
+
+        var actions = LegalActionGenerator.Generate(alice.Id, state);
+
+        // Field 0 (GainCardField) should be offered
+        Assert.Contains(actions, a => a is ChooseCastleCardFieldAction cc && cc.Floor == 0 && cc.FieldIndex == 0);
+        // Field 1 (ActionCardField) should be excluded by GainOnly filter
+        Assert.DoesNotContain(actions, a => a is ChooseCastleCardFieldAction cc && cc.Floor == 0 && cc.FieldIndex == 1);
+    }
+
+    [Fact]
+    public void PendingCastleCardFieldFilter_AlwaysOffersSkip()
+    {
+        var (alice, _, state) = MakeState(setupAlice: p => p.PendingCastleCardFieldFilter = "Red");
+
+        var actions = LegalActionGenerator.Generate(alice.Id, state);
+
+        Assert.Contains(actions, a => a is ChooseCastleCardFieldAction cc && cc.Floor == -1);
+    }
+
+    [Fact]
+    public void PendingCastleCardFieldFilter_RoomWithNoCard_SkipsRoom()
+    {
+        // Room has a Red token but no card set
+        var (alice, _, state) = MakeState(setupAlice: p => p.PendingCastleCardFieldFilter = "Red");
+        state.Board.GetCastleRoom(0, 0).AddToken(new Token(BridgeColor.Red, TokenResource.Food));
+        // No SetCard call → card is null → room is skipped
+
+        var actions = LegalActionGenerator.Generate(alice.Id, state);
+
+        // Only skip offered (no room-specific choices since card is null)
+        Assert.DoesNotContain(actions, a => a is ChooseCastleCardFieldAction cc
+            && cc.Floor == 0 && cc.RoomIndex == 0 && cc.FieldIndex >= 0);
+    }
+
+    [Fact]
+    public void PendingCastleCardFieldFilter_UnaffordableField_Excluded()
+    {
+        var afCost = new[] { new CardCostItem(CardCostType.Coin, 10) }.AsReadOnly();
+        var fields = new CardField[] { new ActionCardField("Play castle", afCost) };
+        var card   = new RoomCard("costly-card", fields.AsReadOnly());
+
+        var (alice, _, state) = MakeState(setupAlice: p =>
+        {
+            p.PendingCastleCardFieldFilter = "Red";
+            p.Coins = 0; // cannot afford 10-coin action
+        });
+        SetupCastleWithCard(state, 0, 0, card, BridgeColor.Red);
+
+        var actions = LegalActionGenerator.Generate(alice.Id, state);
+
+        Assert.DoesNotContain(actions, a => a is ChooseCastleCardFieldAction cc
+            && cc.Floor == 0 && cc.FieldIndex == 0);
+    }
+
+    // ── ValidAdvances — vi=1 boundary (kills vi>=1 mutation) ─────────────────
+
+    [Fact]
+    public void ValidAdvances_Gate_Vi1_OffersNoAdvances()
+    {
+        // vi=1 < 2 → no advances from Gate (distinguishes vi>=2 from vi>=1)
+        var (alice, _, state) = MakeState(setupAlice: p =>
+        {
+            p.CastleAdvanceRemaining = 1;
+            p.CourtiersAtGate        = 1;
+            p.Resources              = new ResourceBag(MotherOfPearls: 1);
+        });
+
+        var advances = LegalActionGenerator.Generate(alice.Id, state)
+            .OfType<CastleAdvanceCourtierAction>().ToList();
+
+        Assert.Empty(advances);
+    }
+
+    [Fact]
+    public void ValidAdvances_StewardFloor_Vi1_OffersNoAdvances()
+    {
+        // vi=1 < 2 → no advances from StewardFloor
+        var (alice, _, state) = MakeState(setupAlice: p =>
+        {
+            p.CastleAdvanceRemaining  = 1;
+            p.CourtiersOnStewardFloor = 1;
+            p.Resources               = new ResourceBag(MotherOfPearls: 1);
+        });
+
+        var advances = LegalActionGenerator.Generate(alice.Id, state)
+            .OfType<CastleAdvanceCourtierAction>().ToList();
+
+        Assert.Empty(advances);
+    }
+
+    [Fact]
+    public void ValidAdvances_DiplomatFloor_Vi1_OffersNoAdvances()
+    {
+        // vi=1 < 2 → no advances from DiplomatFloor
+        var (alice, _, state) = MakeState(setupAlice: p =>
+        {
+            p.CastleAdvanceRemaining   = 1;
+            p.CourtiersOnDiplomatFloor = 1;
+            p.Resources                = new ResourceBag(MotherOfPearls: 1);
+        });
+
+        var advances = LegalActionGenerator.Generate(alice.Id, state)
+            .OfType<CastleAdvanceCourtierAction>().ToList();
+
+        Assert.Empty(advances);
+    }
+
+    // ── ValidAdvances — vi=4 boundary (kills vi>=4 mutation for the >=5 check) ─
+
+    [Fact]
+    public void ValidAdvances_Gate_Vi4_OffersGatePlus1Only()
+    {
+        // vi=4: >= 2 (Gate+1 offered), < 5 (Gate+2 NOT offered)
+        var (alice, _, state) = MakeState(setupAlice: p =>
+        {
+            p.CastleAdvanceRemaining = 1;
+            p.CourtiersAtGate        = 1;
+            p.Resources              = new ResourceBag(MotherOfPearls: 4);
+        });
+
+        var advances = LegalActionGenerator.Generate(alice.Id, state)
+            .OfType<CastleAdvanceCourtierAction>().ToList();
+
+        Assert.Equal(3, advances.Count); // Gate+1 only (3 ground rooms)
+        Assert.All(advances, a => Assert.Equal(1, a.Levels));
+    }
+
+    [Fact]
+    public void ValidAdvances_StewardFloor_Vi4_OffersSFPlus1Only()
+    {
+        // vi=4: >= 2 (SF+1 offered), < 5 (SF+2 NOT offered)
+        var (alice, _, state) = MakeState(setupAlice: p =>
+        {
+            p.CastleAdvanceRemaining  = 1;
+            p.CourtiersOnStewardFloor = 1;
+            p.Resources               = new ResourceBag(MotherOfPearls: 4);
+        });
+
+        var advances = LegalActionGenerator.Generate(alice.Id, state)
+            .OfType<CastleAdvanceCourtierAction>().ToList();
+
+        Assert.Equal(2, advances.Count); // SF+1 only (2 mid rooms)
+        Assert.All(advances, a => Assert.Equal(1, a.Levels));
+    }
+
+    // ── CastlePlaceCourtier — Coins=2 boundary (coins >= 2) ──────────────────
+
+    [Fact]
+    public void WorkerPlacement_CastlePlace_Coins1_DoesNotOfferPlace()
+    {
+        // Coins=1 < 2 → CastlePlaceCourtierAction not offered
+        var (alice, _, state) = MakeState(setupAlice: p =>
+        {
+            p.CastlePlaceRemaining = 1;
+            p.CourtiersAvailable   = 1;
+            p.Coins                = 1;
+        });
+
+        var actions = LegalActionGenerator.Generate(alice.Id, state);
+
+        Assert.DoesNotContain(actions, a => a is CastlePlaceCourtierAction);
+    }
+
+    [Fact]
+    public void WorkerPlacement_CastlePlace_Coins2_OffersPlace()
+    {
+        // Coins=2 == 2 → exactly on boundary → CastlePlaceCourtierAction offered
+        var (alice, _, state) = MakeState(setupAlice: p =>
+        {
+            p.CastlePlaceRemaining = 1;
+            p.CourtiersAvailable   = 1;
+            p.Coins                = 2;
+        });
+
+        var actions = LegalActionGenerator.Generate(alice.Id, state);
+
+        Assert.Contains(actions, a => a is CastlePlaceCourtierAction);
+    }
+
+    // ── Die in hand: personal domain — delta=0 with 0 coins ──────────────────
+
+    [Fact]
+    public void DieInHand_PersonalDomain_DeltaZero_CoinsZero_OffersRow()
+    {
+        // die == compareValue → delta=0 → row offered even with 0 coins
+        // This distinguishes "delta >= 0" from "delta > 0" mutations
+        var (alice, _, state) = MakeState(setupAlice: p => p.Coins = 0);
+        alice.PersonalDomainRows = LoadPdRows();
+        var row = alice.PersonalDomainRows[0];
+        GiveDie(alice, row.Config.DieColor, row.Config.CompareValue); // delta = 0
+
+        var actions = LegalActionGenerator.Generate(alice.Id, state);
+
+        Assert.Contains(actions, a => a is PlaceDieAction p && p.Target is PersonalDomainTarget t && t.RowIndex == 0);
+    }
+
+    // ── Die in hand: well — delta=0 exact boundary ───────────────────────────
+
+    [Fact]
+    public void DieInHand_Well_DeltaZero_CoinsZero_OffersWell()
+    {
+        // Well baseValue=1; die=1 → delta=0 → well offered even with 0 coins
+        var (alice, _, state) = MakeState(setupAlice: p => p.Coins = 0);
+        GiveDie(alice, BridgeColor.Red, 1); // delta = 1-1 = 0
+
+        var actions = LegalActionGenerator.Generate(alice.Id, state);
+
+        Assert.Contains(actions, a => a is PlaceDieAction p && p.Target is WellTarget);
+    }
+
+    // ── Die in hand: outside slot — exact coin boundary ───────────────────────
+
+    [Fact]
+    public void DieInHand_OutsideSlot_DeltaNegative_ExactCoins_OffersSlot()
+    {
+        // Outside baseValue=5; die=4 → delta=-1; coins=1 → exactly enough
+        var (alice, _, state) = MakeState(setupAlice: p => p.Coins = 1);
+        GiveDie(alice, BridgeColor.Red, 4); // delta = 4-5 = -1
+
+        var actions = LegalActionGenerator.Generate(alice.Id, state);
+
+        Assert.Contains(actions, a => a is PlaceDieAction p && p.Target is OutsideSlotTarget);
+    }
+
+    [Fact]
+    public void DieInHand_CastleRoom_DeltaNegative_ExactCoins_OffersPlacement()
+    {
+        // Castle floor 0 baseValue=3; die=2 → delta=-1; coins=1 → exactly enough
+        var (alice, _, state) = MakeState(setupAlice: p => p.Coins = 1);
+        GiveDie(alice, BridgeColor.Red, 2); // delta = 2-3 = -1
+        state.Board.CastleFloors[0][0].AddToken(new Token(BridgeColor.Red, TokenResource.Food));
+
+        var actions = LegalActionGenerator.Generate(alice.Id, state);
+
+        Assert.Contains(actions, a => a is PlaceDieAction p && p.Target is CastleRoomTarget);
+    }
 }

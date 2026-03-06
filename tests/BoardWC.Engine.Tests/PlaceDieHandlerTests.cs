@@ -578,4 +578,515 @@ public class PlaceDieHandlerTests
         Assert.Equal(new ResourceBag(), pdCardEvt.ResourcesGained);
         Assert.Equal(0, pdCardEvt.CoinsGained);
     }
+
+    // ── Validate paths ────────────────────────────────────────────────────────
+
+    [Fact]
+    public void Validate_WrongPhase_Fails()
+    {
+        var (alice, _, state, handler) = MakeState();
+        state.CurrentPhase = Phase.Setup;
+        GiveDie(alice, BridgeColor.Red, 5);
+        var result = handler.Validate(new PlaceDieAction(alice.Id, new WellTarget()), state);
+        Assert.False(result.IsValid);
+    }
+
+    [Fact]
+    public void Validate_UnknownPlayer_Fails()
+    {
+        var (_, _, state, handler) = MakeState();
+        var result = handler.Validate(new PlaceDieAction(Guid.NewGuid(), new WellTarget()), state);
+        Assert.False(result.IsValid);
+        Assert.Contains("Unknown player", result.Reason);
+    }
+
+    [Fact]
+    public void Validate_NotActivePlayer_Fails()
+    {
+        var (_, bob, state, handler) = MakeState();
+        GiveDie(bob, BridgeColor.Red, 5);
+        var result = handler.Validate(new PlaceDieAction(bob.Id, new WellTarget()), state);
+        Assert.False(result.IsValid);
+        Assert.Contains("not this player's turn", result.Reason);
+    }
+
+    [Fact]
+    public void Validate_NoDieInHand_Fails()
+    {
+        var (alice, _, state, handler) = MakeState();
+        var result = handler.Validate(new PlaceDieAction(alice.Id, new WellTarget()), state);
+        Assert.False(result.IsValid);
+        Assert.Contains("No die in hand", result.Reason);
+    }
+
+    [Fact]
+    public void Validate_PlaceholderFull_Fails()
+    {
+        var (alice, _, state, handler) = MakeState(p => p.Coins = 10);
+        GiveDie(alice, BridgeColor.Red, 5);
+        var room = state.Board.GetCastleRoom(0, 0);
+        room.AddToken(new Token(BridgeColor.Red, TokenResource.Food));
+        // Fill the slot with 1 die (2-player limit = 1)
+        room.PlaceDie(new Die(5, BridgeColor.Red));
+        var result = handler.Validate(new PlaceDieAction(alice.Id, new CastleRoomTarget(0, 0)), state);
+        Assert.False(result.IsValid);
+        Assert.Contains("full", result.Reason);
+    }
+
+    // ── PersonalDomain validation ─────────────────────────────────────────────
+
+    [Fact]
+    public void Validate_PersonalDomain_InvalidRowIndex_Fails()
+    {
+        var (alice, _, state, handler) = MakeState();
+        var rowConfigs = PersonalDomainRowConfig.Load();
+        alice.PersonalDomainRows = rowConfigs.Select(c => new PersonalDomainRow(c)).ToArray();
+        GiveDie(alice, BridgeColor.Red, 5);
+        var result = handler.Validate(new PlaceDieAction(alice.Id, new PersonalDomainTarget(99)), state);
+        Assert.False(result.IsValid);
+        Assert.Contains("Invalid personal domain row index", result.Reason);
+    }
+
+    [Fact]
+    public void Validate_PersonalDomain_AlreadyHasDie_Fails()
+    {
+        var (alice, _, state, handler) = MakeState();
+        var rowConfigs = PersonalDomainRowConfig.Load();
+        alice.PersonalDomainRows = rowConfigs.Select(c => new PersonalDomainRow(c)).ToArray();
+        var row = alice.PersonalDomainRows[0];
+        row.PlacedDie = new Die(5, row.Config.DieColor);
+        GiveDie(alice, row.Config.DieColor, 5);
+        var result = handler.Validate(new PlaceDieAction(alice.Id, new PersonalDomainTarget(0)), state);
+        Assert.False(result.IsValid);
+        Assert.Contains("already has a die", result.Reason);
+    }
+
+    [Fact]
+    public void Validate_PersonalDomain_WrongDieColor_Fails()
+    {
+        var (alice, _, state, handler) = MakeState();
+        var rowConfigs = PersonalDomainRowConfig.Load();
+        alice.PersonalDomainRows = rowConfigs.Select(c => new PersonalDomainRow(c)).ToArray();
+        var row        = alice.PersonalDomainRows[0]; // Red row
+        var wrongColor = row.Config.DieColor == BridgeColor.Red ? BridgeColor.Black : BridgeColor.Red;
+        GiveDie(alice, wrongColor, 5);
+        var result = handler.Validate(new PlaceDieAction(alice.Id, new PersonalDomainTarget(0)), state);
+        Assert.False(result.IsValid);
+        Assert.Contains("die", result.Reason);
+    }
+
+    [Fact]
+    public void Validate_PersonalDomain_ValidPlacement_Succeeds()
+    {
+        var (alice, _, state, handler) = MakeState(p => p.Coins = 10);
+        var rowConfigs = PersonalDomainRowConfig.Load();
+        alice.PersonalDomainRows = rowConfigs.Select(c => new PersonalDomainRow(c)).ToArray();
+        var row = alice.PersonalDomainRows[0];
+        GiveDie(alice, row.Config.DieColor, 6);
+        var result = handler.Validate(new PlaceDieAction(alice.Id, new PersonalDomainTarget(0)), state);
+        Assert.True(result.IsValid);
+    }
+
+    // ── PersonalDomain — row 1 and row 2 activation ───────────────────────────
+
+    private static (Player Alice, GameState State, PlaceDieHandler Handler)
+        MakeStateWithRows()
+    {
+        var rowConfigs = PersonalDomainRowConfig.Load();
+        var alice      = new Player { Name = "Alice", Coins = 10 };
+        alice.PersonalDomainRows = rowConfigs.Select(c => new PersonalDomainRow(c)).ToArray();
+        var bob = new Player { Name = "Bob" };
+        bob.PersonalDomainRows = rowConfigs.Select(c => new PersonalDomainRow(c)).ToArray();
+        var state = new GameState(new List<Player> { alice, bob });
+        state.CurrentPhase = Phase.WorkerPlacement;
+        return (alice, state, new PlaceDieHandler());
+    }
+
+    [Fact]
+    public void Apply_PersonalDomain_Row1_EmitsActivatedEvent()
+    {
+        var (alice, state, handler) = MakeStateWithRows();
+        var row1 = alice.PersonalDomainRows[1];
+        GiveDie(alice, row1.Config.DieColor, 6);
+        var events = new List<IDomainEvent>();
+        handler.Apply(new PlaceDieAction(alice.Id, new PersonalDomainTarget(1)), state, events);
+        var evt = Assert.Single(events.OfType<PersonalDomainActivatedEvent>());
+        Assert.Equal(1, evt.RowIndex);
+        Assert.Equal(row1.Config.DieColor, evt.DieColor);
+    }
+
+    [Fact]
+    public void Apply_PersonalDomain_Row2_EmitsActivatedEvent()
+    {
+        var (alice, state, handler) = MakeStateWithRows();
+        var row2 = alice.PersonalDomainRows[2];
+        GiveDie(alice, row2.Config.DieColor, 6);
+        var events = new List<IDomainEvent>();
+        handler.Apply(new PlaceDieAction(alice.Id, new PersonalDomainTarget(2)), state, events);
+        var evt = Assert.Single(events.OfType<PersonalDomainActivatedEvent>());
+        Assert.Equal(2, evt.RowIndex);
+    }
+
+    // ── PersonalDomain — DoubleTop layout ────────────────────────────────────
+
+    [Fact]
+    public void Apply_PersonalDomain_DoubleTopCard_Row0_ActivatesField0()
+    {
+        var (alice, state, handler) = MakeStateWithRows();
+        var gains  = new[] { new CardGainItem(CardGainType.Food, 2) }.AsReadOnly();
+        var pdCard = new RoomCard("dt-card",
+            new CardField[] { new GainCardField(gains), new GainCardField(gains) }.AsReadOnly(),
+            layout: "DoubleTop");
+        alice.PersonalDomainCards.Add(pdCard);
+        GiveDie(alice, alice.PersonalDomainRows[0].Config.DieColor, 6);
+        var events = new List<IDomainEvent>();
+        handler.Apply(new PlaceDieAction(alice.Id, new PersonalDomainTarget(0)), state, events);
+        Assert.Contains(events, e => e is PersonalDomainCardFieldActivatedEvent p
+            && p.CardId == "dt-card" && p.FieldIndex == 0);
+    }
+
+    [Fact]
+    public void Apply_PersonalDomain_DoubleTopCard_Row1_ActivatesField0()
+    {
+        var (alice, state, handler) = MakeStateWithRows();
+        var gains  = new[] { new CardGainItem(CardGainType.Food, 2) }.AsReadOnly();
+        var pdCard = new RoomCard("dt-card",
+            new CardField[] { new GainCardField(gains), new GainCardField(gains) }.AsReadOnly(),
+            layout: "DoubleTop");
+        alice.PersonalDomainCards.Add(pdCard);
+        GiveDie(alice, alice.PersonalDomainRows[1].Config.DieColor, 6);
+        var events = new List<IDomainEvent>();
+        handler.Apply(new PlaceDieAction(alice.Id, new PersonalDomainTarget(1)), state, events);
+        Assert.Contains(events, e => e is PersonalDomainCardFieldActivatedEvent p
+            && p.CardId == "dt-card" && p.FieldIndex == 0);
+    }
+
+    [Fact]
+    public void Apply_PersonalDomain_DoubleTopCard_Row2_ActivatesField1()
+    {
+        var (alice, state, handler) = MakeStateWithRows();
+        var gains  = new[] { new CardGainItem(CardGainType.Food, 2) }.AsReadOnly();
+        var pdCard = new RoomCard("dt-card",
+            new CardField[] { new GainCardField(gains), new GainCardField(gains) }.AsReadOnly(),
+            layout: "DoubleTop");
+        alice.PersonalDomainCards.Add(pdCard);
+        GiveDie(alice, alice.PersonalDomainRows[2].Config.DieColor, 6);
+        var events = new List<IDomainEvent>();
+        handler.Apply(new PlaceDieAction(alice.Id, new PersonalDomainTarget(2)), state, events);
+        Assert.Contains(events, e => e is PersonalDomainCardFieldActivatedEvent p
+            && p.CardId == "dt-card" && p.FieldIndex == 1);
+    }
+
+    // ── PersonalDomain — DoubleBottom layout ──────────────────────────────────
+
+    [Fact]
+    public void Apply_PersonalDomain_DoubleBottomCard_Row0_ActivatesField0()
+    {
+        var (alice, state, handler) = MakeStateWithRows();
+        var gains  = new[] { new CardGainItem(CardGainType.Food, 1) }.AsReadOnly();
+        var pdCard = new RoomCard("db-card",
+            new CardField[] { new GainCardField(gains), new GainCardField(gains) }.AsReadOnly(),
+            layout: "DoubleBottom");
+        alice.PersonalDomainCards.Add(pdCard);
+        GiveDie(alice, alice.PersonalDomainRows[0].Config.DieColor, 6);
+        var events = new List<IDomainEvent>();
+        handler.Apply(new PlaceDieAction(alice.Id, new PersonalDomainTarget(0)), state, events);
+        Assert.Contains(events, e => e is PersonalDomainCardFieldActivatedEvent p
+            && p.CardId == "db-card" && p.FieldIndex == 0);
+    }
+
+    [Fact]
+    public void Apply_PersonalDomain_DoubleBottomCard_Row1_ActivatesField1()
+    {
+        var (alice, state, handler) = MakeStateWithRows();
+        var gains  = new[] { new CardGainItem(CardGainType.Food, 1) }.AsReadOnly();
+        var pdCard = new RoomCard("db-card",
+            new CardField[] { new GainCardField(gains), new GainCardField(gains) }.AsReadOnly(),
+            layout: "DoubleBottom");
+        alice.PersonalDomainCards.Add(pdCard);
+        GiveDie(alice, alice.PersonalDomainRows[1].Config.DieColor, 6);
+        var events = new List<IDomainEvent>();
+        handler.Apply(new PlaceDieAction(alice.Id, new PersonalDomainTarget(1)), state, events);
+        Assert.Contains(events, e => e is PersonalDomainCardFieldActivatedEvent p
+            && p.CardId == "db-card" && p.FieldIndex == 1);
+    }
+
+    [Fact]
+    public void Apply_PersonalDomain_DoubleBottomCard_Row2_ActivatesField1()
+    {
+        var (alice, state, handler) = MakeStateWithRows();
+        var gains  = new[] { new CardGainItem(CardGainType.Food, 1) }.AsReadOnly();
+        var pdCard = new RoomCard("db-card",
+            new CardField[] { new GainCardField(gains), new GainCardField(gains) }.AsReadOnly(),
+            layout: "DoubleBottom");
+        alice.PersonalDomainCards.Add(pdCard);
+        GiveDie(alice, alice.PersonalDomainRows[2].Config.DieColor, 6);
+        var events = new List<IDomainEvent>();
+        handler.Apply(new PlaceDieAction(alice.Id, new PersonalDomainTarget(2)), state, events);
+        Assert.Contains(events, e => e is PersonalDomainCardFieldActivatedEvent p
+            && p.CardId == "db-card" && p.FieldIndex == 1);
+    }
+
+    // ── PersonalDomain — unknown layout skipped ───────────────────────────────
+
+    [Fact]
+    public void Apply_PersonalDomain_UnknownLayout_NoActivation()
+    {
+        var (alice, state, handler) = MakeStateWithRows();
+        var gains  = new[] { new CardGainItem(CardGainType.Food, 1) }.AsReadOnly();
+        var pdCard = new RoomCard("unknown-card",
+            new CardField[] { new GainCardField(gains) }.AsReadOnly(),
+            layout: "WeirdLayout");
+        alice.PersonalDomainCards.Add(pdCard);
+        GiveDie(alice, alice.PersonalDomainRows[0].Config.DieColor, 6);
+        var events = new List<IDomainEvent>();
+        handler.Apply(new PlaceDieAction(alice.Id, new PersonalDomainTarget(0)), state, events);
+        Assert.DoesNotContain(events, e => e is PersonalDomainCardFieldActivatedEvent p
+            && p.CardId == "unknown-card");
+    }
+
+    [Fact]
+    public void Apply_PersonalDomain_NullLayout_FieldIndexOutOfRange_NoActivation()
+    {
+        var (alice, state, handler) = MakeStateWithRows();
+        // 1 field (index 0 only); row 2 would request index 2 → out of range → skipped
+        var gains  = new[] { new CardGainItem(CardGainType.Food, 1) }.AsReadOnly();
+        var pdCard = new RoomCard("short-card",
+            new CardField[] { new GainCardField(gains) }.AsReadOnly(),
+            layout: null);
+        alice.PersonalDomainCards.Add(pdCard);
+        GiveDie(alice, alice.PersonalDomainRows[2].Config.DieColor, 6);
+        var events = new List<IDomainEvent>();
+        handler.Apply(new PlaceDieAction(alice.Id, new PersonalDomainTarget(2)), state, events);
+        Assert.DoesNotContain(events, e => e is PersonalDomainCardFieldActivatedEvent p
+            && p.CardId == "short-card");
+    }
+
+    // ── PersonalDomain — no seed card ────────────────────────────────────────
+
+    [Fact]
+    public void Apply_PersonalDomain_NoSeedCard_NoSeedCardActivatedEvent()
+    {
+        var (alice, state, handler) = MakeStateWithRows();
+        GiveDie(alice, alice.PersonalDomainRows[0].Config.DieColor, 6);
+        var events = new List<IDomainEvent>();
+        handler.Apply(new PlaceDieAction(alice.Id, new PersonalDomainTarget(0)), state, events);
+        Assert.DoesNotContain(events, e => e is SeedCardActivatedEvent);
+    }
+
+    // ── CastleRoom — token index selects field ────────────────────────────────
+
+    [Fact]
+    public void Apply_CastleRoom_NonMatchingTokenIndex_SkipsField()
+    {
+        var (alice, _, state, handler) = MakeState(p => p.Coins = 10);
+        var room = state.Board.GetCastleRoom(0, 0);
+        // Token[0] = Black (won't match), Token[1] = Red (matches die)
+        room.AddToken(new Token(BridgeColor.Black, TokenResource.Food));
+        room.AddToken(new Token(BridgeColor.Red,   TokenResource.Food));
+        var card = new RoomCard("two-token",
+            new CardField[]
+            {
+                new GainCardField(new[] { new CardGainItem(CardGainType.Iron, 5) }.AsReadOnly()),
+                new GainCardField(new[] { new CardGainItem(CardGainType.Food, 3) }.AsReadOnly()),
+            }.AsReadOnly());
+        room.SetCard(card);
+        GiveDie(alice, BridgeColor.Red, 5);
+        var events = new List<IDomainEvent>();
+        handler.Apply(new PlaceDieAction(alice.Id, new CastleRoomTarget(0, 0)), state, events);
+        // Only field[1] (Red token) activates
+        var evt = Assert.Single(events.OfType<CardFieldGainActivatedEvent>());
+        Assert.Equal(1, evt.FieldIndex);
+        Assert.Equal(3, evt.ResourcesGained.Food);
+        Assert.Equal(0, evt.ResourcesGained.Iron);
+    }
+
+    // ── Outside slot → PendingOutsideActivationSlot ───────────────────────────
+
+    [Fact]
+    public void Apply_OutsideSlot0_SetsPendingActivationSlot0()
+    {
+        var (alice, _, state, handler) = MakeState(p => p.Coins = 10);
+        GiveDie(alice, BridgeColor.Red, 6);
+        var events = new List<IDomainEvent>();
+        handler.Apply(new PlaceDieAction(alice.Id, new OutsideSlotTarget(0)), state, events);
+        Assert.Equal(0, alice.PendingOutsideActivationSlot);
+    }
+
+    [Fact]
+    public void Apply_OutsideSlot1_SetsPendingActivationSlot1()
+    {
+        var (alice, _, state, handler) = MakeState(p => p.Coins = 10);
+        GiveDie(alice, BridgeColor.Red, 6);
+        var events = new List<IDomainEvent>();
+        handler.Apply(new PlaceDieAction(alice.Id, new OutsideSlotTarget(1)), state, events);
+        Assert.Equal(1, alice.PendingOutsideActivationSlot);
+    }
+
+    // ── PersonalDomain validation — coin boundary arithmetic ──────────────────
+
+    [Fact]
+    public void Validate_PersonalDomain_DeltaZero_NoCoins_Succeeds()
+    {
+        // die=6 == compareValue=6 → delta=0 → coin check skipped (tests pdDelta < 0 branch)
+        var (alice, _, state, handler) = MakeState(p => p.Coins = 0);
+        var rowConfigs = PersonalDomainRowConfig.Load();
+        alice.PersonalDomainRows = rowConfigs.Select(c => new PersonalDomainRow(c)).ToArray();
+        var row = alice.PersonalDomainRows[0]; // Red row, compareValue=6
+        GiveDie(alice, row.Config.DieColor, row.Config.CompareValue); // die == compare → delta=0
+        var result = handler.Validate(new PlaceDieAction(alice.Id, new PersonalDomainTarget(0)), state);
+        Assert.True(result.IsValid);
+    }
+
+    [Fact]
+    public void Validate_PersonalDomain_ExactlyEnoughCoins_Succeeds()
+    {
+        // die=5, compare=6 → delta=-1; coins=1 → exactly 1 needed → valid
+        var (alice, _, state, handler) = MakeState(p => p.Coins = 1);
+        var rowConfigs = PersonalDomainRowConfig.Load();
+        alice.PersonalDomainRows = rowConfigs.Select(c => new PersonalDomainRow(c)).ToArray();
+        var row = alice.PersonalDomainRows[0]; // Red, compareValue=6
+        GiveDie(alice, row.Config.DieColor, row.Config.CompareValue - 1); // delta = -1
+        var result = handler.Validate(new PlaceDieAction(alice.Id, new PersonalDomainTarget(0)), state);
+        Assert.True(result.IsValid);
+    }
+
+    [Fact]
+    public void Validate_PersonalDomain_OneCoinShort_Fails()
+    {
+        // die=5, compare=6 → delta=-1; coins=0 → need 1 but have 0 → invalid
+        var (alice, _, state, handler) = MakeState(p => p.Coins = 0);
+        var rowConfigs = PersonalDomainRowConfig.Load();
+        alice.PersonalDomainRows = rowConfigs.Select(c => new PersonalDomainRow(c)).ToArray();
+        var row = alice.PersonalDomainRows[0];
+        GiveDie(alice, row.Config.DieColor, row.Config.CompareValue - 1); // delta = -1
+        var result = handler.Validate(new PlaceDieAction(alice.Id, new PersonalDomainTarget(0)), state);
+        Assert.False(result.IsValid);
+        Assert.Contains("coins", result.Reason);
+    }
+
+    // ── CastleRoom validation — coin boundary arithmetic ──────────────────────
+
+    [Fact]
+    public void Validate_CastleRoom_DeltaZero_NoCoins_Succeeds()
+    {
+        // Castle floor 0 baseValue=3; die=3 → delta=0 → coin check skipped
+        var (alice, _, state, handler) = MakeState(p => p.Coins = 0);
+        var room = state.Board.GetCastleRoom(0, 0);
+        room.AddToken(new Token(BridgeColor.Red, TokenResource.Food));
+        GiveDie(alice, BridgeColor.Red, 3); // compare=3, delta=0
+        var result = handler.Validate(new PlaceDieAction(alice.Id, new CastleRoomTarget(0, 0)), state);
+        Assert.True(result.IsValid);
+    }
+
+    [Fact]
+    public void Validate_CastleRoom_ExactlyEnoughCoins_Succeeds()
+    {
+        // Castle floor 0 baseValue=3; die=2 → delta=-1; coins=1 → valid
+        var (alice, _, state, handler) = MakeState(p => p.Coins = 1);
+        var room = state.Board.GetCastleRoom(0, 0);
+        room.AddToken(new Token(BridgeColor.Red, TokenResource.Food));
+        GiveDie(alice, BridgeColor.Red, 2); // delta = 2-3 = -1
+        var result = handler.Validate(new PlaceDieAction(alice.Id, new CastleRoomTarget(0, 0)), state);
+        Assert.True(result.IsValid);
+    }
+
+    [Fact]
+    public void Validate_CastleRoom_OneCoinShort_Fails()
+    {
+        // Castle floor 0 baseValue=3; die=2 → delta=-1; coins=0 → invalid
+        var (alice, _, state, handler) = MakeState(p => p.Coins = 0);
+        var room = state.Board.GetCastleRoom(0, 0);
+        room.AddToken(new Token(BridgeColor.Red, TokenResource.Food));
+        GiveDie(alice, BridgeColor.Red, 2); // delta = -1
+        var result = handler.Validate(new PlaceDieAction(alice.Id, new CastleRoomTarget(0, 0)), state);
+        Assert.False(result.IsValid);
+        Assert.Contains("coins", result.Reason);
+    }
+
+    // ── Apply — coin delta arithmetic ─────────────────────────────────────────
+
+    [Fact]
+    public void Apply_PersonalDomain_NegativeDelta_DeductsCoins()
+    {
+        // die=5, compare=6 → delta=-1 → coins decrease by 1
+        var (alice, state, handler) = MakeStateWithRows();
+        alice.Coins = 10;
+        var row = alice.PersonalDomainRows[0]; // compareValue=6
+        GiveDie(alice, row.Config.DieColor, row.Config.CompareValue - 1);
+        var events = new List<IDomainEvent>();
+        handler.Apply(new PlaceDieAction(alice.Id, new PersonalDomainTarget(0)), state, events);
+        Assert.Equal(9, alice.Coins); // 10 + (-1)
+    }
+
+    [Fact]
+    public void Apply_PersonalDomain_ZeroDelta_CoinsUnchanged()
+    {
+        // die=6, compare=6 → delta=0 → coins unchanged
+        var (alice, state, handler) = MakeStateWithRows();
+        alice.Coins = 10;
+        var row = alice.PersonalDomainRows[0]; // compareValue=6
+        GiveDie(alice, row.Config.DieColor, row.Config.CompareValue); // delta=0
+        var events = new List<IDomainEvent>();
+        handler.Apply(new PlaceDieAction(alice.Id, new PersonalDomainTarget(0)), state, events);
+        Assert.Equal(10, alice.Coins);
+    }
+
+    [Fact]
+    public void Apply_CastleRoom_NegativeDelta_DeductsCoins()
+    {
+        // Castle floor 0 baseValue=3; die=2 → delta=-1 → coins decrease
+        var (alice, _, state, handler) = MakeState(p => p.Coins = 10);
+        var room = state.Board.GetCastleRoom(0, 0);
+        room.AddToken(new Token(BridgeColor.Red, TokenResource.Food));
+        GiveDie(alice, BridgeColor.Red, 2); // delta = 2-3 = -1
+        var events = new List<IDomainEvent>();
+        handler.Apply(new PlaceDieAction(alice.Id, new CastleRoomTarget(0, 0)), state, events);
+        Assert.Equal(9, alice.Coins); // 10 + (-1)
+    }
+
+    [Fact]
+    public void Apply_CastleRoom_PositiveDelta_AddsCoins()
+    {
+        // Castle floor 0 baseValue=3; die=6 → delta=+3 → coins increase
+        var (alice, _, state, handler) = MakeState(p => p.Coins = 10);
+        var room = state.Board.GetCastleRoom(0, 0);
+        room.AddToken(new Token(BridgeColor.Red, TokenResource.Food));
+        GiveDie(alice, BridgeColor.Red, 6); // delta = 6-3 = +3
+        var events = new List<IDomainEvent>();
+        handler.Apply(new PlaceDieAction(alice.Id, new CastleRoomTarget(0, 0)), state, events);
+        Assert.Equal(13, alice.Coins); // 10 + 3
+    }
+
+    // ── Well — DaimyoSeals cap ─────────────────────────────────────────────────
+
+    [Fact]
+    public void Apply_Well_DaimyoSeals_BelowMax_Increments()
+    {
+        // Seals=4 → after well seals=5 (tests +1 increment)
+        var (alice, _, state, handler) = MakeState(p =>
+        {
+            p.Coins      = 5;
+            p.DaimyoSeals = 4;
+        });
+        GiveDie(alice, BridgeColor.Red, 3);
+        var events = new List<IDomainEvent>();
+        handler.Apply(new PlaceDieAction(alice.Id, new WellTarget()), state, events);
+        Assert.Equal(5, alice.DaimyoSeals);
+    }
+
+    [Fact]
+    public void Apply_Well_DaimyoSeals_AtMax_StaysAtMax()
+    {
+        // Seals=5 → after well still 5 (tests Math.Min cap)
+        var (alice, _, state, handler) = MakeState(p =>
+        {
+            p.Coins      = 5;
+            p.DaimyoSeals = 5;
+        });
+        GiveDie(alice, BridgeColor.Red, 3);
+        var events = new List<IDomainEvent>();
+        handler.Apply(new PlaceDieAction(alice.Id, new WellTarget()), state, events);
+        Assert.Equal(5, alice.DaimyoSeals);
+    }
 }

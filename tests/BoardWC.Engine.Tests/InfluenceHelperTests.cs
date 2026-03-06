@@ -1,3 +1,4 @@
+using BoardWC.Engine.Actions;
 using BoardWC.Engine.Domain;
 using BoardWC.Engine.Events;
 using BoardWC.Engine.Rules;
@@ -160,5 +161,181 @@ public class InfluenceHelperTests
         Assert.Equal(1, player1.InfluenceGainOrder);
         Assert.Equal(2, player2.InfluenceGainOrder);
         Assert.Equal(2, state.InfluenceGainCounter);
+    }
+}
+
+/// <summary>
+/// Unit tests for ChooseInfluencePayHandler — validation and apply paths.
+/// </summary>
+public class ChooseInfluencePayHandlerTests
+{
+    private static (Player Alice, GameState State, ChooseInfluencePayHandler Handler)
+        MakeState(int pendingGain = 3, int sealCost = 1, int seals = 5, int influence = 3)
+    {
+        var alice = new Player
+        {
+            Name                     = "Alice",
+            PendingInfluenceGain     = pendingGain,
+            PendingInfluenceSealCost = sealCost,
+            DaimyoSeals              = seals,
+            Influence                = influence,
+        };
+        var state = new GameState(new List<Player> { alice });
+        state.CurrentPhase = Phase.WorkerPlacement;
+        return (alice, state, new ChooseInfluencePayHandler());
+    }
+
+    // ── Validation — guard failures ───────────────────────────────────────────
+
+    [Fact]
+    public void Validate_NoPendingInfluenceGain_Zero_Fails()
+    {
+        // PendingInfluenceGain=0 → <= 0 → should fail (kills mutation < 0)
+        var (alice, state, handler) = MakeState(pendingGain: 0);
+        var result = handler.Validate(new ChooseInfluencePayAction(alice.Id, WillPay: true), state);
+        Assert.False(result.IsValid);
+        Assert.Contains("pending", result.Reason);
+    }
+
+    [Fact]
+    public void Validate_PendingInfluenceGain_One_Succeeds()
+    {
+        // PendingInfluenceGain=1 → > 0 → valid (kills mutation >= 0 or > 1)
+        var (alice, state, handler) = MakeState(pendingGain: 1, sealCost: 0, seals: 5);
+        var result = handler.Validate(new ChooseInfluencePayAction(alice.Id, WillPay: false), state);
+        Assert.True(result.IsValid);
+    }
+
+    [Fact]
+    public void Validate_WillPay_SealsExact_Succeeds()
+    {
+        // seals == sealCost → exactly enough → valid (kills < changed to <=)
+        var (alice, state, handler) = MakeState(pendingGain: 3, sealCost: 2, seals: 2);
+        var result = handler.Validate(new ChooseInfluencePayAction(alice.Id, WillPay: true), state);
+        Assert.True(result.IsValid);
+    }
+
+    [Fact]
+    public void Validate_WillPay_OneShortOnSeals_Fails()
+    {
+        // seals == sealCost - 1 → one short → fails
+        var (alice, state, handler) = MakeState(pendingGain: 3, sealCost: 2, seals: 1);
+        var result = handler.Validate(new ChooseInfluencePayAction(alice.Id, WillPay: true), state);
+        Assert.False(result.IsValid);
+        Assert.Contains("seals", result.Reason);
+    }
+
+    [Fact]
+    public void Validate_WillNotPay_SealsInsufficient_Succeeds()
+    {
+        // WillPay=false bypasses seal check even with 0 seals
+        var (alice, state, handler) = MakeState(pendingGain: 3, sealCost: 5, seals: 0);
+        var result = handler.Validate(new ChooseInfluencePayAction(alice.Id, WillPay: false), state);
+        Assert.True(result.IsValid);
+    }
+
+    [Fact]
+    public void Validate_WrongPhase_Fails()
+    {
+        var (alice, state, handler) = MakeState();
+        state.CurrentPhase = Phase.Setup;
+        var result = handler.Validate(new ChooseInfluencePayAction(alice.Id, WillPay: false), state);
+        Assert.False(result.IsValid);
+    }
+
+    [Fact]
+    public void Validate_UnknownPlayer_Fails()
+    {
+        var (_, state, handler) = MakeState();
+        var result = handler.Validate(new ChooseInfluencePayAction(Guid.NewGuid(), WillPay: false), state);
+        Assert.False(result.IsValid);
+        Assert.Contains("Unknown", result.Reason);
+    }
+
+    // ── Apply — WillPay = true ────────────────────────────────────────────────
+
+    [Fact]
+    public void Apply_WillPay_DeductsSealsAndAddsInfluence()
+    {
+        var (alice, state, handler) = MakeState(pendingGain: 3, sealCost: 2, seals: 5, influence: 3);
+        var events = new List<IDomainEvent>();
+        handler.Apply(new ChooseInfluencePayAction(alice.Id, WillPay: true), state, events);
+
+        Assert.Equal(3, alice.DaimyoSeals); // 5 - 2
+        Assert.Equal(6, alice.Influence);   // 3 + 3
+    }
+
+    [Fact]
+    public void Apply_WillPay_ClearsPendingState()
+    {
+        var (alice, state, handler) = MakeState(pendingGain: 3, sealCost: 1, seals: 5);
+        var events = new List<IDomainEvent>();
+        handler.Apply(new ChooseInfluencePayAction(alice.Id, WillPay: true), state, events);
+
+        Assert.Equal(0, alice.PendingInfluenceGain);
+        Assert.Equal(0, alice.PendingInfluenceSealCost);
+    }
+
+    [Fact]
+    public void Apply_WillPay_BumpsInfluenceGainOrder()
+    {
+        var (alice, state, handler) = MakeState();
+        var events = new List<IDomainEvent>();
+        handler.Apply(new ChooseInfluencePayAction(alice.Id, WillPay: true), state, events);
+
+        Assert.Equal(1, alice.InfluenceGainOrder);
+        Assert.Equal(1, state.InfluenceGainCounter);
+    }
+
+    [Fact]
+    public void Apply_WillPay_EmitsResolvedEvent_SealsPaid()
+    {
+        var (alice, state, handler) = MakeState(pendingGain: 3, sealCost: 2, seals: 5);
+        var events = new List<IDomainEvent>();
+        handler.Apply(new ChooseInfluencePayAction(alice.Id, WillPay: true), state, events);
+
+        var evt = Assert.Single(events.OfType<InfluenceGainResolvedEvent>());
+        Assert.Equal(state.GameId, evt.GameId);
+        Assert.Equal(alice.Id,     evt.PlayerId);
+        Assert.Equal(3,            evt.InfluenceGain);
+        Assert.Equal(2,            evt.SealsPaid);
+        Assert.True(evt.Accepted);
+        Assert.True(evt.OccurredAt > DateTimeOffset.MinValue);
+    }
+
+    // ── Apply — WillPay = false ───────────────────────────────────────────────
+
+    [Fact]
+    public void Apply_WillNotPay_InfluenceAndSealsUnchanged()
+    {
+        var (alice, state, handler) = MakeState(pendingGain: 3, sealCost: 2, seals: 5, influence: 3);
+        var events = new List<IDomainEvent>();
+        handler.Apply(new ChooseInfluencePayAction(alice.Id, WillPay: false), state, events);
+
+        Assert.Equal(5, alice.DaimyoSeals); // unchanged
+        Assert.Equal(3, alice.Influence);   // unchanged
+    }
+
+    [Fact]
+    public void Apply_WillNotPay_ClearsPendingState()
+    {
+        var (alice, state, handler) = MakeState(pendingGain: 3, sealCost: 1, seals: 5);
+        var events = new List<IDomainEvent>();
+        handler.Apply(new ChooseInfluencePayAction(alice.Id, WillPay: false), state, events);
+
+        Assert.Equal(0, alice.PendingInfluenceGain);
+        Assert.Equal(0, alice.PendingInfluenceSealCost);
+    }
+
+    [Fact]
+    public void Apply_WillNotPay_EmitsResolvedEvent_ZeroSealsPaid()
+    {
+        var (alice, state, handler) = MakeState(pendingGain: 3, sealCost: 2, seals: 5);
+        var events = new List<IDomainEvent>();
+        handler.Apply(new ChooseInfluencePayAction(alice.Id, WillPay: false), state, events);
+
+        var evt = Assert.Single(events.OfType<InfluenceGainResolvedEvent>());
+        Assert.Equal(0,     evt.SealsPaid);
+        Assert.False(evt.Accepted);
     }
 }

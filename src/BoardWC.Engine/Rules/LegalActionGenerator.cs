@@ -130,7 +130,8 @@ internal static class LegalActionGenerator
                 for (int room = 0; room < rooms.Count; room++)
                 {
                     var ph = rooms[room];
-                    if (ph.Card is not { } card) continue;
+                    var card = ph.Card;
+                    if (card is null) continue;
 
                     if (filter == "Red"   && !ph.Tokens.Any(t => t.DieColor == BridgeColor.Red))   continue;
                     if (filter == "Black" && !ph.Tokens.Any(t => t.DieColor == BridgeColor.Black)) continue;

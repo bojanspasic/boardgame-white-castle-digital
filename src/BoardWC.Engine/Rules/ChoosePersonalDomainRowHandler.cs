@@ -51,7 +51,8 @@ internal sealed class ChoosePersonalDomainRowHandler : IActionHandler
         foreach (var pdCard in player.PersonalDomainCards)
         {
             int? fi = GetFieldIndexForRow(pdCard, rowIndex);
-            if (fi is not { } fieldIdx || fieldIdx >= pdCard.Fields.Count) continue;
+            if (fi is null || fi.Value >= pdCard.Fields.Count) continue;
+            int fieldIdx = fi.Value;
 
             var field = pdCard.Fields[fieldIdx];
 

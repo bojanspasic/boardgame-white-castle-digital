@@ -390,3 +390,7 @@ appsettings.Local.json
 secrets.json
 
 .claude
+
+# Stryker mutation testing output
+mutation-report/
+StrykerOutput/

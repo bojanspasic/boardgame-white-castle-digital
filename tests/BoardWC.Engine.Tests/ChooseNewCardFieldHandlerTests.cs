@@ -183,4 +183,96 @@ public class ChooseNewCardFieldHandlerTests
 
         Assert.Equal(1, alice.DaimyoSeals); // 3 - 2
     }
+
+    // ── Validation — field index boundaries ──────────────────────────────────
+
+    [Fact]
+    public void Validate_FieldIndexMinusTwoNotSkip_Fails()
+    {
+        // FieldIndex=-2 is not the skip sentinel (-1) and is < 0 → invalid
+        var card = MakeCard(new GainCardField(
+            new[] { new CardGainItem(CardGainType.Coin, 1) }.AsReadOnly()));
+        var (alice, state, handler) = MakeState(card);
+        var result = handler.Validate(new ChooseNewCardFieldAction(alice.Id, -2), state);
+        Assert.False(result.IsValid);
+        Assert.Contains("Invalid field", result.Reason);
+    }
+
+    [Fact]
+    public void Validate_ActionField_InsufficientSeals_Fails()
+    {
+        var card = MakeCard(new ActionCardField("Play castle",
+            new[] { new CardCostItem(CardCostType.DaimyoSeal, 3) }.AsReadOnly()));
+        var (alice, state, handler) = MakeState(card);
+        alice.DaimyoSeals = 0;
+        var result = handler.Validate(new ChooseNewCardFieldAction(alice.Id, 0), state);
+        Assert.False(result.IsValid);
+        Assert.Contains("seals", result.Reason);
+    }
+
+    [Fact]
+    public void Validate_ActionField_ExactSeals_Succeeds()
+    {
+        // seals == cost → exactly enough → valid (boundary for < changed to <=)
+        var card = MakeCard(new ActionCardField("Play castle",
+            new[] { new CardCostItem(CardCostType.DaimyoSeal, 2) }.AsReadOnly()));
+        var (alice, state, handler) = MakeState(card);
+        alice.DaimyoSeals = 2;
+        var result = handler.Validate(new ChooseNewCardFieldAction(alice.Id, 0), state);
+        Assert.True(result.IsValid);
+    }
+
+    [Fact]
+    public void Validate_ActionField_ExactCoins_Succeeds()
+    {
+        // coins == cost → exactly enough → valid
+        var card = MakeCard(new ActionCardField("Play castle",
+            new[] { new CardCostItem(CardCostType.Coin, 5) }.AsReadOnly()));
+        var (alice, state, handler) = MakeState(card);
+        // alice starts with 5 coins (from MakeState), cost is 5
+        var result = handler.Validate(new ChooseNewCardFieldAction(alice.Id, 0), state);
+        Assert.True(result.IsValid);
+    }
+
+    [Fact]
+    public void Validate_UnknownPlayer_Fails()
+    {
+        var card = MakeCard(new GainCardField(
+            new[] { new CardGainItem(CardGainType.Coin, 1) }.AsReadOnly()));
+        var (_, state, handler) = MakeState(card);
+        var result = handler.Validate(new ChooseNewCardFieldAction(Guid.NewGuid(), 0), state);
+        Assert.False(result.IsValid);
+        Assert.Contains("Unknown", result.Reason);
+    }
+
+    // ── Apply — coin cost deduction and resource gains ──────────────────────
+
+    [Fact]
+    public void Apply_ActionField_WithCoinCost_DeductsCoins()
+    {
+        var card = MakeCard(new ActionCardField("Play farm",
+            new[] { new CardCostItem(CardCostType.Coin, 3) }.AsReadOnly()));
+        var (alice, state, handler) = MakeState(card);
+        var events = new List<IDomainEvent>();
+
+        handler.Apply(new ChooseNewCardFieldAction(alice.Id, 0), state, events);
+
+        Assert.Equal(2, alice.Coins); // 5 - 3
+        Assert.Equal(1, alice.PendingFarmActions);
+    }
+
+    [Fact]
+    public void Apply_GainField_Iron_GrantsIron()
+    {
+        var card = MakeCard(new GainCardField(
+            new[] { new CardGainItem(CardGainType.Iron, 3) }.AsReadOnly()));
+        var (alice, state, handler) = MakeState(card);
+        var events = new List<IDomainEvent>();
+
+        handler.Apply(new ChooseNewCardFieldAction(alice.Id, 0), state, events);
+
+        Assert.Equal(3, alice.Resources.Iron);
+        var evt = Assert.Single(events.OfType<NewCardFieldChosenEvent>());
+        Assert.Equal(3, evt.ResourcesGained.Iron);
+    }
 }
