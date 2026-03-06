@@ -35,6 +35,9 @@ internal static class CardFieldHelper
                     for (int w = 0; w < item.Amount; w++)
                         ApplyWellEffect(player, state, events);
                     break;
+                case CardGainType.CastleGainField:
+                    player.PendingCastleCardFieldFilter = "GainOnly";
+                    break;
             }
         }
 

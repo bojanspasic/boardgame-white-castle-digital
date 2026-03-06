@@ -262,6 +262,38 @@ public class ChooseNewCardFieldHandlerTests
     }
 
     [Fact]
+    public void Apply_GainField_CastleGainField_SetsPendingFilter()
+    {
+        var card = MakeCard(new GainCardField(
+            new[] { new CardGainItem(CardGainType.CastleGainField, 1) }.AsReadOnly()));
+        var (alice, state, handler) = MakeState(card);
+        var events = new List<IDomainEvent>();
+
+        handler.Apply(new ChooseNewCardFieldAction(alice.Id, 0), state, events);
+
+        Assert.Equal("GainOnly", alice.PendingCastleCardFieldFilter);
+        Assert.Single(alice.PersonalDomainCards);
+        Assert.Null(alice.PendingNewCardActivation);
+
+        var evt = Assert.Single(events.OfType<NewCardFieldChosenEvent>());
+        Assert.Equal(0, evt.FieldIndex);
+    }
+
+    [Fact]
+    public void Validate_GainField_CastleGainField_IsValid()
+    {
+        // Gain fields have no cost — CastleGainField should be valid even with 0 coins/seals
+        var card = MakeCard(new GainCardField(
+            new[] { new CardGainItem(CardGainType.CastleGainField, 1) }.AsReadOnly()));
+        var (alice, state, handler) = MakeState(card);
+        alice.Coins = 0;
+
+        var result = handler.Validate(new ChooseNewCardFieldAction(alice.Id, 0), state);
+
+        Assert.True(result.IsValid);
+    }
+
+    [Fact]
     public void Apply_GainField_Iron_GrantsIron()
     {
         var card = MakeCard(new GainCardField(
