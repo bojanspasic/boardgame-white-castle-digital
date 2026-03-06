@@ -5,50 +5,52 @@
       "name": "Card Name",
       "back": { "type": "Coin", "amount": 1 },
       "gain1": [
-        { "type": "Food", "amount": 2 },
-        { "type": "Coin", "amount": 1 },
-        { "type": "VictoryPoint", "amount": 1 }
-      ],
-      "gain2": [
-        { "type": "Iron", "amount": 1 }
+        { "type": "Influence", "amount": 1 }
       ],
       "action": {
         "cost": [
-          { "type": "Coin", "amount": 2 }
+          { "type": "DaimyoSeal", "amount": 1 }
         ],
-        "description": "Play castle"
-      }
+        "description": "Play farm"
+      },
+      "gain2": [
+        { "type": "Food", "amount": 2 }
+      ]
     },
     {
       "id": "card_002",
       "name": "Card Name",
       "back": { "type": "Coin", "amount": 1 },
       "gain1": [
-        { "type": "Iron", "amount": 1 }
-      ],
-      "gain2": [
         { "type": "DaimyoSeal", "amount": 1 },
-        { "type": "Food", "amount": 1 }
+        { "type": "AnyResource", "amount": 1 }
       ],
       "action": {
         "cost": [
           { "type": "DaimyoSeal", "amount": 1 }
         ],
-        "description": "Play training grounds"
-      }
+        "description": "Play castle"
+      },
+      "gain2": [
+        { "type": "Iron", "amount": 1 },
+        { "type": "Food", "amount": 1 }
+      ]
     },
     {
       "id": "card_003",
       "name": "Card Name",
       "back": { "type": "Coin", "amount": 1 },
       "gain1": [
-        { "type": "MotherOfPearls", "amount": 1 },
-        { "type": "Influence", "amount": 1 }
+        { "type": "MotherOfPearls", "amount": 2 }
       ],
       "gain2": [
-        { "type": "Lantern", "amount": 2 }
+        { "type": "DaimyoSeal", "amount": 1 },
+        { "type": "VictoryPoint", "amount": 1 }
       ],
       "action": {
+        "cost": [
+          { "type": "DaimyoSeal", "amount": 1 }
+        ],
         "description": "Play farm"
       }
     },
@@ -56,69 +58,72 @@
       "id": "card_004",
       "name": "Card Name",
       "back": { "type": "Coin", "amount": 1 },
+      "action": {
+        "cost": [
+          { "type": "DaimyoSeal", "amount": 1 }
+        ],
+        "description": "Play training grounds"
+      },
       "gain1": [
         { "type": "Food", "amount": 1 },
-        { "type": "Iron", "amount": 1 }
+        { "type": "MotherOfPearls", "amount": 1 }
       ],
       "gain2": [
-        { "type": "Coin", "amount": 2 },
-        { "type": "VictoryPoint", "amount": 1 }
-      ],
-      "action": {
-        "description": "Play castle"
-      }
+        { "type": "Iron", "amount": 1 },
+        { "type": "Lantern", "amount": 1 }
+      ]
     },
     {
       "id": "card_005",
       "name": "Card Name",
       "back": { "type": "Coin", "amount": 1 },
-      "gain1": [
-        { "type": "Lantern", "amount": 1 }
-      ],
-      "gain2": [
-        { "type": "MotherOfPearls", "amount": 2 },
-        { "type": "Influence", "amount": 1 }
-      ],
       "action": {
         "cost": [
-          { "type": "Coin", "amount": 1 }
+          { "type": "DaimyoSeal", "amount": 1 }
         ],
         "description": "Play training grounds"
-      }
+      },
+      "gain1": [
+        { "type": "Coin", "amount": 1 },
+        { "type": "Well", "amount": 1 }
+      ],
+      "gain2": [
+        { "type": "Lantern", "amount": 1 }
+      ]
     },
     {
       "id": "card_006",
       "name": "Card Name",
       "back": { "type": "Coin", "amount": 1 },
       "gain1": [
-        { "type": "Coin", "amount": 2 }
-      ],
-      "gain2": [
-        { "type": "Food", "amount": 2 },
-        { "type": "Iron", "amount": 1 },
-        { "type": "Influence", "amount": 1 }
+        { "type": "Coin", "amount": 1 },
+        { "type": "Well", "amount": 1 }
       ],
       "action": {
         "cost": [
           { "type": "DaimyoSeal", "amount": 1 }
         ],
-        "description": "Play farm"
-      }
+        "description": "Play castle"
+      },
+      "gain2": [
+        { "type": "Food", "amount": 2 }
+      ]
     },
     {
       "id": "card_007",
       "name": "Card Name",
       "back": { "type": "Coin", "amount": 1 },
       "gain1": [
-        { "type": "DaimyoSeal", "amount": 1 }
+        { "type": "Influence", "amount": 1 }
       ],
       "gain2": [
-        { "type": "Food", "amount": 1 },
-        { "type": "MotherOfPearls", "amount": 1 },
-        { "type": "VictoryPoint", "amount": 1 }
+        { "type": "MotherOfPearls", "amount": 2 }
       ],
       "action": {
-        "description": "Play castle"
+        "cost": [
+          { "type": "DaimyoSeal", "amount": 1 }
+        ],
+        "description": "Play training grounds"
       }
     },
     {
@@ -129,31 +134,31 @@
         { "type": "Iron", "amount": 2 }
       ],
       "gain2": [
-        { "type": "Lantern", "amount": 2 }
+        { "type": "Lantern", "amount": 1 }
       ],
       "action": {
         "cost": [
-          { "type": "Coin", "amount": 2 }
+          { "type": "DaimyoSeal", "amount": 1 }
         ],
-        "description": "Play training grounds"
+        "description": "Play farm"
       }
     },
     {
       "id": "card_009",
       "name": "Card Name",
       "back": { "type": "Coin", "amount": 1 },
+      "action": {
+        "cost": [
+          { "type": "DaimyoSeal", "amount": 1 }
+        ],
+        "description": "Play castle"
+      },
       "gain1": [
-        { "type": "MotherOfPearls", "amount": 1 },
-        { "type": "Coin", "amount": 1 },
-        { "type": "VictoryPoint", "amount": 1 }
+        { "type": "Influence", "amount": 1 }
       ],
       "gain2": [
-        { "type": "DaimyoSeal", "amount": 1 },
-        { "type": "Iron", "amount": 1 }
-      ],
-      "action": {
-        "description": "Play farm"
-      }
+        { "type": "Iron", "amount": 2 }
+      ]
     }
   ]
 }

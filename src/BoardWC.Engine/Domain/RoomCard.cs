@@ -4,7 +4,7 @@ namespace BoardWC.Engine.Domain;
 
 // ── Enums ─────────────────────────────────────────────────────────────────────
 
-internal enum CardGainType { Food, Iron, MotherOfPearls, Coin, DaimyoSeal, Lantern, AnyResource, Influence, VictoryPoint }
+internal enum CardGainType { Food, Iron, MotherOfPearls, Coin, DaimyoSeal, Lantern, AnyResource, Influence, VictoryPoint, Well }
 internal enum CardCostType { Coin, DaimyoSeal }
 
 // ── Value objects ─────────────────────────────────────────────────────────────

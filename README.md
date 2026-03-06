@@ -48,9 +48,21 @@ In one go, with help with tests, Claude was able to make large-scale ambiguous r
 
 Done in one pass, but consumed insanely large amount of tokens. Wanted to execute a Python script to do it, but I wanted it to do it on its own, without Python, so I denied its request to execute it.
 
-# Code review
+# code review
 
 I asked Claude to do a code review, which it did, and had some interesting findings, especially in test code. Again, I am not looking at the code and I am trusting it to do the job.
 It uncovered that game AI lies about what it is, so we'll have to deal with that as well.
+However it seems that it broke the logic during the process. All the tests (420 in total) are passing, so there is that. Will have to fix the logic to be able to complete the round.
 
+# the larger the codebase the bigger the burn
+
+Tokens are burning at incredible rate now. Without any guardrails it keeps burning like crazy
+
+## TODO
+Well gain support in cards (both Steward and Diplomat)
+Change name of the decks (both Steward and Diplomat)
+Add more cards and logic for 3-4 players
+Fix the bug preventing round 1 to finish
+Make better AI
+Speed up
 

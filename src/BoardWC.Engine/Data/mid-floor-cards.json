@@ -6,13 +6,10 @@
       "layout": "DoubleTop",
       "back": { "type": "VictoryPoint", "amount": 1 },
       "field1": [
-        { "type": "Food", "amount": 2 },
-        { "type": "Coin", "amount": 1 }
+        { "type": "Coin", "amount": 2 },
+        { "type": "Lantern", "amount": 1 }
       ],
-      "field2": [
-        { "type": "Iron", "amount": 1 },
-        { "type": "VictoryPoint", "amount": 1 }
-      ]
+      "field2": { "description": "Play castle" }
     },
     {
       "id": "mid_002",
@@ -20,42 +17,30 @@
       "layout": "DoubleBottom",
       "back": { "type": "VictoryPoint", "amount": 1 },
       "field1": [
-        { "type": "DaimyoSeal", "amount": 1 },
-        { "type": "Influence", "amount": 1 }
+        { "type": "VictoryPoint", "amount": 2 },
+        { "type": "Well", "amount": 1 }
       ],
-      "field2": [
-        { "type": "MotherOfPearls", "amount": 1 },
-        { "type": "Lantern", "amount": 1 }
-      ]
+      "field2": { "description": "Play farm" }
     },
     {
       "id": "mid_003",
       "name": "Card Name",
-      "layout": "DoubleTop",
+      "layout": "DoubleBottom",
       "back": { "type": "VictoryPoint", "amount": 1 },
-      "field1": [
-        { "type": "Iron", "amount": 2 },
-        { "type": "Food", "amount": 1 }
-      ],
-      "field2": {
-        "cost": [
-          { "type": "Coin", "amount": 1 }
-        ],
-        "description": "Play castle"
-      }
+      "field1": { "description": "Play castle" },
+      "field2": [
+        { "type": "DaimyoSeal", "amount": 1 },
+        { "type": "Lantern", "amount": 1 }
+      ]
     },
     {
       "id": "mid_004",
       "name": "Card Name",
       "layout": "DoubleBottom",
       "back": { "type": "VictoryPoint", "amount": 1 },
-      "field1": [
-        { "type": "Coin", "amount": 3 }
-      ],
+      "field1": { "description": "Play training grounds" },
       "field2": [
-        { "type": "Food", "amount": 2 },
-        { "type": "Iron", "amount": 1 },
-        { "type": "VictoryPoint", "amount": 2 }
+        { "type": "Influence", "amount": 2 }
       ]
     },
     {
@@ -63,16 +48,11 @@
       "name": "Card Name",
       "layout": "DoubleTop",
       "back": { "type": "VictoryPoint", "amount": 1 },
-      "field1": {
-        "cost": [
-          { "type": "DaimyoSeal", "amount": 1 }
-        ],
-        "description": "Play training grounds"
-      },
-      "field2": [
-        { "type": "Lantern", "amount": 2 },
-        { "type": "Influence", "amount": 1 }
-      ]
+      "field1": [
+        { "type": "Influence", "amount": 1 },
+        { "type": "Lantern", "amount": 1 }
+      ],
+      "field2": { "description": "Play farm" }
     },
     {
       "id": "mid_006",
@@ -80,12 +60,39 @@
       "layout": "DoubleBottom",
       "back": { "type": "VictoryPoint", "amount": 1 },
       "field1": [
-        { "type": "MotherOfPearls", "amount": 2 }
-      ],
-      "field2": [
-        { "type": "Coin", "amount": 1 },
-        { "type": "DaimyoSeal", "amount": 1 },
         { "type": "Influence", "amount": 2 }
+      ],
+      "field2": { "description": "Play farm" }
+    },
+    {
+      "id": "mid_007",
+      "name": "Card Name",
+      "layout": "DoubleBottom",
+      "back": { "type": "VictoryPoint", "amount": 1 },
+      "field1": { "description": "Play training grounds" },
+      "field2": [
+        { "type": "AnyResource", "amount": 3 }
+      ]
+    },
+    {
+      "id": "mid_008",
+      "name": "Card Name",
+      "layout": "DoubleBottom",
+      "back": { "type": "VictoryPoint", "amount": 1 },
+      "field1": { "description": "Play castle" },
+      "field2": [
+        { "type": "Influence", "amount": 2 }
+      ]
+    },
+    {
+      "id": "mid_009",
+      "name": "Card Name",
+      "layout": "DoubleBottom",
+      "back": { "type": "VictoryPoint", "amount": 1 },
+      "field1": { "description": "Play castle" },
+      "field2": [
+        { "type": "VictoryPoint", "amount": 2 },
+        { "type": "Well", "amount": 1 }
       ]
     }
   ]

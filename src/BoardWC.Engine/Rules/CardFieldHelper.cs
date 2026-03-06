@@ -31,6 +31,10 @@ internal static class CardFieldHelper
                 case CardGainType.Lantern:        lantern   += item.Amount; break;
                 case CardGainType.VictoryPoint:   vp        += item.Amount; break;
                 case CardGainType.Influence:      influence += item.Amount; break;
+                case CardGainType.Well:
+                    for (int w = 0; w < item.Amount; w++)
+                        ApplyWellEffect(player, state, events);
+                    break;
             }
         }
 
@@ -42,6 +46,34 @@ internal static class CardFieldHelper
         InfluenceHelper.Apply(player, influence, state, events);
 
         return (resources, coins, seals, lantern, vp, influence);
+    }
+
+    private static void ApplyWellEffect(Player player, GameState state, List<IDomainEvent> events)
+    {
+        player.DaimyoSeals = Math.Min(player.DaimyoSeals + 1, 5);
+
+        var resourcesGained = new ResourceBag();
+        int coinsGained     = 0;
+        int pendingChoices  = 0;
+
+        foreach (var token in state.Board.Well.Tokens)
+        {
+            switch (token.ResourceSide)
+            {
+                case TokenResource.Food:           resourcesGained = resourcesGained.Add(ResourceType.Food,           1); break;
+                case TokenResource.Iron:           resourcesGained = resourcesGained.Add(ResourceType.Iron,           1); break;
+                case TokenResource.MotherOfPearls: resourcesGained = resourcesGained.Add(ResourceType.MotherOfPearls, 1); break;
+                case TokenResource.Coin:           coinsGained++;    break;
+                case TokenResource.AnyResource:    pendingChoices++; break;
+            }
+        }
+
+        player.Resources = (player.Resources + resourcesGained).Clamp(7);
+        player.Coins    += coinsGained;
+        player.PendingAnyResourceChoices += pendingChoices;
+
+        events.Add(new WellEffectAppliedEvent(
+            state.GameId, player.Id, 1, resourcesGained, coinsGained, pendingChoices));
     }
 
     /// <summary>
