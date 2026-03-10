@@ -4,6 +4,7 @@ internal interface IConsoleIO
 {
     int WindowWidth  { get; }
     int WindowHeight { get; }
+    void SetCursorPosition(int left, int top);
     void Clear();
     void Write(string text);
     void WriteColored(string text, ConsoleColor color);

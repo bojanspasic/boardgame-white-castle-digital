@@ -19,7 +19,8 @@ internal static class AiThinkingOverlay
     internal static char GetSpinnerChar(int frame) =>
         SpinnerFrames[Math.Abs(frame) % SpinnerFrames.Length];
 
-    internal static void RenderFrame(IConsoleIO console, int frame)
+    internal static void RenderFrame(IConsoleIO console, int frame,
+                                      ConsoleColor color = ConsoleColor.Gray)
     {
         int boxWidth = Inner + 2; // 36 — width of ╔...╗
         int leftPad  = Math.Max(0, (DisplayWidth - boxWidth) / 2); // 22
@@ -38,27 +39,25 @@ internal static class AiThinkingOverlay
         string bottomS = pad + "\u255A" + new string('\u2550',  Inner) + "\u255D\u2592";
         string shadowLn= pad + " "      + new string('\u2592',  Inner + 2); // 1 space + 36 ▒
 
-        // Vertical centering: 5 box rows + 1 shadow row = 6 display rows
+        // Vertical centering via cursor position — leaves existing screen content intact
         int topPad = Math.Max(0, (console.WindowHeight - 6) / 2);
-
-        console.Clear();
-        for (int i = 0; i < topPad; i++)
-            console.WriteLine("");
+        console.SetCursorPosition(0, topPad);
         console.WriteLine(top);
         console.WriteLine(blank);
-        console.WriteLine(textLn);
+        console.WriteColored(textLn, color);
         console.WriteLine(blankS);
         console.WriteLine(bottomS);
         console.WriteLine(shadowLn);
     }
 
-    internal static T Show<T>(IConsoleIO console, Func<T> think)
+    internal static T Show<T>(IConsoleIO console, Func<T> think,
+                               ConsoleColor color = ConsoleColor.Gray)
     {
         int frame = 0;
         Task<T> task = Task.Run(think);
         do
         {
-            RenderFrame(console, frame++);
+            RenderFrame(console, frame++, color);
             Thread.Sleep(120);
         }
         while (!task.IsCompleted);

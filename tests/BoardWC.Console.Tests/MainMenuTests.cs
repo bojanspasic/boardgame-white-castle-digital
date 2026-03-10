@@ -24,6 +24,7 @@ public class MainMenuTests
         public List<(string Text, ConsoleColor Color)> Colored { get; } = new();
         public bool? LastReadKeyIntercept { get; private set; }
 
+        public void SetCursorPosition(int left, int top) { }
         public void Clear() => Cleared = true;
         public void Write(string text) => Written.Add(text);
         public void WriteColored(string text, ConsoleColor color) => Colored.Add((text, color));

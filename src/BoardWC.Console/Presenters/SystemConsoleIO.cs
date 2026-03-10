@@ -8,6 +8,7 @@ internal sealed class SystemConsoleIO : IConsoleIO
 {
     public int WindowWidth  => 80; // System.Console.WindowWidth;
     public int WindowHeight => System.Console.WindowHeight;
+    public void SetCursorPosition(int left, int top) => System.Console.SetCursorPosition(left, top);
     public void Clear() => System.Console.Clear();
     public void Write(string text) => System.Console.Write(text);
     public void WriteLine(string text) => System.Console.WriteLine(text);

@@ -22,6 +22,7 @@ public class SplashScreenTests
         public List<string> Written { get; } = new();
         public bool? LastReadKeyIntercept { get; private set; }
 
+        public void SetCursorPosition(int left, int top) { }
         public void Clear() => Cleared = true;
         public void Write(string text) => Written.Add(text);
         public void WriteColored(string text, ConsoleColor _) => Written.Add(text + "\n");

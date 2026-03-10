@@ -46,7 +46,14 @@ while (!engine.IsGameOver)
 
     if (active.IsAI)
     {
-        var aiResult = AiThinkingOverlay.Show(io, () => engine.PlayAiTurn(active.Id));
+        ConsoleColor aiColor = active.Color switch
+        {
+            PlayerColor.Blue  => ConsoleColor.Blue,
+            PlayerColor.Red   => ConsoleColor.Red,
+            PlayerColor.White => ConsoleColor.White,
+            _                 => ConsoleColor.DarkGray,
+        };
+        var aiResult = AiThinkingOverlay.Show(io, () => engine.PlayAiTurn(active.Id), aiColor);
 
         if (aiResult is ActionResult.Success aiOk)
         {
