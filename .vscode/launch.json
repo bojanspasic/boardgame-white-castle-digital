@@ -1,0 +1,15 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "BoardWC Console",
+      "type": "coreclr",
+      "request": "launch",
+      "program": "${workspaceFolder}/src/BoardWC.Console/bin/Debug/net10.0/BoardWC.Console.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/src/BoardWC.Console",
+      "console": "externalTerminal",
+      "preLaunchTask": "build"
+    }
+  ]
+}

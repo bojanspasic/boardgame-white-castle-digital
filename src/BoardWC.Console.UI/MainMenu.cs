@@ -66,6 +66,7 @@ internal static class MainMenu
 
         console.Clear();
         console.Write(SplashScreen.TitleText);
+        console.WriteLine("");
         console.WriteLine(Center(SelectTitle, w));
         console.WriteLine("");
 
@@ -92,15 +93,16 @@ internal static class MainMenu
     internal static void RenderOverlay(IConsoleIO console, int width)
     {
         int inner    = Math.Max(OverlayLine1.Length, OverlayLine2.Length);
-        string top   = "+" + new string('-', inner + 2) + "+";
-        string mid1  = "| " + OverlayLine1.PadRight(inner) + " |";
-        string mid2  = "| " + OverlayLine2.PadRight(inner) + " |";
+        string top   = "\u2554" + new string('\u2550', inner + 2) + "\u2557";
+        string mid1  = "\u2551 " + OverlayLine1.PadRight(inner) + " \u2551";
+        string mid2  = "\u2551 " + OverlayLine2.PadRight(inner) + " \u2551";
+        string bottom = "\u255A" + new string('\u2550', inner + 2) + "\u255D";
 
         console.WriteLine("");
         console.WriteLine(Center(top,  width));
         console.WriteLine(Center(mid1, width));
         console.WriteLine(Center(mid2, width));
-        console.WriteLine(Center(top,  width));
+        console.WriteLine(Center(bottom, width));
     }
 
     internal static string Center(string text, int width) =>

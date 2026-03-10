@@ -469,8 +469,8 @@ public class MainMenuTests
     {
         var console = new FakeConsole() { WindowWidth = 80 };
         RenderOverlay(console, 80);
-        Assert.Contains(console.Written, w => w.Contains("+"));
-        Assert.Contains(console.Written, w => w.Contains("|"));
+        Assert.Contains(console.Written, w => w.Contains('╔') || w.Contains('╚'));
+        Assert.Contains(console.Written, w => w.Contains("║"));
     }
 
     [Fact]
@@ -478,8 +478,8 @@ public class MainMenuTests
     {
         var console = new FakeConsole() { WindowWidth = 80 };
         RenderOverlay(console, 80);
-        // Top border should be centered: all non-empty, non-newline lines have leading spaces
-        var topLine = console.Written.First(w => w.Contains("+") && w.Contains("-"));
+        // Top border should be centered: leading spaces before the box corner
+        var topLine = console.Written.First(w => w.Contains("╔") && w.Contains("═"));
         Assert.StartsWith(" ", topLine);
     }
 
@@ -488,23 +488,25 @@ public class MainMenuTests
     [Fact]
     public void RenderOverlay_BorderDashCountMatchesLongerLine()
     {
-        // inner = Math.Max(Line1.Length, Line2.Length) → dashes = inner + 2
+        // inner = Math.Max(Line1.Length, Line2.Length) → horizontal chars = inner + 2
         var console = new FakeConsole() { WindowWidth = 200 };
         RenderOverlay(console, 200);
-        var topLine = console.Written.First(w => w.Contains("+") && w.Contains("-"))
+        var topLine = console.Written.First(w => w.Contains("╔") && w.Contains("═"))
                                      .TrimEnd('\n').Trim();
-        int expectedDashes = OverlayLine1.Length + 2; // Line1 is the longer one
-        Assert.Equal(expectedDashes, topLine.Count(c => c == '-'));
+        int expectedHorizontal = OverlayLine1.Length + 2; // Line1 is the longer one
+        Assert.Equal(expectedHorizontal, topLine.Count(c => c == '═'));
     }
 
     [Fact]
-    public void RenderOverlay_TopBorderAppearsExactlyTwice()
+    public void RenderOverlay_HasTopAndBottomBorders()
     {
+        // Top (╔...╗) and bottom (╚...╝) are distinct lines, each appearing once
         var console = new FakeConsole() { WindowWidth = 200 };
         RenderOverlay(console, 200);
-        string expectedContent = "+" + new string('-', OverlayLine1.Length + 2) + "+";
-        int count = console.Written.Count(w => w.TrimEnd('\n').Trim() == expectedContent);
-        Assert.Equal(2, count);
+        string expectedTop    = "╔" + new string('═', OverlayLine1.Length + 2) + "╗";
+        string expectedBottom = "╚" + new string('═', OverlayLine1.Length + 2) + "╝";
+        Assert.Equal(1, console.Written.Count(w => w.TrimEnd('\n').Trim() == expectedTop));
+        Assert.Equal(1, console.Written.Count(w => w.TrimEnd('\n').Trim() == expectedBottom));
     }
 
     [Fact]
@@ -513,23 +515,21 @@ public class MainMenuTests
         var console = new FakeConsole() { WindowWidth = 200 };
         RenderOverlay(console, 200);
         var mid1 = console.Written.First(w => w.Contains(OverlayLine1)).TrimEnd('\n').Trim();
-        Assert.StartsWith("| ", mid1);
-        Assert.EndsWith(" |", mid1);
+        Assert.StartsWith("║ ", mid1);
+        Assert.EndsWith(" ║", mid1);
     }
 
     [Fact]
     public void RenderOverlay_Mid2StartsAndEndsWithBorder()
     {
-        // OverlayLine2 doesn't appear in Line1, so filter uniquely
         var console = new FakeConsole() { WindowWidth = 200 };
         RenderOverlay(console, 200);
-        // OverlayLine2 text appears in mid2; it's shorter so won't match mid1's content
         var mid2 = console.Written
             .Where(w => w.Contains(OverlayLine2))
             .Select(w => w.TrimEnd('\n').Trim())
-            .First(w => !w.Contains(OverlayLine1)); // exclude mid1 (which doesn't share Line2 text anyway)
-        Assert.StartsWith("| ", mid2);
-        Assert.EndsWith(" |", mid2);
+            .First(w => !w.Contains(OverlayLine1));
+        Assert.StartsWith("║ ", mid2);
+        Assert.EndsWith(" ║", mid2);
     }
 
     // ── Render — player row text ───────────────────────────────────────────────
@@ -609,10 +609,10 @@ public class MainMenuTests
         var rawLine = console.Written.First(w => w.Contains(OverlayLine2) && !w.Contains(OverlayLine1));
         // Strip centering and newline to get the box content
         string content = rawLine.TrimEnd('\n').Trim();
-        Assert.StartsWith("| ", content);
-        // The line must end with the PadRight padding followed by " |"
+        Assert.StartsWith("║ ", content);
+        // The line must end with the PadRight padding followed by " ║"
         // OverlayLine1 is longer so inner = OverlayLine1.Length; OverlayLine2 is padded
-        int expectedContentLength = 2 + OverlayLine1.Length + 2; // "| " + inner + " |"
+        int expectedContentLength = 2 + OverlayLine1.Length + 2; // "║ " + inner + " ║"
         Assert.Equal(expectedContentLength, content.Length);
     }
 }

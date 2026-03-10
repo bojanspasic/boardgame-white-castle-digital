@@ -10,6 +10,7 @@ internal static class SplashScreen
     {
         console.Clear();
         console.Write(TitleText);
+        console.WriteLine("");
 
         var padding = Math.Max(0, (console.WindowWidth - Prompt.Length) / 2);
         console.WriteLine(new string(' ', padding) + Prompt);
