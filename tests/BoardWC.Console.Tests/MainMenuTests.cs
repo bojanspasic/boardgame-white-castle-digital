@@ -17,7 +17,8 @@ public class MainMenuTests
         public FakeConsole(params ConsoleKey[] keys) =>
             _keys = new Queue<ConsoleKey>(keys);
 
-        public int WindowWidth { get; set; } = 80;
+        public int WindowWidth  { get; set; } = 80;
+        public int WindowHeight { get; set; } = 25;
         public bool Cleared { get; private set; }
         public List<string> Written { get; } = new();
         public List<(string Text, ConsoleColor Color)> Colored { get; } = new();
@@ -576,12 +577,12 @@ public class MainMenuTests
     }
 
     [Fact]
-    public void Render_HasExactlyTwoBlankLines()
+    public void Render_HasExactlyThreeBlankLines()
     {
-        // Render writes "" twice: once after title, once before hint
+        // Render writes "" three times: after title, after SelectTitle, and after player list
         var console = new FakeConsole() { WindowWidth = 80 };
         Render(console, new PlayerType[4], 0, false);
-        Assert.Equal(2, console.Written.Count(w => w == "\n"));
+        Assert.Equal(3, console.Written.Count(w => w == "\n"));
     }
 
     // ── Show — Render is called ────────────────────────────────────────────────

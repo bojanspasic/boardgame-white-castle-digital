@@ -46,11 +46,7 @@ while (!engine.IsGameOver)
 
     if (active.IsAI)
     {
-        System.Console.Clear();
-        System.Console.WriteLine($"\n  [AI — {active.Name}] thinking...");
-        System.Threading.Thread.Sleep(600);
-
-        var aiResult = engine.PlayAiTurn(active.Id);
+        var aiResult = AiThinkingOverlay.Show(io, () => engine.PlayAiTurn(active.Id));
 
         if (aiResult is ActionResult.Success aiOk)
         {

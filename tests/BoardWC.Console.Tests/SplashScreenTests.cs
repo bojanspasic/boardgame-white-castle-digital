@@ -16,7 +16,8 @@ public class SplashScreenTests
         public FakeConsole(params ConsoleKey[] keys) =>
             _keys = new Queue<ConsoleKey>(keys);
 
-        public int WindowWidth { get; set; } = 80;
+        public int WindowWidth  { get; set; } = 80;
+        public int WindowHeight { get; set; } = 25;
         public bool Cleared { get; private set; }
         public List<string> Written { get; } = new();
         public bool? LastReadKeyIntercept { get; private set; }
@@ -122,6 +123,17 @@ public class SplashScreenTests
 
         var promptLine = console.Written.First(w => w.Contains(SplashScreen.Prompt));
         Assert.StartsWith(SplashScreen.Prompt, promptLine);
+    }
+
+    [Fact]
+    public void Show_WritesBlankLineBetweenTitleAndPrompt()
+    {
+        // console.WriteLine("") between Write(TitleText) and the padding/prompt line
+        var console = new FakeConsole(ConsoleKey.Spacebar);
+        SplashScreen.Show(console);
+        // Written list: [TitleText, "\n" (blank), promptLine+"\n"]
+        // The blank line is the item that equals "\n" (empty + newline from WriteLine)
+        Assert.Contains(console.Written, w => w == "\n");
     }
 
     // ── Show — key handling ───────────────────────────────────────────────────
