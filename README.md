@@ -70,6 +70,29 @@ Rating	Files
 🟠 55-70%	PlaceDieHandler (55%), CardFieldHelper (69%), PostActionProcessor (61%)
 🔴 Critical	ChoosePersonalDomainRowHandler (0% — compile error), LanternChain (0%), PersonalDomain (5%), Player (13%), CompositeActionHandler (29%)
 
+# used tasks with detailed acceptance critera
+
+Created tasks in [specs](specs/) folder. The structure of the spec.md is:
+- Description
+- Status
+- Acceptance criteria
+
+Also created [tasklist.md](tasklist.md) with the prioritize list of tasks.
+
+Using this prompt to execute them automatically:
+
+```
+Get the first item from @specs/tasklist.md 
+Execute spec.md from the folder with that item name (in the @specs/ )
+Make sure that it has 100% code coverage
+Make sure that mutation testing score is higher than 95%
+Only then change status in the spec.md to COMPLETED
+Remove the item from @specs/tasklist.md 
+Commit to git with message  {item name} completed
+
+Get next item from the list and repeat until there are no more items in the list
+```
+
 ## TODO
 Add PlayAnyWhite to the cards
 Correct inland farm cards json and training grounds token JSON 
