@@ -2,6 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\BoardWC.Engine\BoardWC.Engine.csproj" />
+    <ProjectReference Include="..\BoardWC.Console.UI\BoardWC.Console.UI.csproj" />
   </ItemGroup>
 
   <PropertyGroup>

@@ -1,8 +1,13 @@
 using BoardWC.Console.Presenters;
+using BoardWC.Console.UI;
 using BoardWC.Engine.Actions;
 using BoardWC.Engine.AI;
 using BoardWC.Engine.Domain;
 using BoardWC.Engine.Engine;
+
+// ── Splash screen ──────────────────────────────────────────────────────────
+
+SplashScreen.Show(new SystemConsoleIO());
 
 // ── Setup ──────────────────────────────────────────────────────────────────
 

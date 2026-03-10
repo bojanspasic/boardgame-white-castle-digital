@@ -1,9 +1,11 @@
 <Solution>
   <Folder Name="/src/">
+    <Project Path="src/BoardWC.Console.UI/BoardWC.Console.UI.csproj" />
     <Project Path="src/BoardWC.Console/BoardWC.Console.csproj" />
     <Project Path="src/BoardWC.Engine/BoardWC.Engine.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/BoardWC.Console.Tests/BoardWC.Console.Tests.csproj" />
     <Project Path="tests/BoardWC.Engine.Tests/BoardWC.Engine.Tests.csproj" />
   </Folder>
 </Solution>
