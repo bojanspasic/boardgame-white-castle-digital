@@ -11,4 +11,12 @@ internal sealed class SystemConsoleIO : IConsoleIO
     public void Write(string text) => System.Console.Write(text);
     public void WriteLine(string text) => System.Console.WriteLine(text);
     public ConsoleKeyInfo ReadKey(bool intercept) => System.Console.ReadKey(intercept);
+
+    public void WriteColored(string text, ConsoleColor color)
+    {
+        var prev = System.Console.ForegroundColor;
+        System.Console.ForegroundColor = color;
+        System.Console.WriteLine(text);
+        System.Console.ForegroundColor = prev;
+    }
 }

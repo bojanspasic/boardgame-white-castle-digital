@@ -2,7 +2,7 @@
 When game starts, it enters main menu. Main menu has The White Castel ascii art on screen, and allows selection of players (number of players, human/ai).
 
 # Status
-TO DO
+COMPLETED
 
 # Acceptance criteria
 * When game starts, the contents of [title text](title.txt) are displayed.
@@ -16,7 +16,7 @@ TO DO
 * arrows up/down move marker "<" up and dow
 * SPACE key results in the following order (subsequent SPACES sircle through them):
     - putting char "H" beween brackets of the marked row (e.g. "PLAYER 1 [X]") - mark of a human player
-    - putting char "A" beween brackets of the marked row (e.g. "PLAYER 1 [ ]") - mark of an AI player
+    - putting char "A" beween brackets of the marked row (e.g. "PLAYER 1 [A]") - mark of an AI player
     - empties brackets for the marked row (e.g. "PLAYER 1 [ ]) - player not selected.
 * Below all that display centered text "Use arrow keys UP/DOWN and SPACE to select. Press ENTER to continue"
 * ENTER key accepts the selection and moves forward

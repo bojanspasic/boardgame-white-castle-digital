@@ -23,6 +23,7 @@ public class SplashScreenTests
 
         public void Clear() => Cleared = true;
         public void Write(string text) => Written.Add(text);
+        public void WriteColored(string text, ConsoleColor _) => Written.Add(text + "\n");
         public void WriteLine(string text) => Written.Add(text + "\n");
 
         public ConsoleKeyInfo ReadKey(bool intercept)

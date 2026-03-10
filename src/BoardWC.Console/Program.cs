@@ -5,17 +5,27 @@ using BoardWC.Engine.AI;
 using BoardWC.Engine.Domain;
 using BoardWC.Engine.Engine;
 
+var io = new SystemConsoleIO();
+
 // ── Splash screen ──────────────────────────────────────────────────────────
 
-SplashScreen.Show(new SystemConsoleIO());
+SplashScreen.Show(io);
+
+// ── Main menu ──────────────────────────────────────────────────────────────
+
+PlayerColor[] colors = [PlayerColor.Blue, PlayerColor.Red, PlayerColor.White, PlayerColor.Black];
+var selected = MainMenu.Show(io);
+var players = selected
+    .Select((type, i) => (type, i))
+    .Where(x => x.type != MainMenu.PlayerType.Empty)
+    .Select(x => new PlayerSetup(
+        $"Player {x.i + 1}",
+        colors[x.i],
+        IsAI: x.type == MainMenu.PlayerType.Ai,
+        AiStrategyId: x.type == MainMenu.PlayerType.Ai ? "greedy-resource" : null))
+    .ToArray();
 
 // ── Setup ──────────────────────────────────────────────────────────────────
-
-var players = new[]
-{
-    new PlayerSetup("Human Player", PlayerColor.White, IsAI: false),
-    new PlayerSetup("AI Opponent",  PlayerColor.Black, IsAI: true, AiStrategyId: "greedy-resource"),
-};
 
 var engine   = GameEngineFactory.Create(players, new GreedyResourceAiStrategy(), maxRounds: 3);
 var renderer = new ConsoleRenderer();
