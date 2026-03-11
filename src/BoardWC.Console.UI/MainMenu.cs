@@ -10,6 +10,10 @@ internal static class MainMenu
     internal const string OverlayLine1 = "At least two players must be selected to proceed.";
     internal const string OverlayLine2 = "Press ENTER to continue";
 
+    // Box dimensions: inner wide enough for HintText (51 chars) + 4-char margin
+    internal const int BoxInner = 56;
+    private  const int BoxLines = 13; // top+blank+title+blank+4 players+blank+hint+blank+bottom+shadow
+
     internal static PlayerType[] Show(IConsoleIO console)
     {
         var types      = new PlayerType[4];
@@ -59,13 +63,14 @@ internal static class MainMenu
 
     internal static void Render(IConsoleIO console, PlayerType[] types, int cursor, bool overlay)
     {
-        int w = console.WindowWidth;
+        string p      = new string(' ', ConsoleBox.HorizPad(BoxInner));
+        int    topPad = ConsoleBox.VertPad(console.WindowHeight, BoxLines);
 
-        console.Clear();
-        console.Write(SplashScreen.TitleText);
-        console.WriteLine("");
-        console.WriteLine(Center(SelectTitle, w));
-        console.WriteLine("");
+        console.SetCursorPosition(0, topPad);
+        console.WriteLine(ConsoleBox.TopBorder(p, BoxInner));
+        console.WriteLine(ConsoleBox.BlankRow(p, BoxInner));
+        console.WriteLine(ConsoleBox.ContentRowShadow(p, BoxInner, ConsoleBox.Center(SelectTitle, BoxInner)));
+        console.WriteLine(ConsoleBox.BlankRowShadow(p, BoxInner));
 
         for (int i = 0; i < 4; i++)
         {
@@ -75,16 +80,20 @@ internal static class MainMenu
                 PlayerType.Ai    => "A",
                 _                => " ",
             };
-            string arrow = i == cursor ? " <" : "  ";
-            string row   = $"PLAYER {i + 1} [{marker}]{arrow}";
-            console.WriteColored(Center(row, w), PlayerColors.Colors[i]);
+            string arrow   = i == cursor ? " <" : "  ";
+            string row     = $"PLAYER {i + 1} [{marker}]{arrow}";
+            string content = ConsoleBox.Center(row, BoxInner);
+            console.WriteColored(ConsoleBox.ContentRowShadow(p, BoxInner, content), PlayerColors.Colors[i]);
         }
 
-        console.WriteLine("");
-        console.WriteLine(Center(HintText, w));
+        console.WriteLine(ConsoleBox.BlankRowShadow(p, BoxInner));
+        console.WriteLine(ConsoleBox.ContentRowShadow(p, BoxInner, ConsoleBox.Center(HintText, BoxInner)));
+        console.WriteLine(ConsoleBox.BlankRowShadow(p, BoxInner));
+        console.WriteLine(ConsoleBox.BottomBorder(p, BoxInner));
+        console.WriteLine(ConsoleBox.ShadowLine(p, BoxInner));
 
         if (overlay)
-            RenderOverlay(console, w);
+            RenderOverlay(console, console.WindowWidth);
     }
 
     internal static void RenderOverlay(IConsoleIO console, int width)

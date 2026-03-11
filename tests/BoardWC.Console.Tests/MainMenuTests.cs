@@ -24,7 +24,8 @@ public class MainMenuTests
         public List<(string Text, ConsoleColor Color)> Colored { get; } = new();
         public bool? LastReadKeyIntercept { get; private set; }
 
-        public void SetCursorPosition(int left, int top) { }
+        public (int Left, int Top)? LastCursorPosition { get; private set; }
+        public void SetCursorPosition(int left, int top) => LastCursorPosition = (left, top);
         public void Clear() => Cleared = true;
         public void Write(string text) => Written.Add(text);
         public void WriteColored(string text, ConsoleColor color) => Colored.Add((text, color));
@@ -315,11 +316,12 @@ public class MainMenuTests
     // ── Render — structure ────────────────────────────────────────────────────
 
     [Fact]
-    public void Render_ClearsScreen()
+    public void Render_SetsCursorPosition()
     {
         var console = new FakeConsole() { WindowWidth = 80 };
         Render(console, new PlayerType[4], 0, false);
-        Assert.True(console.Cleared);
+        Assert.NotNull(console.LastCursorPosition);
+        Assert.Equal(0, console.LastCursorPosition.Value.Left);
     }
 
     [Fact]
@@ -421,14 +423,17 @@ public class MainMenuTests
     }
 
     [Fact]
-    public void Render_SelectTitleIsCentered()
+    public void Render_SelectTitleIsCenteredInBox()
     {
         var console = new FakeConsole() { WindowWidth = 80 };
         Render(console, new PlayerType[4], 0, false);
-
-        int expected = (80 - SelectTitle.Length) / 2;
-        var line = console.Written.First(w => w.Contains(SelectTitle));
-        Assert.Equal(new string(' ', expected) + SelectTitle, line.TrimEnd('\n'));
+        // Title is centered within BoxInner, then placed inside ║...║▒
+        var line = console.Written.First(w => w.Contains(SelectTitle)).TrimEnd('\n');
+        int bar = line.IndexOf('║');
+        string inner = line.Substring(bar + 1, BoxInner);
+        int expectedPad = (BoxInner - SelectTitle.Length) / 2;
+        Assert.Equal(new string(' ', expectedPad), inner.Substring(0, expectedPad));
+        Assert.Equal(SelectTitle, inner.Substring(expectedPad, SelectTitle.Length));
     }
 
     [Fact]
@@ -548,55 +553,43 @@ public class MainMenuTests
     }
 
     [Fact]
-    public void Render_WritesTitleText()
+    public void Render_NonCursorRow_ContainsTwoTrailingSpaces()
     {
-        // Verifies that SplashScreen.TitleText (block chars) is written in Render
-        var console = new FakeConsole() { WindowWidth = 80 };
-        Render(console, new PlayerType[4], 0, false);
-        Assert.Contains(console.Written, w => w.Contains("█"));
-    }
-
-    [Fact]
-    public void Render_NonCursorRow_HasTwoTrailingSpaces()
-    {
-        // Arrow for non-cursor row is "  " (two spaces), not "" or anything else
+        // Arrow for non-cursor row is "  " (two spaces) — row is centered inside box, so use Contains
         var console = new FakeConsole() { WindowWidth = 80 };
         Render(console, new PlayerType[4], 0, false); // cursor=0
-        // Player 2 (index 1) is not the cursor
-        string rowText = console.Colored[1].Text.TrimStart(); // strip centering padding
-        Assert.EndsWith("[ ]  ", rowText);
+        Assert.Contains("[ ]  ", console.Colored[1].Text);
     }
 
     [Fact]
-    public void Render_CursorRow_HasArrowSuffix()
+    public void Render_CursorRow_ContainsArrowSuffix()
     {
-        // Arrow for cursor row is " <"
+        // Arrow for cursor row is " <" — row is centered inside box, so use Contains
         var console = new FakeConsole() { WindowWidth = 80 };
         Render(console, new PlayerType[4], 2, false); // cursor=2
-        string rowText = console.Colored[2].Text.TrimStart();
-        Assert.EndsWith("[ ] <", rowText);
+        Assert.Contains("[ ] <", console.Colored[2].Text);
     }
 
     [Fact]
-    public void Render_HasExactlyThreeBlankLines()
+    public void Render_WritesNineBoxLines()
     {
-        // Render writes "" three times: after title, after SelectTitle, and after player list
+        // TopBorder + BlankRow + title + 3×BlankRowShadow + hint + BottomBorder + ShadowLine = 9
         var console = new FakeConsole() { WindowWidth = 80 };
         Render(console, new PlayerType[4], 0, false);
-        Assert.Equal(3, console.Written.Count(w => w == "\n"));
+        Assert.Equal(9, console.Written.Count);
     }
 
     // ── Show — Render is called ────────────────────────────────────────────────
 
     [Fact]
-    public void Show_ClearsScreenDuringLoop()
+    public void Show_SetsCursorPositionDuringLoop()
     {
-        // Show calls Render on every iteration; Render calls Clear
+        // Show calls Render on every iteration; Render calls SetCursorPosition
         var console = new FakeConsole(
             ConsoleKey.Spacebar, ConsoleKey.DownArrow,
             ConsoleKey.Spacebar, ConsoleKey.Enter);
         Show(console);
-        Assert.True(console.Cleared);
+        Assert.NotNull(console.LastCursorPosition);
     }
 
     // ── RenderOverlay — mid2 line format ──────────────────────────────────────
