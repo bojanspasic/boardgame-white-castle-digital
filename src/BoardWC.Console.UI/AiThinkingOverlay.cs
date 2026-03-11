@@ -49,9 +49,8 @@ internal static class AiThinkingOverlay
         do
         {
             RenderFrame(console, frame++, color);
-            Thread.Sleep(120);
         }
-        while (!task.IsCompleted);
+        while (!task.Wait(120));
         return task.GetAwaiter().GetResult();
     }
 }

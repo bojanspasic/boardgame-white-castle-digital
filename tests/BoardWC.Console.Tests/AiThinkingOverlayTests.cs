@@ -476,7 +476,8 @@ public class AiThinkingOverlayTests
     public void Show_PropagatesExceptionFromThink()
     {
         var console = new FakeConsole();
-        Assert.Throws<InvalidOperationException>(() =>
+        var ex = Assert.Throws<AggregateException>(() =>
             AiThinkingOverlay.Show<int>(console, () => throw new InvalidOperationException("boom")));
+        Assert.IsType<InvalidOperationException>(ex.InnerException);
     }
 }
