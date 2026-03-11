@@ -49,9 +49,16 @@ public class AiThinkingOverlayTests
     }
 
     [Fact]
-    public void SpinnerFrames_HasFourElements()
+    public void SpinnerFrames_HasTenElements()
     {
-        Assert.Equal(4, AiThinkingOverlay.SpinnerFrames.Length);
+        Assert.Equal(10, AiThinkingOverlay.SpinnerFrames.Length);
+    }
+
+    [Fact]
+    public void SpinnerFrames_ContainsExpectedBrailleChars()
+    {
+        char[] expected = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
+        Assert.Equal(expected, AiThinkingOverlay.SpinnerFrames);
     }
 
     // ── GetSpinnerChar ────────────────────────────────────────────────────────
@@ -81,9 +88,9 @@ public class AiThinkingOverlayTests
     }
 
     [Fact]
-    public void GetSpinnerChar_Frame4_WrapsToFirstChar()
+    public void GetSpinnerChar_Frame10_WrapsToFirstChar()
     {
-        Assert.Equal(AiThinkingOverlay.SpinnerFrames[0], AiThinkingOverlay.GetSpinnerChar(4));
+        Assert.Equal(AiThinkingOverlay.SpinnerFrames[0], AiThinkingOverlay.GetSpinnerChar(10));
     }
 
     [Fact]
