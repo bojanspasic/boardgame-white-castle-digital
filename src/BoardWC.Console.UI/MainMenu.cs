@@ -4,11 +4,8 @@ internal static class MainMenu
 {
     internal enum PlayerType { Empty, Human, Ai }
 
-    private static readonly ConsoleColor[] PlayerColors =
-        [ConsoleColor.Blue, ConsoleColor.Red, ConsoleColor.Green, ConsoleColor.Yellow];
-
     internal const string SelectTitle = "SELECT PLAYERS";
-    internal const string HintText    = "Use arrow keys UP/DOWN and SPACE to select. Press ENTER to continue";
+    internal const string HintText    = "Use \u2191\u2193 and SPACE to select. Press ENTER to continue";
 
     internal const string OverlayLine1 = "At least two players must be selected to proceed.";
     internal const string OverlayLine2 = "Press ENTER to continue";
@@ -80,7 +77,7 @@ internal static class MainMenu
             };
             string arrow = i == cursor ? " <" : "  ";
             string row   = $"PLAYER {i + 1} [{marker}]{arrow}";
-            console.WriteColored(Center(row, w), PlayerColors[i]);
+            console.WriteColored(Center(row, w), PlayerColors.Colors[i]);
         }
 
         console.WriteLine("");

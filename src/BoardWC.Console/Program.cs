@@ -15,15 +15,19 @@ SplashScreen.Show(io);
 
 PlayerColor[] colors = [PlayerColor.Blue, PlayerColor.Red, PlayerColor.White, PlayerColor.Black];
 var selected = MainMenu.Show(io);
-var players = selected
+var selectedSlots = selected
     .Select((type, i) => (type, i))
     .Where(x => x.type != MainMenu.PlayerType.Empty)
+    .ToArray();
+var players = selectedSlots
     .Select(x => new PlayerSetup(
         $"Player {x.i + 1}",
         colors[x.i],
         IsAI: x.type == MainMenu.PlayerType.Ai,
         AiStrategyId: x.type == MainMenu.PlayerType.Ai ? "greedy-resource" : null))
     .ToArray();
+var playerUiColors = selectedSlots
+    .ToDictionary(x => colors[x.i], x => PlayerColors.Colors[x.i]);
 
 // ── Setup ──────────────────────────────────────────────────────────────────
 
@@ -46,13 +50,7 @@ while (!engine.IsGameOver)
 
     if (active.IsAI)
     {
-        ConsoleColor aiColor = active.Color switch
-        {
-            PlayerColor.Blue  => ConsoleColor.Blue,
-            PlayerColor.Red   => ConsoleColor.Red,
-            PlayerColor.White => ConsoleColor.White,
-            _                 => ConsoleColor.DarkGray,
-        };
+        ConsoleColor aiColor = playerUiColors.TryGetValue(active.Color, out var c) ? c : ConsoleColor.Gray;
         var aiResult = AiThinkingOverlay.Show(io, () => engine.PlayAiTurn(active.Id), aiColor);
 
         if (aiResult is ActionResult.Success aiOk)
