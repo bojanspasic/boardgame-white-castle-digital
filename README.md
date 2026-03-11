@@ -93,6 +93,8 @@ Commit to git with message  {item name} completed
 Get next item from the list and repeat until there are no more items in the list
 ```
 
+Created a skill file to execute these steps
+
 ## TODO
 Add PlayAnyWhite to the cards
 Correct inland farm cards json and training grounds token JSON 

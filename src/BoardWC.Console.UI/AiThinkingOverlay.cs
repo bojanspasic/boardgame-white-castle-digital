@@ -16,6 +16,7 @@ internal static class AiThinkingOverlay
 
     private const int BoxLines = 6; // top + blank + textLn + blankS + bottomS + shadowLine
 
+    private static int frame = 0;
     internal static char GetSpinnerChar(int frame) =>
         SpinnerFrames[Math.Abs(frame) % SpinnerFrames.Length];
 
@@ -44,13 +45,13 @@ internal static class AiThinkingOverlay
     internal static T Show<T>(IConsoleIO console, Func<T> think,
                                ConsoleColor color = ConsoleColor.Gray)
     {
-        int frame = 0;
+        
         Task<T> task = Task.Run(think);
         do
         {
             RenderFrame(console, frame++, color);
         }
-        while (!task.Wait(120));
+        while (!task.Wait(100)); // Wait 100ms between frames to create animation effect
         return task.GetAwaiter().GetResult();
     }
 }

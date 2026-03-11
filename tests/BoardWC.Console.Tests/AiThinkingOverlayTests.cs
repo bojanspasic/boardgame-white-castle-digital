@@ -460,16 +460,17 @@ public class AiThinkingOverlayTests
     [Fact]
     public void Show_RendersMultipleFrames_SpinnerIncrements()
     {
-        // 400ms action → do/while loop runs several times (120ms sleep between frames)
+        // 400ms action → do/while loop runs several times (100ms sleep between frames)
         var console = new FakeConsole { WindowHeight = 6 };
         AiThinkingOverlay.Show(console, () => { Thread.Sleep(400); return 0; });
 
-        // Each frame adds one entry to Colored; verify spinner chars increment
+        // Each frame adds one entry to Colored; verify spinner chars advance consecutively.
+        // frame is a static field so we don't assume it starts at 0 — just check progression.
         Assert.True(console.Colored.Count >= 2);
-        char spin0 = AiThinkingOverlay.SpinnerFrames[0];
-        char spin1 = AiThinkingOverlay.SpinnerFrames[1];
-        Assert.Contains(spin0, console.Colored[0].Text);
-        Assert.Contains(spin1, console.Colored[1].Text);
+        char[] spinner = AiThinkingOverlay.SpinnerFrames;
+        int idx0 = Array.IndexOf(spinner, spinner.First(c => console.Colored[0].Text.Contains(c)));
+        int idx1 = Array.IndexOf(spinner, spinner.First(c => console.Colored[1].Text.Contains(c)));
+        Assert.Equal((idx0 + 1) % spinner.Length, idx1);
     }
 
     [Fact]
