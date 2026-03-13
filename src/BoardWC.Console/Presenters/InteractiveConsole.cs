@@ -1,3 +1,4 @@
+using BoardWC.Console.UI;
 using BoardWC.Engine.Actions;
 using BoardWC.Engine.Domain;
 using BoardWC.Engine.Engine;
@@ -25,6 +26,7 @@ internal sealed class InteractiveConsole
     // ── State ─────────────────────────────────────────────────────────────
 
     private IReadOnlyList<IDomainEvent> _lastEvents = [];
+    private GameAreaView _currentView = GameAreaView.Castle;
 
     internal void SetLastEvents(IReadOnlyList<IDomainEvent> events) =>
         _lastEvents = events;
@@ -125,6 +127,10 @@ internal sealed class InteractiveConsole
                     // Esc — redraw overview
                     break;
                 }
+
+                default:
+                    if (TrySwitchView(key.KeyChar)) break;
+                    break;
             }
         }
     }
@@ -164,6 +170,10 @@ internal sealed class InteractiveConsole
                 case ConsoleKey.Escape:
                     if (allowEsc) return null;
                     break;
+
+                default:
+                    if (TrySwitchView(key.KeyChar)) break;
+                    break;
             }
         }
     }
@@ -173,6 +183,10 @@ internal sealed class InteractiveConsole
     private void DrawOverview(GameStateSnapshot state, List<AreaEntry> areas, int selectedIndex)
     {
         System.Console.Clear();
+        var io = new SystemConsoleIO();
+        GameScreenRenderer.RenderHeader(io, state, PlayerColors.Colors);
+        GameScreenRenderer.RenderHotkeyBar(io, _currentView);
+        GameScreenRenderer.RenderArea(io, state, _currentView, state.Players[state.ActivePlayerIndex].Id);
         DrawHeader(state);
         System.Console.WriteLine();
 
@@ -203,6 +217,10 @@ internal sealed class InteractiveConsole
         bool allowEsc)
     {
         System.Console.Clear();
+        var io = new SystemConsoleIO();
+        GameScreenRenderer.RenderHeader(io, state, PlayerColors.Colors);
+        GameScreenRenderer.RenderHotkeyBar(io, _currentView);
+        GameScreenRenderer.RenderArea(io, state, _currentView, state.Players[state.ActivePlayerIndex].Id);
         DrawHeader(state);
         System.Console.WriteLine();
 
@@ -305,6 +323,9 @@ internal sealed class InteractiveConsole
             System.Console.ResetColor();
         }
     }
+
+    private bool TrySwitchView(char ch) =>
+        GameScreenRenderer.TryParseHotkey(ch, out var v) && (_currentView = v) == v;
 
     private static void Hint(string text)
     {

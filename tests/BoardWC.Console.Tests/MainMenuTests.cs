@@ -592,6 +592,43 @@ public class MainMenuTests
         Assert.NotNull(console.LastCursorPosition);
     }
 
+    // ── Inactive player arrow exact format ───────────────────────────────────
+
+    [Fact]
+    public void Render_InactivePlayer_ArrowIsTwoSpaces()
+    {
+        // Kills String mutation "  " → "" on the inactive-player arrow
+        var console = new FakeConsole() { WindowWidth = 80 };
+        Render(console, new PlayerType[4], 0, false);
+        // Player 2 (index 1) is inactive when cursor=0 — arrow must be "  " (two spaces)
+        var text = console.Colored[1].Text;
+        Assert.True(text.Contains("[H]  ") || text.Contains("[A]  ") || text.Contains("[ ]  "),
+            $"Expected inactive player row to end with two spaces, got: {text}");
+        // The row must not contain the active arrow
+        Assert.DoesNotContain(" <", text);
+    }
+
+    // ── RenderOverlay blank-line tests ────────────────────────────────────────
+
+    [Fact]
+    public void RenderOverlay_ExactlyFiveLines()
+    {
+        // Kills Statement mutation removing console.WriteLine("") on L107
+        var console = new FakeConsole() { WindowWidth = 80 };
+        RenderOverlay(console, 80);
+        Assert.Equal(5, console.Written.Count);
+    }
+
+    [Fact]
+    public void RenderOverlay_FirstLineIsBlank()
+    {
+        // Kills String mutation "" → other on L107
+        var console = new FakeConsole() { WindowWidth = 80 };
+        RenderOverlay(console, 80);
+        // FakeConsole.WriteLine("") adds "\n" (the text "" + "\n")
+        Assert.Equal("\n", console.Written[0]);
+    }
+
     // ── RenderOverlay — mid2 line format ──────────────────────────────────────
 
     [Fact]

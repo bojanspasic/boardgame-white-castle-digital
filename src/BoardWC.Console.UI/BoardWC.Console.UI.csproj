@@ -11,4 +11,8 @@
     <EmbeddedResource Include="title.txt" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\BoardWC.Engine\BoardWC.Engine.csproj" />
+  </ItemGroup>
+
 </Project>
