@@ -21,10 +21,10 @@ public class ChooseCastleCardFieldHandlerTests
     {
         var alice = new Player
         {
-            Name                         = "Alice",
-            PendingCastleCardFieldFilter = filter,
-            Coins                        = 10,
+            Name  = "Alice",
+            Coins = 10,
         };
+        alice.Pending.CastleCardFieldFilter = filter;
         var state = new GameState(new List<Player> { alice });
 
         var placeholder = state.Board.GetCastleRoom(floor, room);
@@ -41,7 +41,8 @@ public class ChooseCastleCardFieldHandlerTests
     [Fact]
     public void Validate_NoPendingFilter_Fails()
     {
-        var alice   = new Player { Name = "Alice", PendingCastleCardFieldFilter = null };
+        var alice   = new Player { Name = "Alice" };
+        // alice.Pending.CastleCardFieldFilter is null by default
         var state   = new GameState(new List<Player> { alice });
         var handler = new ChooseCastleCardFieldHandler();
 
@@ -54,7 +55,8 @@ public class ChooseCastleCardFieldHandlerTests
     [Fact]
     public void Validate_Skip_IsAlwaysValid()
     {
-        var alice   = new Player { Name = "Alice", PendingCastleCardFieldFilter = "Any" };
+        var alice   = new Player { Name = "Alice" };
+        alice.Pending.CastleCardFieldFilter = "Any";
         var state   = new GameState(new List<Player> { alice });
         var handler = new ChooseCastleCardFieldHandler();
 
@@ -146,14 +148,15 @@ public class ChooseCastleCardFieldHandlerTests
     [Fact]
     public void Apply_Skip_ClearsPendingFilterAndEmitsEvent()
     {
-        var alice   = new Player { Name = "Alice", PendingCastleCardFieldFilter = "Any" };
+        var alice   = new Player { Name = "Alice" };
+        alice.Pending.CastleCardFieldFilter = "Any";
         var state   = new GameState(new List<Player> { alice });
         var handler = new ChooseCastleCardFieldHandler();
         var events  = new List<IDomainEvent>();
 
         handler.Apply(new ChooseCastleCardFieldAction(alice.Id, -1, 0, 0), state, events);
 
-        Assert.Null(alice.PendingCastleCardFieldFilter);
+        Assert.Null(alice.Pending.CastleCardFieldFilter);
         var evt = Assert.Single(events.OfType<CastleCardFieldChosenEvent>());
         Assert.Equal(-1, evt.Floor);
         Assert.Equal(-1, evt.FieldIndex);
@@ -172,7 +175,7 @@ public class ChooseCastleCardFieldHandlerTests
         handler.Apply(new ChooseCastleCardFieldAction(alice.Id, 0, 0, 0), state, events);
 
         Assert.Equal(13, alice.Coins); // 10 + 3
-        Assert.Null(alice.PendingCastleCardFieldFilter);
+        Assert.Null(alice.Pending.CastleCardFieldFilter);
 
         var evt = Assert.Single(events.OfType<CastleCardFieldChosenEvent>());
         Assert.Equal(3, evt.CoinsGained);
@@ -206,9 +209,9 @@ public class ChooseCastleCardFieldHandlerTests
 
         handler.Apply(new ChooseCastleCardFieldAction(alice.Id, 0, 0, 0), state, events);
 
-        Assert.Equal(1, alice.CastlePlaceRemaining);
-        Assert.Equal(1, alice.CastleAdvanceRemaining);
-        Assert.Null(alice.PendingCastleCardFieldFilter);
+        Assert.Equal(1, alice.Pending.CastlePlaceRemaining);
+        Assert.Equal(1, alice.Pending.CastleAdvanceRemaining);
+        Assert.Null(alice.Pending.CastleCardFieldFilter);
 
         var evt = Assert.Single(events.OfType<CastleCardFieldChosenEvent>());
         Assert.Equal("Play castle", evt.ActionTriggered);
@@ -223,7 +226,7 @@ public class ChooseCastleCardFieldHandlerTests
 
         handler.Apply(new ChooseCastleCardFieldAction(alice.Id, 0, 0, 0), state, events);
 
-        Assert.Equal(1, alice.PendingFarmActions);
+        Assert.Equal(1, alice.Pending.FarmActions);
         var evt = Assert.Single(events.OfType<CastleCardFieldChosenEvent>());
         Assert.Equal("Play farm", evt.ActionTriggered);
     }
@@ -239,7 +242,7 @@ public class ChooseCastleCardFieldHandlerTests
         handler.Apply(new ChooseCastleCardFieldAction(alice.Id, 0, 0, 0), state, events);
 
         Assert.Equal(7, alice.Coins); // 10 - 3
-        Assert.Equal(1, alice.PendingFarmActions);
+        Assert.Equal(1, alice.Pending.FarmActions);
     }
 
     [Fact]
@@ -251,7 +254,7 @@ public class ChooseCastleCardFieldHandlerTests
 
         handler.Apply(new ChooseCastleCardFieldAction(alice.Id, 0, 0, 0), state, events);
 
-        Assert.True(alice.PendingPersonalDomainRowChoice);
+        Assert.True(alice.Pending.PersonalDomainRowChoice);
     }
 
     // ── Validation — floor/room/field index boundaries ────────────────────────
@@ -304,7 +307,8 @@ public class ChooseCastleCardFieldHandlerTests
     {
         var card = MakeCard(new ActionCardField("Play castle",
             new[] { new CardCostItem(CardCostType.DaimyoSeal, 3) }.AsReadOnly()));
-        var alice = new Player { Name = "Alice", PendingCastleCardFieldFilter = "Any", DaimyoSeals = 1 };
+        var alice = new Player { Name = "Alice", DaimyoSeals = 1 };
+        alice.Pending.CastleCardFieldFilter = "Any";
         var state = new GameState(new List<Player> { alice });
         var ph    = state.Board.GetCastleRoom(0, 0);
         ph.AddToken(new Token(BridgeColor.Red, TokenResource.Food));

@@ -104,7 +104,7 @@ public class ChooseSeedPairHandlerTests
     [Fact]
     public void Validate_PendingAnyResourceChoices_Fails()
     {
-        var (alice, _, state, handler) = MakeState(setup: a => a.PendingAnyResourceChoices = 1);
+        var (alice, _, state, handler) = MakeState(setup: a => a.Pending.AnyResourceChoices = 1);
         var result = handler.Validate(new ChooseSeedPairAction(alice.Id, 0), state);
         Assert.False(result.IsValid);
         Assert.Contains("pending resource choices", result.Reason);
@@ -248,7 +248,7 @@ public class ChooseSeedPairHandlerTests
 
         handler.Apply(new ChooseSeedPairAction(alice.Id, 0), state, []);
 
-        Assert.Equal(2, alice.PendingAnyResourceChoices);
+        Assert.Equal(2, alice.Pending.AnyResourceChoices);
     }
 
     [Fact]

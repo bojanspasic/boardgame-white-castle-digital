@@ -12,12 +12,6 @@ internal sealed class Player
     internal int Influence { get; set; }
     internal int Coins { get; set; }
 
-    /// <summary>Influence amount pending a threshold-payment decision; 0 = no pending gain.</summary>
-    internal int PendingInfluenceGain { get; set; }
-
-    /// <summary>Daimyo seals owed if the player accepts the pending influence gain.</summary>
-    internal int PendingInfluenceSealCost { get; set; }
-
     /// <summary>
     /// Value of <see cref="GameState.InfluenceGainCounter"/> when this player last gained influence.
     /// Higher = more recent. Breaks ties in round-start player order.
@@ -29,32 +23,8 @@ internal sealed class Player
     internal int CourtiersAvailable { get; set; } = 5;
     internal int FarmersAvailable { get; set; } = 5;
 
-    /// <summary>Number of unresolved AnyResource token choices from the well.</summary>
-    internal int PendingAnyResourceChoices { get; set; }
-
-    /// <summary>Remaining soldier placements from pending "Play training grounds" actions.</summary>
-    internal int PendingTrainingGroundsActions { get; set; }
-
-    /// <summary>Remaining farmer placements from pending "Play farm" actions.</summary>
-    internal int PendingFarmActions { get; set; }
-
-    /// <summary>Remaining "place courtier at gate" uses from pending "Play castle" actions.</summary>
-    internal int CastlePlaceRemaining { get; set; }
-
-    /// <summary>Remaining "advance courtier" uses from pending "Play castle" actions.</summary>
-    internal int CastleAdvanceRemaining { get; set; }
-
-    /// <summary>-1 = no pending choice; 0 = slot 0 (Farm/Castle); 1 = slot 1 (TG/Castle).</summary>
-    internal int PendingOutsideActivationSlot { get; set; } = -1;
-
-    /// <summary>Filter for castle card field choice. "Red"/"Black"/"White"/"Any"/"GainOnly"; null = none pending.</summary>
-    internal string? PendingCastleCardFieldFilter { get; set; }
-
-    /// <summary>Whether the player must choose a personal domain row to activate for free.</summary>
-    internal bool PendingPersonalDomainRowChoice { get; set; }
-
-    /// <summary>Card just acquired by a courtier advance; player chooses a field before it enters the personal domain.</summary>
-    internal RoomCard? PendingNewCardActivation { get; set; }
+    /// <summary>All pending-state flags that block turn advance until resolved.</summary>
+    internal PlayerPendingState Pending { get; } = new();
 
     internal int CourtiersAtGate { get; set; }
     internal int CourtiersOnStewardFloor { get; set; }
@@ -80,9 +50,10 @@ internal sealed class Player
         Id, Name, Color, IsAI,
         Resources, LanternScore, Influence, Coins,
         DaimyoSeals, SoldiersAvailable, CourtiersAvailable, FarmersAvailable,
-        PendingAnyResourceChoices, PendingTrainingGroundsActions, PendingFarmActions, CastlePlaceRemaining, CastleAdvanceRemaining,
-        PendingOutsideActivationSlot, PendingInfluenceGain, PendingInfluenceSealCost,
-        PendingCastleCardFieldFilter, PendingPersonalDomainRowChoice, PendingNewCardActivation?.ToSnapshot(),
+        Pending.AnyResourceChoices, Pending.TrainingGroundsActions, Pending.FarmActions,
+        Pending.CastlePlaceRemaining, Pending.CastleAdvanceRemaining,
+        Pending.OutsideActivationSlot, Pending.InfluenceGain, Pending.InfluenceSealCost,
+        Pending.CastleCardFieldFilter, Pending.PersonalDomainRowChoice, Pending.NewCardActivation?.ToSnapshot(),
         CourtiersAtGate, CourtiersOnStewardFloor, CourtiersOnDiplomatFloor, CourtiersOnTopFloor,
         DiceInHand.Select(d => d.ToSnapshot()).ToList().AsReadOnly(),
         PersonalDomainRows.Select(r => r.ToSnapshot(UncoveredCount(r.Config.FigureType))).ToList().AsReadOnly(),

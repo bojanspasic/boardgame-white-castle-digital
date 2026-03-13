@@ -17,12 +17,7 @@ internal sealed class StartGameHandler : IActionHandler
 
     public void Apply(IGameAction action, GameState state, List<IDomainEvent> events)
     {
-        state.Board.RollAllDice(state.Players.Count, state.Rng);
-        state.Board.PlaceTokens(state.Rng);
-        state.Board.PlaceCards(state.Rng);
-        state.Board.SetupTrainingGrounds(state.Rng);
-        state.Board.SetupFarmingLands(state.Rng);
-        state.Board.SetupTopFloorCard(state.Rng);
+        BoardSetupService.Setup(state.Board, state.Players, state.Rng);
 
         var pairs = SeedCardDecks.DrawPairs(state.Players.Count + 1, state.Rng);
         state.SeedCardPairs.AddRange(pairs);

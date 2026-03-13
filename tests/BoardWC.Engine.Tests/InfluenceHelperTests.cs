@@ -127,8 +127,8 @@ public class InfluenceHelperTests
         bool pending = InfluenceHelper.Apply(player, 3, state, events);  // 3→6 crosses threshold 5
 
         Assert.True(pending);
-        Assert.Equal(3, player.PendingInfluenceGain);
-        Assert.Equal(1, player.PendingInfluenceSealCost);
+        Assert.Equal(3, player.Pending.InfluenceGain);
+        Assert.Equal(1, player.Pending.InfluenceSealCost);
         Assert.Equal(3, player.Influence);  // not changed yet
         Assert.Single(events);
         Assert.IsType<InfluenceGainPendingEvent>(events[0]);
@@ -144,7 +144,7 @@ public class InfluenceHelperTests
         bool pending = InfluenceHelper.Apply(player, 15, state, events);  // crosses 5+10+15
 
         Assert.True(pending);
-        Assert.Equal(6, player.PendingInfluenceSealCost);
+        Assert.Equal(6, player.Pending.InfluenceSealCost);
     }
 
     [Fact]
@@ -174,12 +174,12 @@ public class ChooseInfluencePayHandlerTests
     {
         var alice = new Player
         {
-            Name                     = "Alice",
-            PendingInfluenceGain     = pendingGain,
-            PendingInfluenceSealCost = sealCost,
-            DaimyoSeals              = seals,
-            Influence                = influence,
+            Name        = "Alice",
+            DaimyoSeals = seals,
+            Influence   = influence,
         };
+        alice.Pending.InfluenceGain     = pendingGain;
+        alice.Pending.InfluenceSealCost = sealCost;
         var state = new GameState(new List<Player> { alice });
         state.CurrentPhase = Phase.WorkerPlacement;
         return (alice, state, new ChooseInfluencePayHandler());
@@ -272,8 +272,8 @@ public class ChooseInfluencePayHandlerTests
         var events = new List<IDomainEvent>();
         handler.Apply(new ChooseInfluencePayAction(alice.Id, WillPay: true), state, events);
 
-        Assert.Equal(0, alice.PendingInfluenceGain);
-        Assert.Equal(0, alice.PendingInfluenceSealCost);
+        Assert.Equal(0, alice.Pending.InfluenceGain);
+        Assert.Equal(0, alice.Pending.InfluenceSealCost);
     }
 
     [Fact]
@@ -323,8 +323,8 @@ public class ChooseInfluencePayHandlerTests
         var events = new List<IDomainEvent>();
         handler.Apply(new ChooseInfluencePayAction(alice.Id, WillPay: false), state, events);
 
-        Assert.Equal(0, alice.PendingInfluenceGain);
-        Assert.Equal(0, alice.PendingInfluenceSealCost);
+        Assert.Equal(0, alice.Pending.InfluenceGain);
+        Assert.Equal(0, alice.Pending.InfluenceSealCost);
     }
 
     [Fact]

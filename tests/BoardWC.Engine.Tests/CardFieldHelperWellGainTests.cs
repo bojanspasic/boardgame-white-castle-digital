@@ -21,10 +21,10 @@ public class CardFieldHelperWellGainTests
     {
         var alice = new Player
         {
-            Name                         = "Alice",
-            PendingCastleCardFieldFilter = "Any",
-            DaimyoSeals                  = seals,
+            Name        = "Alice",
+            DaimyoSeals = seals,
         };
+        alice.Pending.CastleCardFieldFilter = "Any";
 
         var card = MakeCard(new GainCardField(
             new[] { new CardGainItem(CardGainType.Well, 1) }.AsReadOnly()));
@@ -126,7 +126,7 @@ public class CardFieldHelperWellGainTests
 
         Apply(alice, state, handler);
 
-        Assert.Equal(1, alice.PendingAnyResourceChoices);
+        Assert.Equal(1, alice.Pending.AnyResourceChoices);
     }
 
     // ── Empty well ────────────────────────────────────────────────────────────
@@ -142,7 +142,7 @@ public class CardFieldHelperWellGainTests
         Assert.Equal(2, alice.DaimyoSeals);
         Assert.Equal(0, alice.Coins);
         Assert.Equal(0, alice.Resources.Food);
-        Assert.Equal(0, alice.PendingAnyResourceChoices);
+        Assert.Equal(0, alice.Pending.AnyResourceChoices);
     }
 
     // ── Event emission ────────────────────────────────────────────────────────

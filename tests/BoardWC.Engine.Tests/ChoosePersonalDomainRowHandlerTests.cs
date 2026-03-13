@@ -58,7 +58,7 @@ public class ChoosePersonalDomainRowHandlerTests
     public void Validate_NotActivePlayer_Fails()
     {
         var (_, bob, state, handler) = MakeState();
-        bob.PendingPersonalDomainRowChoice = true;
+        bob.Pending.PersonalDomainRowChoice = true;
         var result = handler.Validate(new ChoosePersonalDomainRowAction(bob.Id, BridgeColor.Red), state);
         Assert.False(result.IsValid);
         Assert.Contains("not this player's turn", result.Reason);
@@ -68,7 +68,7 @@ public class ChoosePersonalDomainRowHandlerTests
     public void Validate_NoPendingChoice_Fails()
     {
         var (alice, _, state, handler) = MakeState();
-        alice.PendingPersonalDomainRowChoice = false;
+        alice.Pending.PersonalDomainRowChoice = false;
         var result = handler.Validate(new ChoosePersonalDomainRowAction(alice.Id, BridgeColor.Red), state);
         Assert.False(result.IsValid);
         Assert.Contains("No pending personal domain row choice", result.Reason);
@@ -77,7 +77,7 @@ public class ChoosePersonalDomainRowHandlerTests
     [Fact]
     public void Validate_InvalidRowColor_Fails()
     {
-        var (alice, _, state, handler) = MakeState(a => a.PendingPersonalDomainRowChoice = true);
+        var (alice, _, state, handler) = MakeState(a => a.Pending.PersonalDomainRowChoice = true);
         // All personal domain rows are Red/White/Black — there's no way a color won't match
         // unless we clear the domain rows
         alice.PersonalDomainRows = [];
@@ -89,7 +89,7 @@ public class ChoosePersonalDomainRowHandlerTests
     [Fact]
     public void Validate_ValidChoice_Succeeds()
     {
-        var (alice, _, state, handler) = MakeState(a => a.PendingPersonalDomainRowChoice = true);
+        var (alice, _, state, handler) = MakeState(a => a.Pending.PersonalDomainRowChoice = true);
         var redRow = alice.PersonalDomainRows.First(r => r.Config.DieColor == BridgeColor.Red);
         var result = handler.Validate(new ChoosePersonalDomainRowAction(alice.Id, redRow.Config.DieColor), state);
         Assert.True(result.IsValid);
@@ -100,19 +100,19 @@ public class ChoosePersonalDomainRowHandlerTests
     [Fact]
     public void Apply_ClearsPendingRowChoice()
     {
-        var (alice, _, state, handler) = MakeState(a => a.PendingPersonalDomainRowChoice = true);
+        var (alice, _, state, handler) = MakeState(a => a.Pending.PersonalDomainRowChoice = true);
         var color = alice.PersonalDomainRows[0].Config.DieColor;
         var events = new List<IDomainEvent>();
 
         handler.Apply(new ChoosePersonalDomainRowAction(alice.Id, color), state, events);
 
-        Assert.False(alice.PendingPersonalDomainRowChoice);
+        Assert.False(alice.Pending.PersonalDomainRowChoice);
     }
 
     [Fact]
     public void Apply_GrantsDefaultGain()
     {
-        var (alice, _, state, handler) = MakeState(a => a.PendingPersonalDomainRowChoice = true);
+        var (alice, _, state, handler) = MakeState(a => a.Pending.PersonalDomainRowChoice = true);
         var row   = alice.PersonalDomainRows[0];
         var color = row.Config.DieColor;
         var events = new List<IDomainEvent>();
@@ -128,7 +128,7 @@ public class ChoosePersonalDomainRowHandlerTests
     [Fact]
     public void Apply_NoUncoveredSpots_OnlyDefaultGain()
     {
-        var (alice, _, state, handler) = MakeState(a => a.PendingPersonalDomainRowChoice = true);
+        var (alice, _, state, handler) = MakeState(a => a.Pending.PersonalDomainRowChoice = true);
         // All figures available = 0 uncovered spots
         alice.CourtiersAvailable = 5;
         alice.FarmersAvailable   = 5;
@@ -149,7 +149,7 @@ public class ChoosePersonalDomainRowHandlerTests
     [Fact]
     public void Apply_WithUncoveredSpots_AddsSpotGain()
     {
-        var (alice, _, state, handler) = MakeState(a => a.PendingPersonalDomainRowChoice = true);
+        var (alice, _, state, handler) = MakeState(a => a.Pending.PersonalDomainRowChoice = true);
         // Deploy 2 courtiers so red row (Courtier) has 2 uncovered spots
         alice.CourtiersAvailable = 3; // 5 - 3 = 2 deployed
 
@@ -170,7 +170,7 @@ public class ChoosePersonalDomainRowHandlerTests
     {
         var (alice, _, state, handler) = MakeState(a =>
         {
-            a.PendingPersonalDomainRowChoice = true;
+            a.Pending.PersonalDomainRowChoice = true;
             a.Resources = new ResourceBag(7, 7, 7);
         });
 
@@ -187,7 +187,7 @@ public class ChoosePersonalDomainRowHandlerTests
     [Fact]
     public void Apply_EmitsPersonalDomainRowChosenEvent()
     {
-        var (alice, _, state, handler) = MakeState(a => a.PendingPersonalDomainRowChoice = true);
+        var (alice, _, state, handler) = MakeState(a => a.Pending.PersonalDomainRowChoice = true);
         var color  = alice.PersonalDomainRows[0].Config.DieColor;
         var events = new List<IDomainEvent>();
 
@@ -203,7 +203,7 @@ public class ChoosePersonalDomainRowHandlerTests
     [Fact]
     public void Apply_StewardCard_GainFieldActivates_OnCorrectRow()
     {
-        var (alice, _, state, handler) = MakeState(a => a.PendingPersonalDomainRowChoice = true);
+        var (alice, _, state, handler) = MakeState(a => a.Pending.PersonalDomainRowChoice = true);
         // Add a steward card (null layout = 3 fields, one per row index)
         var gains  = new[] { new CardGainItem(CardGainType.Food, 2) }.AsReadOnly();
         var fields = new CardField[]
@@ -228,7 +228,7 @@ public class ChoosePersonalDomainRowHandlerTests
     [Fact]
     public void Apply_DoubleTopCard_RowsZeroAndOne_ActivateField0()
     {
-        var (alice, _, state, handler) = MakeState(a => a.PendingPersonalDomainRowChoice = true);
+        var (alice, _, state, handler) = MakeState(a => a.Pending.PersonalDomainRowChoice = true);
         var gains  = new[] { new CardGainItem(CardGainType.Food, 1) }.AsReadOnly();
         var fields = new CardField[]
         {
@@ -251,7 +251,7 @@ public class ChoosePersonalDomainRowHandlerTests
     [Fact]
     public void Apply_DoubleTopCard_Row2_ActivatesField1()
     {
-        var (alice, _, state, handler) = MakeState(a => a.PendingPersonalDomainRowChoice = true);
+        var (alice, _, state, handler) = MakeState(a => a.Pending.PersonalDomainRowChoice = true);
         var gains  = new[] { new CardGainItem(CardGainType.Food, 1) }.AsReadOnly();
         var fields = new CardField[]
         {
@@ -274,7 +274,7 @@ public class ChoosePersonalDomainRowHandlerTests
     [Fact]
     public void Apply_DoubleBottomCard_Row0_ActivatesField0()
     {
-        var (alice, _, state, handler) = MakeState(a => a.PendingPersonalDomainRowChoice = true);
+        var (alice, _, state, handler) = MakeState(a => a.Pending.PersonalDomainRowChoice = true);
         var gains  = new[] { new CardGainItem(CardGainType.Food, 1) }.AsReadOnly();
         var fields = new CardField[]
         {
@@ -296,7 +296,7 @@ public class ChoosePersonalDomainRowHandlerTests
     [Fact]
     public void Apply_DoubleBottomCard_Row1_ActivatesField1()
     {
-        var (alice, _, state, handler) = MakeState(a => a.PendingPersonalDomainRowChoice = true);
+        var (alice, _, state, handler) = MakeState(a => a.Pending.PersonalDomainRowChoice = true);
         var gains  = new[] { new CardGainItem(CardGainType.Food, 1) }.AsReadOnly();
         var fields = new CardField[]
         {
@@ -318,7 +318,7 @@ public class ChoosePersonalDomainRowHandlerTests
     [Fact]
     public void Apply_ActionCardField_EmitsActivatedEventWithZeroGains()
     {
-        var (alice, _, state, handler) = MakeState(a => a.PendingPersonalDomainRowChoice = true);
+        var (alice, _, state, handler) = MakeState(a => a.Pending.PersonalDomainRowChoice = true);
         var af     = new ActionCardField("Play castle", []);
         var pdCard = new RoomCard("pd-action", new CardField[] { af, af, af }.AsReadOnly());
         alice.PersonalDomainCards.Add(pdCard);
@@ -336,7 +336,7 @@ public class ChoosePersonalDomainRowHandlerTests
     [Fact]
     public void Apply_UnknownLayout_SkipsCard()
     {
-        var (alice, _, state, handler) = MakeState(a => a.PendingPersonalDomainRowChoice = true);
+        var (alice, _, state, handler) = MakeState(a => a.Pending.PersonalDomainRowChoice = true);
         var gains  = new[] { new CardGainItem(CardGainType.Food, 1) }.AsReadOnly();
         var pdCard = new RoomCard("pd-unknown",
             new CardField[] { new GainCardField(gains) }.AsReadOnly(),

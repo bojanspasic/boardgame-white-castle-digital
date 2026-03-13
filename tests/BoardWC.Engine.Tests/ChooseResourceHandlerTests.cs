@@ -54,7 +54,7 @@ public class ChooseResourceHandlerTests
     public void Validate_NotActivePlayer_Fails()
     {
         var (_, bob, state, handler) = MakeState();
-        bob.PendingAnyResourceChoices = 1;
+        bob.Pending.AnyResourceChoices = 1;
         var result = handler.Validate(new ChooseResourceAction(bob.Id, ResourceType.Food), state);
         Assert.False(result.IsValid);
         Assert.Contains("not this player's turn", result.Reason);
@@ -64,7 +64,7 @@ public class ChooseResourceHandlerTests
     public void Validate_NoPendingChoices_Fails()
     {
         var (alice, _, state, handler) = MakeState();
-        alice.PendingAnyResourceChoices = 0;
+        alice.Pending.AnyResourceChoices = 0;
         var result = handler.Validate(new ChooseResourceAction(alice.Id, ResourceType.Food), state);
         Assert.False(result.IsValid);
         Assert.Contains("No pending resource choice", result.Reason);
@@ -73,7 +73,7 @@ public class ChooseResourceHandlerTests
     [Fact]
     public void Validate_WithPendingChoice_Succeeds()
     {
-        var (alice, _, state, handler) = MakeState(a => a.PendingAnyResourceChoices = 1);
+        var (alice, _, state, handler) = MakeState(a => a.Pending.AnyResourceChoices = 1);
         var result = handler.Validate(new ChooseResourceAction(alice.Id, ResourceType.Iron), state);
         Assert.True(result.IsValid);
     }
@@ -83,18 +83,18 @@ public class ChooseResourceHandlerTests
     [Fact]
     public void Apply_DecrementsPendingChoices()
     {
-        var (alice, _, state, handler) = MakeState(a => a.PendingAnyResourceChoices = 2);
+        var (alice, _, state, handler) = MakeState(a => a.Pending.AnyResourceChoices = 2);
         var events = new List<IDomainEvent>();
 
         handler.Apply(new ChooseResourceAction(alice.Id, ResourceType.Food), state, events);
 
-        Assert.Equal(1, alice.PendingAnyResourceChoices);
+        Assert.Equal(1, alice.Pending.AnyResourceChoices);
     }
 
     [Fact]
     public void Apply_GrantsChosenResource_Food()
     {
-        var (alice, _, state, handler) = MakeState(a => a.PendingAnyResourceChoices = 1);
+        var (alice, _, state, handler) = MakeState(a => a.Pending.AnyResourceChoices = 1);
         var events = new List<IDomainEvent>();
 
         handler.Apply(new ChooseResourceAction(alice.Id, ResourceType.Food), state, events);
@@ -107,7 +107,7 @@ public class ChooseResourceHandlerTests
     [Fact]
     public void Apply_GrantsChosenResource_Iron()
     {
-        var (alice, _, state, handler) = MakeState(a => a.PendingAnyResourceChoices = 1);
+        var (alice, _, state, handler) = MakeState(a => a.Pending.AnyResourceChoices = 1);
         var events = new List<IDomainEvent>();
 
         handler.Apply(new ChooseResourceAction(alice.Id, ResourceType.Iron), state, events);
@@ -118,7 +118,7 @@ public class ChooseResourceHandlerTests
     [Fact]
     public void Apply_GrantsChosenResource_MotherOfPearls()
     {
-        var (alice, _, state, handler) = MakeState(a => a.PendingAnyResourceChoices = 1);
+        var (alice, _, state, handler) = MakeState(a => a.Pending.AnyResourceChoices = 1);
         var events = new List<IDomainEvent>();
 
         handler.Apply(new ChooseResourceAction(alice.Id, ResourceType.MotherOfPearls), state, events);
@@ -133,7 +133,7 @@ public class ChooseResourceHandlerTests
         {
             // Already at 7 food
             a.Resources = new ResourceBag(7, 0, 0);
-            a.PendingAnyResourceChoices = 1;
+            a.Pending.AnyResourceChoices = 1;
         });
         var events = new List<IDomainEvent>();
 
@@ -146,7 +146,7 @@ public class ChooseResourceHandlerTests
     [Fact]
     public void Apply_EmitsAnyResourceChosenEvent()
     {
-        var (alice, _, state, handler) = MakeState(a => a.PendingAnyResourceChoices = 1);
+        var (alice, _, state, handler) = MakeState(a => a.Pending.AnyResourceChoices = 1);
         var events = new List<IDomainEvent>();
 
         handler.Apply(new ChooseResourceAction(alice.Id, ResourceType.MotherOfPearls), state, events);
@@ -159,17 +159,17 @@ public class ChooseResourceHandlerTests
     [Fact]
     public void Apply_MultiplePendingChoices_RequiresMultipleCalls()
     {
-        var (alice, _, state, handler) = MakeState(a => a.PendingAnyResourceChoices = 3);
+        var (alice, _, state, handler) = MakeState(a => a.Pending.AnyResourceChoices = 3);
         var events = new List<IDomainEvent>();
 
         handler.Apply(new ChooseResourceAction(alice.Id, ResourceType.Food), state, events);
-        Assert.Equal(2, alice.PendingAnyResourceChoices);
+        Assert.Equal(2, alice.Pending.AnyResourceChoices);
 
         handler.Apply(new ChooseResourceAction(alice.Id, ResourceType.Iron), state, events);
-        Assert.Equal(1, alice.PendingAnyResourceChoices);
+        Assert.Equal(1, alice.Pending.AnyResourceChoices);
 
         handler.Apply(new ChooseResourceAction(alice.Id, ResourceType.MotherOfPearls), state, events);
-        Assert.Equal(0, alice.PendingAnyResourceChoices);
+        Assert.Equal(0, alice.Pending.AnyResourceChoices);
 
         Assert.Equal(1, alice.Resources.Food);
         Assert.Equal(1, alice.Resources.Iron);

@@ -16,7 +16,8 @@ public class FarmHandlerTests
     private static (Player Alice, GameState State, FarmHandler Handler)
         MakeState(Action<Player>? setup = null)
     {
-        var alice = new Player { Name = "Alice", PendingFarmActions = 1 };
+        var alice = new Player { Name = "Alice" };
+        alice.Pending.FarmActions = 1;
         setup?.Invoke(alice);
         var bob   = new Player { Name = "Bob" };
         var state = new GameState(new List<Player> { alice, bob });
@@ -35,7 +36,7 @@ public class FarmHandlerTests
 
         handler.Apply(new FarmSkipAction(alice.Id), state, events);
 
-        Assert.Equal(0, alice.PendingFarmActions);
+        Assert.Equal(0, alice.Pending.FarmActions);
 
         var evt = Assert.Single(events.OfType<FarmerPlacedEvent>());
         Assert.Equal(state.GameId, evt.GameId);
@@ -167,8 +168,8 @@ public class FarmHandlerTests
         var (_, _, _, _, action) = FarmHandler.ApplyCardEffect(card, player);
 
         Assert.Equal("Play castle", action);
-        Assert.Equal(1, player.CastlePlaceRemaining);
-        Assert.Equal(1, player.CastleAdvanceRemaining);
+        Assert.Equal(1, player.Pending.CastlePlaceRemaining);
+        Assert.Equal(1, player.Pending.CastleAdvanceRemaining);
     }
 
     [Fact]
@@ -184,7 +185,7 @@ public class FarmHandlerTests
         var (_, _, _, _, action) = FarmHandler.ApplyCardEffect(card, player);
 
         Assert.Equal("Play training grounds", action);
-        Assert.Equal(1, player.PendingTrainingGroundsActions);
+        Assert.Equal(1, player.Pending.TrainingGroundsActions);
     }
 
     [Fact]
@@ -279,7 +280,7 @@ public class FarmHandlerTests
     [Fact]
     public void Validate_NoPendingFarmAction_Fails()
     {
-        var (alice, state, handler) = MakeState(p => p.PendingFarmActions = 0);
+        var (alice, state, handler) = MakeState(p => p.Pending.FarmActions = 0);
 
         var result = handler.Validate(new PlaceFarmerAction(alice.Id, BridgeColor.Red, true), state);
 

@@ -7,16 +7,24 @@ using BoardWC.Engine.Rules;
 namespace BoardWC.Engine.Tests;
 
 /// <summary>
-/// Unit tests for CastlePlayHandler — validation helpers and ApplyAdvance paths.
+/// Unit tests for CastlePlay* handlers — validation helpers and ApplyAdvance paths.
 /// </summary>
 public class CastlePlayHandlerTests
 {
     // ── helpers ───────────────────────────────────────────────────────────────
 
+    private static IActionHandler MakeCastleHandler() =>
+        new CompositeActionHandler(new IActionHandler[]
+        {
+            new CastlePlaceCourtierHandler(),
+            new CastleAdvanceCourtierHandler(),
+            new CastleSkipHandler(),
+        });
+
     /// Two-player state so PostActionProcessor never tries to RollAllDice(1) if handler is
     /// invoked through GameEngine.  For direct handler calls we only need >= 2 players so
     /// the GameState constructor is happy; board setup is added only when board access occurs.
-    private static (Player Alice, Player Bob, GameState State, CastlePlayHandler Handler)
+    private static (Player Alice, Player Bob, GameState State, IActionHandler Handler)
         MakeState(Action<Player>? setup = null)
     {
         var alice = new Player { Name = "Alice" };
@@ -24,7 +32,7 @@ public class CastlePlayHandlerTests
         var bob   = new Player { Name = "Bob" };
         var state = new GameState(new List<Player> { alice, bob });
         state.CurrentPhase = Phase.WorkerPlacement;
-        return (alice, bob, state, new CastlePlayHandler());
+        return (alice, bob, state, MakeCastleHandler());
     }
 
     private static IGameEngine StartedEngine() =>
@@ -41,8 +49,8 @@ public class CastlePlayHandlerTests
     {
         var (alice, _, state, handler) = MakeState(p =>
         {
-            p.CastlePlaceRemaining = 0;
-            p.CastleAdvanceRemaining = 1; // something pending (advance)
+            p.Pending.CastlePlaceRemaining = 0;
+            p.Pending.CastleAdvanceRemaining = 1; // something pending (advance)
         });
         var result = handler.Validate(new CastlePlaceCourtierAction(alice.Id), state);
         Assert.False(result.IsValid);
@@ -54,7 +62,7 @@ public class CastlePlayHandlerTests
     {
         var (alice, _, state, handler) = MakeState(p =>
         {
-            p.CastlePlaceRemaining  = 1;
+            p.Pending.CastlePlaceRemaining  = 1;
             p.CourtiersAvailable    = 0;
             p.Coins                 = 5;
         });
@@ -68,7 +76,7 @@ public class CastlePlayHandlerTests
     {
         var (alice, _, state, handler) = MakeState(p =>
         {
-            p.CastlePlaceRemaining  = 1;
+            p.Pending.CastlePlaceRemaining  = 1;
             p.CourtiersAvailable    = 2;
             p.Coins                 = 1;
         });
@@ -82,7 +90,7 @@ public class CastlePlayHandlerTests
     {
         var (alice, _, state, handler) = MakeState(p =>
         {
-            p.CastlePlaceRemaining  = 1;
+            p.Pending.CastlePlaceRemaining  = 1;
             p.CourtiersAvailable    = 2;
             p.Coins                 = 3;
         });
@@ -96,7 +104,7 @@ public class CastlePlayHandlerTests
     {
         var (alice, _, state, handler) = MakeState(p =>
         {
-            p.CastleAdvanceRemaining = 1;
+            p.Pending.CastleAdvanceRemaining = 1;
             p.CourtiersAtGate        = 1;
             p.Resources              = new ResourceBag(MotherOfPearls: 5);
         });
@@ -111,7 +119,7 @@ public class CastlePlayHandlerTests
     {
         var (alice, _, state, handler) = MakeState(p =>
         {
-            p.CastleAdvanceRemaining = 1;
+            p.Pending.CastleAdvanceRemaining = 1;
             p.CourtiersAtGate        = 1;
             p.Resources              = new ResourceBag(MotherOfPearls: 5);
         });
@@ -126,7 +134,7 @@ public class CastlePlayHandlerTests
     {
         var (alice, _, state, handler) = MakeState(p =>
         {
-            p.CastleAdvanceRemaining = 1;
+            p.Pending.CastleAdvanceRemaining = 1;
             p.CourtiersOnDiplomatFloor    = 1;
             p.Resources              = new ResourceBag(MotherOfPearls: 5);
         });
@@ -141,7 +149,7 @@ public class CastlePlayHandlerTests
     {
         var (alice, _, state, handler) = MakeState(p =>
         {
-            p.CastleAdvanceRemaining = 1;
+            p.Pending.CastleAdvanceRemaining = 1;
             p.CourtiersAtGate        = 0;
             p.Resources              = new ResourceBag(MotherOfPearls: 5);
         });
@@ -156,7 +164,7 @@ public class CastlePlayHandlerTests
     {
         var (alice, _, state, handler) = MakeState(p =>
         {
-            p.CastleAdvanceRemaining    = 1;
+            p.Pending.CastleAdvanceRemaining    = 1;
             p.CourtiersOnStewardFloor    = 0;
             p.Resources                 = new ResourceBag(MotherOfPearls: 5);
         });
@@ -171,7 +179,7 @@ public class CastlePlayHandlerTests
     {
         var (alice, _, state, handler) = MakeState(p =>
         {
-            p.CastleAdvanceRemaining  = 1;
+            p.Pending.CastleAdvanceRemaining  = 1;
             p.CourtiersOnDiplomatFloor     = 0;
             p.Resources               = new ResourceBag(MotherOfPearls: 5);
         });
@@ -186,7 +194,7 @@ public class CastlePlayHandlerTests
     {
         var (alice, _, state, handler) = MakeState(p =>
         {
-            p.CastleAdvanceRemaining = 1;
+            p.Pending.CastleAdvanceRemaining = 1;
             p.CourtiersAtGate        = 1;
             p.Resources              = new ResourceBag(MotherOfPearls: 1); // need 2
         });
@@ -201,7 +209,7 @@ public class CastlePlayHandlerTests
     {
         var (alice, _, state, handler) = MakeState(p =>
         {
-            p.CastleAdvanceRemaining = 1;
+            p.Pending.CastleAdvanceRemaining = 1;
             p.CourtiersAtGate        = 1;
             p.Resources              = new ResourceBag(MotherOfPearls: 4); // need 5
         });
@@ -219,7 +227,7 @@ public class CastlePlayHandlerTests
     {
         var (alice, _, state, handler) = MakeState(p =>
         {
-            p.CastleAdvanceRemaining  = 1;
+            p.Pending.CastleAdvanceRemaining  = 1;
             p.CourtiersOnStewardFloor  = 1;
             p.Resources               = new ResourceBag(MotherOfPearls: 2);
         });
@@ -248,7 +256,7 @@ public class CastlePlayHandlerTests
         // StewardFloor+2 → TopFloor triggers TryTakeSlot; board needs top floor set up.
         var (alice, _, state, handler) = MakeState(p =>
         {
-            p.CastleAdvanceRemaining  = 1;
+            p.Pending.CastleAdvanceRemaining  = 1;
             p.CourtiersOnStewardFloor  = 1;
             p.Resources               = new ResourceBag(MotherOfPearls: 5);
         });
@@ -270,7 +278,7 @@ public class CastlePlayHandlerTests
     {
         var (alice, _, state, handler) = MakeState(p =>
         {
-            p.CastleAdvanceRemaining = 1;
+            p.Pending.CastleAdvanceRemaining = 1;
             p.CourtiersOnDiplomatFloor    = 1;
             p.Resources              = new ResourceBag(MotherOfPearls: 2);
         });
@@ -308,7 +316,7 @@ public class CastlePlayHandlerTests
         // then verify TopFloorSlotFilledEvent properties.
         var (alice, _, state, handler) = MakeState(p =>
         {
-            p.CastleAdvanceRemaining = 1;
+            p.Pending.CastleAdvanceRemaining = 1;
             p.CourtiersOnDiplomatFloor    = 1;
             p.Resources              = new ResourceBag(MotherOfPearls: 2);
         });
@@ -341,11 +349,11 @@ public class CastlePlayHandlerTests
         // Build a raw state (no deck → TryDealGroundReplacement returns null).
         var alice2 = new Player
         {
-            Name                    = "Alice",
-            CastleAdvanceRemaining  = 1,
-            CourtiersAtGate         = 1,
-            Resources               = new ResourceBag(MotherOfPearls: 2),
+            Name            = "Alice",
+            CourtiersAtGate = 1,
+            Resources       = new ResourceBag(MotherOfPearls: 2),
         };
+        alice2.Pending.CastleAdvanceRemaining = 1;
         var bob2   = new Player { Name = "Bob" };
         var state2 = new GameState(new List<Player> { alice2, bob2 });
         state2.CurrentPhase = Phase.WorkerPlacement;
@@ -353,7 +361,7 @@ public class CastlePlayHandlerTests
         // Castle rooms also have no card (not started), so room.Card is null.
         // The acquisition block is skipped entirely.
 
-        var handler2 = new CastlePlayHandler();
+        var handler2 = MakeCastleHandler();
         var events2  = new List<IDomainEvent>();
 
         // Ground floor rooms exist (Board initialises _castleRooms with placeholders) but
@@ -379,8 +387,8 @@ public class CastlePlayHandlerTests
     {
         var (alice, _, state, handler) = MakeState(p =>
         {
-            p.CastlePlaceRemaining   = 0;
-            p.CastleAdvanceRemaining = 0;
+            p.Pending.CastlePlaceRemaining   = 0;
+            p.Pending.CastleAdvanceRemaining = 0;
         });
         var result = handler.Validate(new CastleSkipAction(alice.Id), state);
         Assert.False(result.IsValid);
@@ -404,10 +412,10 @@ public class CastlePlayHandlerTests
         // Alice is ActivePlayer (index 0); bob submits → Fail.
         var (_, bob, state, handler) = MakeState(p =>
         {
-            p.CastlePlaceRemaining   = 0;
-            p.CastleAdvanceRemaining = 1;
+            p.Pending.CastlePlaceRemaining   = 0;
+            p.Pending.CastleAdvanceRemaining = 1;
         });
-        bob.CastleAdvanceRemaining = 1; // anyPending must be true to reach turn-check
+        bob.Pending.CastleAdvanceRemaining = 1; // anyPending must be true to reach turn-check
         var result = handler.Validate(
             new CastleAdvanceCourtierAction(bob.Id, CourtierPosition.Gate, 1, -1), state);
         Assert.False(result.IsValid);
@@ -423,8 +431,8 @@ public class CastlePlayHandlerTests
         // CastleAdvanceRemaining=0 triggers the first branch inside ValidateAdvance.
         var (alice, _, state, handler) = MakeState(p =>
         {
-            p.CastlePlaceRemaining   = 1;
-            p.CastleAdvanceRemaining = 0;
+            p.Pending.CastlePlaceRemaining   = 1;
+            p.Pending.CastleAdvanceRemaining = 0;
             p.CourtiersAtGate        = 1;
             p.Resources              = new ResourceBag(MotherOfPearls: 2);
         });
@@ -441,14 +449,14 @@ public class CastlePlayHandlerTests
     {
         var (alice, _, state, handler) = MakeState(p =>
         {
-            p.CastlePlaceRemaining = 1;
+            p.Pending.CastlePlaceRemaining = 1;
             p.CourtiersAvailable   = 3;
             p.Coins                = 5;
         });
         var events = new List<IDomainEvent>();
         handler.Apply(new CastlePlaceCourtierAction(alice.Id), state, events);
 
-        Assert.Equal(0, alice.CastlePlaceRemaining);
+        Assert.Equal(0, alice.Pending.CastlePlaceRemaining);
         Assert.Equal(2, alice.CourtiersAvailable);
         Assert.Equal(1, alice.CourtiersAtGate);
         Assert.Equal(3, alice.Coins);
@@ -469,14 +477,14 @@ public class CastlePlayHandlerTests
     {
         var (alice, _, state, handler) = MakeState(p =>
         {
-            p.CastlePlaceRemaining   = 1;
-            p.CastleAdvanceRemaining = 2;
+            p.Pending.CastlePlaceRemaining   = 1;
+            p.Pending.CastleAdvanceRemaining = 2;
         });
         var events = new List<IDomainEvent>();
         handler.Apply(new CastleSkipAction(alice.Id), state, events);
 
-        Assert.Equal(0, alice.CastlePlaceRemaining);
-        Assert.Equal(0, alice.CastleAdvanceRemaining);
+        Assert.Equal(0, alice.Pending.CastlePlaceRemaining);
+        Assert.Equal(0, alice.Pending.CastleAdvanceRemaining);
 
         var evt = Assert.Single(events.OfType<CastlePlayExecutedEvent>());
         Assert.Equal(state.GameId, evt.GameId);
@@ -494,7 +502,7 @@ public class CastlePlayHandlerTests
         // Gate+2 levels covers the else branch of ApplyAdvance Gate case (CourtiersOnDiplomatFloor++).
         var (alice, _, state, handler) = MakeState(p =>
         {
-            p.CastleAdvanceRemaining = 1;
+            p.Pending.CastleAdvanceRemaining = 1;
             p.CourtiersAtGate        = 1;
             p.Resources              = new ResourceBag(MotherOfPearls: 5);
         });
@@ -521,7 +529,7 @@ public class CastlePlayHandlerTests
         // room has a card → acquisition block (true branch of inner if) fires.
         var (alice, _, state, handler) = MakeState(p =>
         {
-            p.CastleAdvanceRemaining = 1;
+            p.Pending.CastleAdvanceRemaining = 1;
             p.CourtiersAtGate        = 1;
             p.Resources              = new ResourceBag(MotherOfPearls: 2);
         });
@@ -532,7 +540,7 @@ public class CastlePlayHandlerTests
             new CastleAdvanceCourtierAction(alice.Id, CourtierPosition.Gate, 1, 0),
             state, events);
 
-        Assert.NotNull(alice.PendingNewCardActivation);
+        Assert.NotNull(alice.Pending.NewCardActivation);
         Assert.Empty(alice.PersonalDomainCards); // card pending activation, not yet in domain
 
         var evt = Assert.Single(events.OfType<RoomCardAcquiredEvent>());
@@ -549,7 +557,7 @@ public class CastlePlayHandlerTests
         // GF+1 / RoomIndex=0 → enteringDiplomatFloor=true, floorIdx=1, TryDealMidReplacement().
         var (alice, _, state, handler) = MakeState(p =>
         {
-            p.CastleAdvanceRemaining = 1;
+            p.Pending.CastleAdvanceRemaining = 1;
             p.CourtiersOnStewardFloor = 1;
             p.Resources              = new ResourceBag(MotherOfPearls: 2);
         });
@@ -560,7 +568,7 @@ public class CastlePlayHandlerTests
             new CastleAdvanceCourtierAction(alice.Id, CourtierPosition.StewardFloor, 1, 0),
             state, events);
 
-        Assert.NotNull(alice.PendingNewCardActivation);
+        Assert.NotNull(alice.Pending.NewCardActivation);
         Assert.Empty(alice.PersonalDomainCards); // card pending activation, not yet in domain
 
         var evt = Assert.Single(events.OfType<RoomCardAcquiredEvent>());
@@ -577,7 +585,7 @@ public class CastlePlayHandlerTests
         // and the non-null Back triggers the lantern-chain path.
         var (alice, _, state, handler) = MakeState(p =>
         {
-            p.CastleAdvanceRemaining = 1;
+            p.Pending.CastleAdvanceRemaining = 1;
             p.CourtiersAtGate        = 1;
             p.Resources              = new ResourceBag(MotherOfPearls: 2);
         });
@@ -594,8 +602,8 @@ public class CastlePlayHandlerTests
             new CastleAdvanceCourtierAction(alice.Id, CourtierPosition.Gate, 1, 0),
             state, events);
 
-        Assert.NotNull(alice.PendingNewCardActivation);
-        Assert.Equal("back-test", alice.PendingNewCardActivation.Id);
+        Assert.NotNull(alice.Pending.NewCardActivation);
+        Assert.Equal("back-test", alice.Pending.NewCardActivation.Id);
         var chainItem = Assert.Single(alice.LanternChain);
         Assert.Equal("back-test",   chainItem.SourceCardId);
         Assert.Equal("StewardFloor", chainItem.SourceCardType);

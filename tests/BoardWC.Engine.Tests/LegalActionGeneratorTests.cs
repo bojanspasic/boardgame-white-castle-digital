@@ -95,7 +95,7 @@ public class LegalActionGeneratorTests
     public void SeedCardSelection_PendingAnyResource_ReturnsChooseResourceActions()
     {
         var (alice, _, state) = MakeState(Phase.SeedCardSelection,
-            p => p.PendingAnyResourceChoices = 1);
+            p => p.Pending.AnyResourceChoices = 1);
 
         var actions = LegalActionGenerator.Generate(alice.Id, state);
 
@@ -127,7 +127,7 @@ public class LegalActionGeneratorTests
     [Fact]
     public void WorkerPlacement_PendingInfluenceGain_ReturnsInfluencePayChoices()
     {
-        var (alice, _, state) = MakeState(setupAlice: p => p.PendingInfluenceGain = 1);
+        var (alice, _, state) = MakeState(setupAlice: p => p.Pending.InfluenceGain = 1);
         var actions = LegalActionGenerator.Generate(alice.Id, state);
         Assert.Equal(2, actions.Count);
         Assert.All(actions, a => Assert.IsType<ChooseInfluencePayAction>(a));
@@ -138,7 +138,7 @@ public class LegalActionGeneratorTests
     [Fact]
     public void WorkerPlacement_PendingAnyResource_ReturnsChooseResourceActions()
     {
-        var (alice, _, state) = MakeState(setupAlice: p => p.PendingAnyResourceChoices = 1);
+        var (alice, _, state) = MakeState(setupAlice: p => p.Pending.AnyResourceChoices = 1);
         var actions = LegalActionGenerator.Generate(alice.Id, state);
         Assert.Equal(3, actions.Count);
         Assert.All(actions, a => Assert.IsType<ChooseResourceAction>(a));
@@ -149,7 +149,7 @@ public class LegalActionGeneratorTests
     [Fact]
     public void WorkerPlacement_PendingOutsideSlot0_ReturnsFarmAndCastle()
     {
-        var (alice, _, state) = MakeState(setupAlice: p => p.PendingOutsideActivationSlot = 0);
+        var (alice, _, state) = MakeState(setupAlice: p => p.Pending.OutsideActivationSlot = 0);
         var actions = LegalActionGenerator.Generate(alice.Id, state);
 
         Assert.Equal(2, actions.Count);
@@ -162,7 +162,7 @@ public class LegalActionGeneratorTests
     [Fact]
     public void WorkerPlacement_PendingOutsideSlot1_ReturnsTGAndCastle()
     {
-        var (alice, _, state) = MakeState(setupAlice: p => p.PendingOutsideActivationSlot = 1);
+        var (alice, _, state) = MakeState(setupAlice: p => p.Pending.OutsideActivationSlot = 1);
         var actions = LegalActionGenerator.Generate(alice.Id, state);
 
         Assert.Equal(2, actions.Count);
@@ -179,7 +179,7 @@ public class LegalActionGeneratorTests
     {
         var (alice, _, state) = MakeState(setupAlice: p =>
         {
-            p.PendingFarmActions = 1;
+            p.Pending.FarmActions = 1;
             p.FarmersAvailable   = 5;
             p.Resources          = new ResourceBag(Food: 10);
         });
@@ -196,7 +196,7 @@ public class LegalActionGeneratorTests
     {
         var (alice, _, state) = MakeState(setupAlice: p =>
         {
-            p.PendingFarmActions = 1;
+            p.Pending.FarmActions = 1;
             p.FarmersAvailable   = 0;
         });
         state.Board.SetupFarmingLands(state.Rng);
@@ -214,7 +214,7 @@ public class LegalActionGeneratorTests
     {
         var (alice, _, state) = MakeState(setupAlice: p =>
         {
-            p.PendingTrainingGroundsActions = 1;
+            p.Pending.TrainingGroundsActions = 1;
             p.SoldiersAvailable             = 5;
             p.Resources                     = new ResourceBag(Iron: 10);
         });
@@ -231,7 +231,7 @@ public class LegalActionGeneratorTests
     {
         var (alice, _, state) = MakeState(setupAlice: p =>
         {
-            p.PendingTrainingGroundsActions = 1;
+            p.Pending.TrainingGroundsActions = 1;
             p.SoldiersAvailable             = 0;
         });
         state.Board.SetupTrainingGrounds(state.Rng);
@@ -249,7 +249,7 @@ public class LegalActionGeneratorTests
     {
         var (alice, _, state) = MakeState(setupAlice: p =>
         {
-            p.CastlePlaceRemaining = 1;
+            p.Pending.CastlePlaceRemaining = 1;
             p.CourtiersAvailable   = 1;
             p.Coins                = 5;
         });
@@ -265,7 +265,7 @@ public class LegalActionGeneratorTests
     {
         var (alice, _, state) = MakeState(setupAlice: p =>
         {
-            p.CastlePlaceRemaining = 1;
+            p.Pending.CastlePlaceRemaining = 1;
             p.CourtiersAvailable   = 0;
             p.Coins                = 0;
         });
@@ -283,7 +283,7 @@ public class LegalActionGeneratorTests
     {
         var (alice, _, state) = MakeState(setupAlice: p =>
         {
-            p.CastleAdvanceRemaining = 1;
+            p.Pending.CastleAdvanceRemaining = 1;
             p.CourtiersAtGate        = 1;
             p.Resources              = new ResourceBag(MotherOfPearls: 2); // >= 2 but < 5
         });
@@ -302,7 +302,7 @@ public class LegalActionGeneratorTests
     {
         var (alice, _, state) = MakeState(setupAlice: p =>
         {
-            p.CastleAdvanceRemaining = 1;
+            p.Pending.CastleAdvanceRemaining = 1;
             p.CourtiersAtGate        = 1;
             p.Resources              = new ResourceBag(MotherOfPearls: 5); // >= 5
         });
@@ -321,7 +321,7 @@ public class LegalActionGeneratorTests
     {
         var (alice, _, state) = MakeState(setupAlice: p =>
         {
-            p.CastleAdvanceRemaining = 1;
+            p.Pending.CastleAdvanceRemaining = 1;
             p.CourtiersAtGate        = 1;
             p.Resources              = new ResourceBag(MotherOfPearls: 0); // < 2
         });
@@ -337,7 +337,7 @@ public class LegalActionGeneratorTests
     {
         var (alice, _, state) = MakeState(setupAlice: p =>
         {
-            p.CastleAdvanceRemaining = 1;
+            p.Pending.CastleAdvanceRemaining = 1;
             p.CourtiersOnStewardFloor = 1;
             p.Resources              = new ResourceBag(MotherOfPearls: 2);
         });
@@ -356,7 +356,7 @@ public class LegalActionGeneratorTests
     {
         var (alice, _, state) = MakeState(setupAlice: p =>
         {
-            p.CastleAdvanceRemaining = 1;
+            p.Pending.CastleAdvanceRemaining = 1;
             p.CourtiersOnStewardFloor = 1;
             p.Resources              = new ResourceBag(MotherOfPearls: 5);
         });
@@ -375,7 +375,7 @@ public class LegalActionGeneratorTests
     {
         var (alice, _, state) = MakeState(setupAlice: p =>
         {
-            p.CastleAdvanceRemaining = 1;
+            p.Pending.CastleAdvanceRemaining = 1;
             p.CourtiersOnDiplomatFloor    = 1;
             p.Resources              = new ResourceBag(MotherOfPearls: 2);
         });
@@ -652,7 +652,7 @@ public class LegalActionGeneratorTests
         var rowConfigs = PersonalDomainRowConfig.Load();
         var (alice, _, state) = MakeState(setupAlice: p =>
         {
-            p.PendingPersonalDomainRowChoice = true;
+            p.Pending.PersonalDomainRowChoice = true;
             p.PersonalDomainRows = rowConfigs.Select(c => new PersonalDomainRow(c)).ToArray();
         });
 
@@ -668,7 +668,7 @@ public class LegalActionGeneratorTests
         var rowConfigs = PersonalDomainRowConfig.Load();
         var (alice, _, state) = MakeState(setupAlice: p =>
         {
-            p.PendingPersonalDomainRowChoice = true;
+            p.Pending.PersonalDomainRowChoice = true;
             p.PersonalDomainRows = rowConfigs.Select(c => new PersonalDomainRow(c)).ToArray();
         });
 
@@ -696,7 +696,7 @@ public class LegalActionGeneratorTests
 
         var (alice, _, state) = MakeState(setupAlice: p =>
         {
-            p.PendingNewCardActivation = card;
+            p.Pending.NewCardActivation = card;
             p.Coins = 5; // can afford the 2-coin cost
         });
 
@@ -720,7 +720,7 @@ public class LegalActionGeneratorTests
 
         var (alice, _, state) = MakeState(setupAlice: p =>
         {
-            p.PendingNewCardActivation = card;
+            p.Pending.NewCardActivation = card;
             p.Coins = 0; // cannot afford
         });
 
@@ -740,7 +740,7 @@ public class LegalActionGeneratorTests
 
         var (alice, _, state) = MakeState(setupAlice: p =>
         {
-            p.PendingNewCardActivation = card;
+            p.Pending.NewCardActivation = card;
             p.DaimyoSeals = 3; // >= 2 required
         });
 
@@ -758,7 +758,7 @@ public class LegalActionGeneratorTests
 
         var (alice, _, state) = MakeState(setupAlice: p =>
         {
-            p.PendingNewCardActivation = card;
+            p.Pending.NewCardActivation = card;
             p.DaimyoSeals = 1; // < 3 required
         });
 
@@ -782,7 +782,7 @@ public class LegalActionGeneratorTests
         var gains  = new[] { new CardGainItem(CardGainType.Food, 1) }.AsReadOnly();
         var card   = new RoomCard("red-card", new CardField[] { new GainCardField(gains) }.AsReadOnly());
 
-        var (alice, _, state) = MakeState(setupAlice: p => p.PendingCastleCardFieldFilter = "Red");
+        var (alice, _, state) = MakeState(setupAlice: p => p.Pending.CastleCardFieldFilter = "Red");
         SetupCastleWithCard(state, 0, 0, card, BridgeColor.Red);
 
         var actions = LegalActionGenerator.Generate(alice.Id, state);
@@ -796,7 +796,7 @@ public class LegalActionGeneratorTests
         var gains  = new[] { new CardGainItem(CardGainType.Food, 1) }.AsReadOnly();
         var card   = new RoomCard("black-card", new CardField[] { new GainCardField(gains) }.AsReadOnly());
 
-        var (alice, _, state) = MakeState(setupAlice: p => p.PendingCastleCardFieldFilter = "Red");
+        var (alice, _, state) = MakeState(setupAlice: p => p.Pending.CastleCardFieldFilter = "Red");
         SetupCastleWithCard(state, 0, 1, card, BridgeColor.Black); // Black token, not Red
 
         var actions = LegalActionGenerator.Generate(alice.Id, state);
@@ -810,7 +810,7 @@ public class LegalActionGeneratorTests
         var gains = new[] { new CardGainItem(CardGainType.Food, 1) }.AsReadOnly();
         var card  = new RoomCard("blk-card", new CardField[] { new GainCardField(gains) }.AsReadOnly());
 
-        var (alice, _, state) = MakeState(setupAlice: p => p.PendingCastleCardFieldFilter = "Black");
+        var (alice, _, state) = MakeState(setupAlice: p => p.Pending.CastleCardFieldFilter = "Black");
         SetupCastleWithCard(state, 0, 0, card, BridgeColor.Black);
 
         var actions = LegalActionGenerator.Generate(alice.Id, state);
@@ -824,7 +824,7 @@ public class LegalActionGeneratorTests
         var gains = new[] { new CardGainItem(CardGainType.Food, 1) }.AsReadOnly();
         var card  = new RoomCard("wht-card", new CardField[] { new GainCardField(gains) }.AsReadOnly());
 
-        var (alice, _, state) = MakeState(setupAlice: p => p.PendingCastleCardFieldFilter = "White");
+        var (alice, _, state) = MakeState(setupAlice: p => p.Pending.CastleCardFieldFilter = "White");
         SetupCastleWithCard(state, 0, 0, card, BridgeColor.White);
 
         var actions = LegalActionGenerator.Generate(alice.Id, state);
@@ -845,7 +845,7 @@ public class LegalActionGeneratorTests
 
         var (alice, _, state) = MakeState(setupAlice: p =>
         {
-            p.PendingCastleCardFieldFilter = "GainOnly";
+            p.Pending.CastleCardFieldFilter = "GainOnly";
             p.Coins = 5;
         });
         SetupCastleWithCard(state, 0, 0, card, BridgeColor.Red);
@@ -861,7 +861,7 @@ public class LegalActionGeneratorTests
     [Fact]
     public void PendingCastleCardFieldFilter_AlwaysOffersSkip()
     {
-        var (alice, _, state) = MakeState(setupAlice: p => p.PendingCastleCardFieldFilter = "Red");
+        var (alice, _, state) = MakeState(setupAlice: p => p.Pending.CastleCardFieldFilter = "Red");
 
         var actions = LegalActionGenerator.Generate(alice.Id, state);
 
@@ -872,7 +872,7 @@ public class LegalActionGeneratorTests
     public void PendingCastleCardFieldFilter_RoomWithNoCard_SkipsRoom()
     {
         // Room has a Red token but no card set
-        var (alice, _, state) = MakeState(setupAlice: p => p.PendingCastleCardFieldFilter = "Red");
+        var (alice, _, state) = MakeState(setupAlice: p => p.Pending.CastleCardFieldFilter = "Red");
         state.Board.GetCastleRoom(0, 0).AddToken(new Token(BridgeColor.Red, TokenResource.Food));
         // No SetCard call → card is null → room is skipped
 
@@ -892,7 +892,7 @@ public class LegalActionGeneratorTests
 
         var (alice, _, state) = MakeState(setupAlice: p =>
         {
-            p.PendingCastleCardFieldFilter = "Red";
+            p.Pending.CastleCardFieldFilter = "Red";
             p.Coins = 0; // cannot afford 10-coin action
         });
         SetupCastleWithCard(state, 0, 0, card, BridgeColor.Red);
@@ -911,7 +911,7 @@ public class LegalActionGeneratorTests
         // vi=1 < 2 → no advances from Gate (distinguishes vi>=2 from vi>=1)
         var (alice, _, state) = MakeState(setupAlice: p =>
         {
-            p.CastleAdvanceRemaining = 1;
+            p.Pending.CastleAdvanceRemaining = 1;
             p.CourtiersAtGate        = 1;
             p.Resources              = new ResourceBag(MotherOfPearls: 1);
         });
@@ -928,7 +928,7 @@ public class LegalActionGeneratorTests
         // vi=1 < 2 → no advances from StewardFloor
         var (alice, _, state) = MakeState(setupAlice: p =>
         {
-            p.CastleAdvanceRemaining  = 1;
+            p.Pending.CastleAdvanceRemaining  = 1;
             p.CourtiersOnStewardFloor = 1;
             p.Resources               = new ResourceBag(MotherOfPearls: 1);
         });
@@ -945,7 +945,7 @@ public class LegalActionGeneratorTests
         // vi=1 < 2 → no advances from DiplomatFloor
         var (alice, _, state) = MakeState(setupAlice: p =>
         {
-            p.CastleAdvanceRemaining   = 1;
+            p.Pending.CastleAdvanceRemaining   = 1;
             p.CourtiersOnDiplomatFloor = 1;
             p.Resources                = new ResourceBag(MotherOfPearls: 1);
         });
@@ -964,7 +964,7 @@ public class LegalActionGeneratorTests
         // vi=4: >= 2 (Gate+1 offered), < 5 (Gate+2 NOT offered)
         var (alice, _, state) = MakeState(setupAlice: p =>
         {
-            p.CastleAdvanceRemaining = 1;
+            p.Pending.CastleAdvanceRemaining = 1;
             p.CourtiersAtGate        = 1;
             p.Resources              = new ResourceBag(MotherOfPearls: 4);
         });
@@ -982,7 +982,7 @@ public class LegalActionGeneratorTests
         // vi=4: >= 2 (SF+1 offered), < 5 (SF+2 NOT offered)
         var (alice, _, state) = MakeState(setupAlice: p =>
         {
-            p.CastleAdvanceRemaining  = 1;
+            p.Pending.CastleAdvanceRemaining  = 1;
             p.CourtiersOnStewardFloor = 1;
             p.Resources               = new ResourceBag(MotherOfPearls: 4);
         });
@@ -1002,7 +1002,7 @@ public class LegalActionGeneratorTests
         // Coins=1 < 2 → CastlePlaceCourtierAction not offered
         var (alice, _, state) = MakeState(setupAlice: p =>
         {
-            p.CastlePlaceRemaining = 1;
+            p.Pending.CastlePlaceRemaining = 1;
             p.CourtiersAvailable   = 1;
             p.Coins                = 1;
         });
@@ -1018,7 +1018,7 @@ public class LegalActionGeneratorTests
         // Coins=2 == 2 → exactly on boundary → CastlePlaceCourtierAction offered
         var (alice, _, state) = MakeState(setupAlice: p =>
         {
-            p.CastlePlaceRemaining = 1;
+            p.Pending.CastlePlaceRemaining = 1;
             p.CourtiersAvailable   = 1;
             p.Coins                = 2;
         });

@@ -907,8 +907,8 @@ public class HandlerIntegrationTests
         MakeInfluencePayState(int seals, int influence, int pendingGain, int pendingSealCost)
     {
         var player = new Player { Name = "Alice", DaimyoSeals = seals, Influence = influence };
-        player.PendingInfluenceGain     = pendingGain;
-        player.PendingInfluenceSealCost = pendingSealCost;
+        player.Pending.InfluenceGain     = pendingGain;
+        player.Pending.InfluenceSealCost = pendingSealCost;
         var state = new GameState(new List<Player> { player });
         state.CurrentPhase = Phase.WorkerPlacement;
         return (player, state, new ChooseInfluencePayHandler());
@@ -925,7 +925,7 @@ public class HandlerIntegrationTests
 
         Assert.Equal(6, player.Influence);
         Assert.Equal(2, player.DaimyoSeals);
-        Assert.Equal(0, player.PendingInfluenceGain);
+        Assert.Equal(0, player.Pending.InfluenceGain);
     }
 
     [Fact]
@@ -939,7 +939,7 @@ public class HandlerIntegrationTests
 
         Assert.Equal(3, player.Influence);        // unchanged
         Assert.Equal(3, player.DaimyoSeals);  // no seals spent
-        Assert.Equal(0, player.PendingInfluenceGain);
+        Assert.Equal(0, player.Pending.InfluenceGain);
     }
 
     [Fact]
@@ -1087,9 +1087,14 @@ public class HandlerIntegrationTests
         var handler    = new CompositeActionHandler(new IActionHandler[]
         {
             new TakeDieFromBridgeHandler(),
-            new PlaceDieHandler(),
+            new PlaceDieAtCastleHandler(),
+            new PlaceDieAtWellHandler(),
+            new PlaceDieAtOutsideHandler(),
+            new PlaceDieAtPersonalDomainHandler(),
             new ChooseResourceHandler(),
-            new CastlePlayHandler(),
+            new CastlePlaceCourtierHandler(),
+            new CastleAdvanceCourtierHandler(),
+            new CastleSkipHandler(),
             new PassHandler(),
         });
         var gameEngine = new GameEngine(state, handler, null);
@@ -1137,7 +1142,10 @@ public class HandlerIntegrationTests
         var handler    = new CompositeActionHandler(new IActionHandler[]
         {
             new TakeDieFromBridgeHandler(),
-            new PlaceDieHandler(),
+            new PlaceDieAtCastleHandler(),
+            new PlaceDieAtWellHandler(),
+            new PlaceDieAtOutsideHandler(),
+            new PlaceDieAtPersonalDomainHandler(),
             new ChooseResourceHandler(),
             new PassHandler(),
         });

@@ -20,12 +20,12 @@ internal sealed class ChooseInfluencePayHandler : IActionHandler
             return ValidationResult.Fail("Unknown player.");
         if (state.ActivePlayer.Id != a.PlayerId)
             return ValidationResult.Fail("It is not this player's turn.");
-        if (player.PendingInfluenceGain <= 0)
+        if (player.Pending.InfluenceGain <= 0)
             return ValidationResult.Fail("No pending influence gain to resolve.");
 
-        if (a.WillPay && player.DaimyoSeals < player.PendingInfluenceSealCost)
+        if (a.WillPay && player.DaimyoSeals < player.Pending.InfluenceSealCost)
             return ValidationResult.Fail(
-                $"Not enough seals. Need {player.PendingInfluenceSealCost}, have {player.DaimyoSeals}.");
+                $"Not enough seals. Need {player.Pending.InfluenceSealCost}, have {player.DaimyoSeals}.");
 
         return ValidationResult.Ok();
     }
@@ -35,8 +35,8 @@ internal sealed class ChooseInfluencePayHandler : IActionHandler
         var a      = (ChooseInfluencePayAction)action;
         var player = state.Players.First(p => p.Id == a.PlayerId);
 
-        int gain     = player.PendingInfluenceGain;
-        int sealCost = player.PendingInfluenceSealCost;
+        int gain     = player.Pending.InfluenceGain;
+        int sealCost = player.Pending.InfluenceSealCost;
 
         int sealsPaid = 0;
         if (a.WillPay)
@@ -47,8 +47,8 @@ internal sealed class ChooseInfluencePayHandler : IActionHandler
             sealsPaid                = sealCost;
         }
 
-        player.PendingInfluenceGain     = 0;
-        player.PendingInfluenceSealCost = 0;
+        player.Pending.InfluenceGain     = 0;
+        player.Pending.InfluenceSealCost = 0;
 
         events.Add(new InfluenceGainResolvedEvent(
             state.GameId, player.Id, gain, sealsPaid, a.WillPay));

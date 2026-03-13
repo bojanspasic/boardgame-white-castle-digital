@@ -17,7 +17,7 @@ internal sealed class ChooseCastleCardFieldHandler : IActionHandler
             return ValidationResult.Fail("Unknown player.");
         if (state.ActivePlayer.Id != a.PlayerId)
             return ValidationResult.Fail("It is not this player's turn.");
-        if (player.PendingCastleCardFieldFilter is null)
+        if (player.Pending.CastleCardFieldFilter is null)
             return ValidationResult.Fail("No pending castle card field choice to resolve.");
 
         if (a.Floor == -1)
@@ -40,7 +40,7 @@ internal sealed class ChooseCastleCardFieldHandler : IActionHandler
         if (a.FieldIndex < 0 || a.FieldIndex >= card.Fields.Count)
             return ValidationResult.Fail("Invalid field index.");
 
-        string filter = player.PendingCastleCardFieldFilter;
+        string filter = player.Pending.CastleCardFieldFilter;
         if (filter == "Red"   && !ph.Tokens.Any(t => t.DieColor == BridgeColor.Red))
             return ValidationResult.Fail("The chosen room has no red token (filter: Red).");
         if (filter == "Black" && !ph.Tokens.Any(t => t.DieColor == BridgeColor.Black))
@@ -77,7 +77,7 @@ internal sealed class ChooseCastleCardFieldHandler : IActionHandler
         var a      = (ChooseCastleCardFieldAction)action;
         var player = state.Players.First(p => p.Id == a.PlayerId);
 
-        player.PendingCastleCardFieldFilter = null;
+        player.Pending.CastleCardFieldFilter = null;
 
         if (a.Floor == -1)
         {
@@ -98,7 +98,7 @@ internal sealed class ChooseCastleCardFieldHandler : IActionHandler
         if (field is GainCardField gf)
         {
             (resources, coins, seals, lantern, vp, influence) =
-                CardFieldHelper.ApplyGainField(gf, player, state, events);
+                CardGainApplier.ApplyGain(player, gf, state, events);
         }
         else if (field is ActionCardField af)
         {
@@ -113,7 +113,7 @@ internal sealed class ChooseCastleCardFieldHandler : IActionHandler
             }
 
             actionTriggered = af.Description;
-            CardFieldHelper.ApplyActionDescription(af.Description, player);
+            CardActionApplier.ApplyAction(player, af.Description, state, events);
         }
 
         events.Add(new CastleCardFieldChosenEvent(

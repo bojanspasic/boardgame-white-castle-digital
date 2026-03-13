@@ -17,7 +17,7 @@ internal sealed class ChoosePersonalDomainRowHandler : IActionHandler
             return ValidationResult.Fail("Unknown player.");
         if (state.ActivePlayer.Id != a.PlayerId)
             return ValidationResult.Fail("It is not this player's turn.");
-        if (!player.PendingPersonalDomainRowChoice)
+        if (!player.Pending.PersonalDomainRowChoice)
             return ValidationResult.Fail("No pending personal domain row choice to resolve.");
         if (!player.PersonalDomainRows.Any(r => r.Config.DieColor == a.RowColor))
             return ValidationResult.Fail($"No personal domain row matches color {a.RowColor}.");
@@ -30,7 +30,7 @@ internal sealed class ChoosePersonalDomainRowHandler : IActionHandler
         var a      = (ChoosePersonalDomainRowAction)action;
         var player = state.Players.First(p => p.Id == a.PlayerId);
 
-        player.PendingPersonalDomainRowChoice = false;
+        player.Pending.PersonalDomainRowChoice = false;
 
         var row = player.PersonalDomainRows.First(r => r.Config.DieColor == a.RowColor);
 
@@ -59,7 +59,7 @@ internal sealed class ChoosePersonalDomainRowHandler : IActionHandler
             if (field is GainCardField gf)
             {
                 var (res, coins, seals, lantern, vp, influence) =
-                    CardFieldHelper.ApplyGainField(gf, player, state, events);
+                    CardGainApplier.ApplyGain(player, gf, state, events);
 
                 events.Add(new PersonalDomainCardFieldActivatedEvent(
                     state.GameId, player.Id, pdCard.Id, fieldIdx,
@@ -67,7 +67,7 @@ internal sealed class ChoosePersonalDomainRowHandler : IActionHandler
             }
             else if (field is ActionCardField af)
             {
-                CardFieldHelper.ApplyActionDescription(af.Description, player);
+                CardActionApplier.ApplyAction(player, af.Description);
                 events.Add(new PersonalDomainCardFieldActivatedEvent(
                     state.GameId, player.Id, pdCard.Id, fieldIdx,
                     new ResourceBag(), 0, 0, 0, 0, 0));

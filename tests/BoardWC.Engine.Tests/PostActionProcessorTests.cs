@@ -46,7 +46,7 @@ public class PostActionProcessorTests
     public void Run_PendingOutsideActivation_DoesNotAdvanceTurn()
     {
         var (alice, _, state) = MakeState();
-        alice.PendingOutsideActivationSlot = 0;
+        alice.Pending.OutsideActivationSlot = 0;
         int indexBefore = state.ActivePlayerIndex;
 
         PostActionProcessor.Run(state, []);
@@ -58,7 +58,7 @@ public class PostActionProcessorTests
     public void Run_PendingInfluenceGain_DoesNotAdvanceTurn()
     {
         var (alice, _, state) = MakeState();
-        alice.PendingInfluenceGain = 1;
+        alice.Pending.InfluenceGain = 1;
         int indexBefore = state.ActivePlayerIndex;
 
         PostActionProcessor.Run(state, []);
@@ -70,7 +70,7 @@ public class PostActionProcessorTests
     public void Run_PendingAnyResourceChoices_DoesNotAdvanceTurn()
     {
         var (alice, _, state) = MakeState();
-        alice.PendingAnyResourceChoices = 1;
+        alice.Pending.AnyResourceChoices = 1;
         int indexBefore = state.ActivePlayerIndex;
 
         PostActionProcessor.Run(state, []);
@@ -82,7 +82,7 @@ public class PostActionProcessorTests
     public void Run_PendingNewCardActivation_DoesNotAdvanceTurn()
     {
         var (alice, _, state) = MakeState();
-        alice.PendingNewCardActivation = new RoomCard("card-1", []);
+        alice.Pending.NewCardActivation = new RoomCard("card-1", []);
         int indexBefore = state.ActivePlayerIndex;
 
         PostActionProcessor.Run(state, []);
@@ -94,7 +94,7 @@ public class PostActionProcessorTests
     public void Run_PendingTrainingGroundsActions_DoesNotAdvanceTurn()
     {
         var (alice, _, state) = MakeState();
-        alice.PendingTrainingGroundsActions = 1;
+        alice.Pending.TrainingGroundsActions = 1;
         int indexBefore = state.ActivePlayerIndex;
 
         PostActionProcessor.Run(state, []);
@@ -106,7 +106,7 @@ public class PostActionProcessorTests
     public void Run_PendingFarmActions_DoesNotAdvanceTurn()
     {
         var (alice, _, state) = MakeState();
-        alice.PendingFarmActions = 1;
+        alice.Pending.FarmActions = 1;
         int indexBefore = state.ActivePlayerIndex;
 
         PostActionProcessor.Run(state, []);
@@ -118,7 +118,7 @@ public class PostActionProcessorTests
     public void Run_PendingCastleCardFieldFilter_DoesNotAdvanceTurn()
     {
         var (alice, _, state) = MakeState();
-        alice.PendingCastleCardFieldFilter = "Red";
+        alice.Pending.CastleCardFieldFilter = "Red";
         int indexBefore = state.ActivePlayerIndex;
 
         PostActionProcessor.Run(state, []);
@@ -130,7 +130,7 @@ public class PostActionProcessorTests
     public void Run_PendingPersonalDomainRowChoice_DoesNotAdvanceTurn()
     {
         var (alice, _, state) = MakeState();
-        alice.PendingPersonalDomainRowChoice = true;
+        alice.Pending.PersonalDomainRowChoice = true;
         int indexBefore = state.ActivePlayerIndex;
 
         PostActionProcessor.Run(state, []);
@@ -142,7 +142,7 @@ public class PostActionProcessorTests
     public void Run_CastlePlaceRemaining_DoesNotAdvanceTurn()
     {
         var (alice, _, state) = MakeState();
-        alice.CastlePlaceRemaining = 1;
+        alice.Pending.CastlePlaceRemaining = 1;
         int indexBefore = state.ActivePlayerIndex;
 
         PostActionProcessor.Run(state, []);
@@ -154,7 +154,7 @@ public class PostActionProcessorTests
     public void Run_CastleAdvanceRemaining_DoesNotAdvanceTurn()
     {
         var (alice, _, state) = MakeState();
-        alice.CastleAdvanceRemaining = 1;
+        alice.Pending.CastleAdvanceRemaining = 1;
         int indexBefore = state.ActivePlayerIndex;
 
         PostActionProcessor.Run(state, []);
@@ -283,7 +283,7 @@ public class PostActionProcessorTests
     {
         var (alice, _, state) = MakeState();
         state.CurrentPhase = Phase.SeedCardSelection;
-        alice.PendingAnyResourceChoices = 1;
+        alice.Pending.AnyResourceChoices = 1;
         int indexBefore = state.ActivePlayerIndex;
 
         PostActionProcessor.Run(state, []);

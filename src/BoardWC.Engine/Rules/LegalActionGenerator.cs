@@ -22,11 +22,9 @@ internal static class LegalActionGenerator
                 return actions.AsReadOnly();
 
             // Resolve pending AnyResource choices from a resource card with wildcards
-            if (seedPlayer.PendingAnyResourceChoices > 0)
+            if (seedPlayer.Pending.AnyResourceChoices > 0)
             {
-                actions.Add(new ChooseResourceAction(playerId, ResourceType.Food));
-                actions.Add(new ChooseResourceAction(playerId, ResourceType.Iron));
-                actions.Add(new ChooseResourceAction(playerId, ResourceType.MotherOfPearls));
+                GenerateChooseResourceActions(playerId, actions);
                 return actions.AsReadOnly();
             }
 
@@ -43,186 +41,72 @@ internal static class LegalActionGenerator
             return actions.AsReadOnly();
 
         // Player must resolve a pending influence threshold payment before acting
-        if (player.PendingInfluenceGain > 0)
+        if (player.Pending.InfluenceGain > 0)
         {
-            actions.Add(new ChooseInfluencePayAction(playerId, WillPay: true));
-            actions.Add(new ChooseInfluencePayAction(playerId, WillPay: false));
+            GenerateInfluencePayActions(playerId, actions);
             return actions.AsReadOnly();
         }
 
         // Player must resolve pending AnyResource choices before acting
-        if (player.PendingAnyResourceChoices > 0)
+        if (player.Pending.AnyResourceChoices > 0)
         {
-            actions.Add(new ChooseResourceAction(playerId, ResourceType.Food));
-            actions.Add(new ChooseResourceAction(playerId, ResourceType.Iron));
-            actions.Add(new ChooseResourceAction(playerId, ResourceType.MotherOfPearls));
+            GenerateChooseResourceActions(playerId, actions);
             return actions.AsReadOnly();
         }
 
         // Player must resolve pending new card field choice before acting
-        if (player.PendingNewCardActivation is { } pendingCard)
+        if (player.Pending.NewCardActivation is { } pendingCard)
         {
-            actions.Add(new ChooseNewCardFieldAction(playerId, -1)); // skip
-            for (int fi = 0; fi < pendingCard.Fields.Count; fi++)
-            {
-                if (CanAffordField(pendingCard.Fields[fi], player))
-                    actions.Add(new ChooseNewCardFieldAction(playerId, fi));
-            }
+            GenerateNewCardFieldActions(playerId, pendingCard, player, actions);
             return actions.AsReadOnly();
         }
 
         // Player must resolve pending outside slot activation choice before acting
-        if (player.PendingOutsideActivationSlot >= 0)
+        if (player.Pending.OutsideActivationSlot >= 0)
         {
-            if (player.PendingOutsideActivationSlot == 0)
-            {
-                actions.Add(new ChooseOutsideActivationAction(playerId, OutsideActivation.Farm));
-                actions.Add(new ChooseOutsideActivationAction(playerId, OutsideActivation.Castle));
-            }
-            else
-            {
-                actions.Add(new ChooseOutsideActivationAction(playerId, OutsideActivation.TrainingGrounds));
-                actions.Add(new ChooseOutsideActivationAction(playerId, OutsideActivation.Castle));
-            }
+            GenerateOutsideActivationActions(playerId, player.Pending.OutsideActivationSlot, actions);
             return actions.AsReadOnly();
         }
 
         // Player must resolve pending farm actions before acting
-        if (player.PendingFarmActions > 0)
+        if (player.Pending.FarmActions > 0)
         {
-            actions.Add(new FarmSkipAction(playerId));
-            var fl = state.Board.FarmingLands;
-            foreach (BridgeColor color in Enum.GetValues<BridgeColor>())
-            {
-                foreach (bool isInland in new[] { true, false })
-                {
-                    var field = fl.GetField(color, isInland);
-                    if (player.FarmersAvailable > 0
-                        && player.Resources.Food >= field.Card.FoodCost
-                        && !field.HasFarmer(player.Name))
-                        actions.Add(new PlaceFarmerAction(playerId, color, isInland));
-                }
-            }
+            GenerateFarmActions(playerId, player, state, actions);
             return actions.AsReadOnly();
         }
 
         // Player must resolve pending training grounds actions before acting
-        if (player.PendingTrainingGroundsActions > 0)
+        if (player.Pending.TrainingGroundsActions > 0)
         {
-            actions.Add(new TrainingGroundsSkipAction(playerId));
-            var tgAreas = state.Board.TrainingGrounds.Areas;
-            for (int i = 0; i < tgAreas.Length; i++)
-            {
-                if (player.SoldiersAvailable > 0 && player.Resources.Iron >= tgAreas[i].IronCost)
-                    actions.Add(new TrainingGroundsPlaceSoldierAction(playerId, i));
-            }
+            GenerateTrainingGroundsActions(playerId, player, state, actions);
             return actions.AsReadOnly();
         }
 
         // Player must resolve pending castle card field choice before acting
-        if (player.PendingCastleCardFieldFilter is { } filter)
+        if (player.Pending.CastleCardFieldFilter is { } filter)
         {
-            actions.Add(new ChooseCastleCardFieldAction(playerId, -1, -1, -1)); // skip
-            var castleFloors = state.Board.CastleFloors;
-            for (int floor = 0; floor < castleFloors.Count; floor++)
-            {
-                var rooms = castleFloors[floor];
-                for (int room = 0; room < rooms.Count; room++)
-                {
-                    var ph = rooms[room];
-                    var card = ph.Card;
-                    if (card is null) continue;
-
-                    if (filter == "Red"   && !ph.Tokens.Any(t => t.DieColor == BridgeColor.Red))   continue;
-                    if (filter == "Black" && !ph.Tokens.Any(t => t.DieColor == BridgeColor.Black)) continue;
-                    if (filter == "White" && !ph.Tokens.Any(t => t.DieColor == BridgeColor.White)) continue;
-
-                    for (int fi = 0; fi < card.Fields.Count; fi++)
-                    {
-                        if (filter == "GainOnly" && card.Fields[fi] is not GainCardField) continue;
-                        if (CanAffordField(card.Fields[fi], player))
-                            actions.Add(new ChooseCastleCardFieldAction(playerId, floor, room, fi));
-                    }
-                }
-            }
+            GenerateCastleCardFieldActions(playerId, filter, player, state, actions);
             return actions.AsReadOnly();
         }
 
         // Player must resolve pending personal domain row choice before acting
-        if (player.PendingPersonalDomainRowChoice)
+        if (player.Pending.PersonalDomainRowChoice)
         {
-            foreach (var row in player.PersonalDomainRows)
-                actions.Add(new ChoosePersonalDomainRowAction(playerId, row.Config.DieColor));
+            GeneratePersonalDomainRowActions(playerId, player, actions);
             return actions.AsReadOnly();
         }
 
         // Player must resolve pending castle actions before acting
-        if (player.CastlePlaceRemaining > 0 || player.CastleAdvanceRemaining > 0)
+        if (player.Pending.CastlePlaceRemaining > 0 || player.Pending.CastleAdvanceRemaining > 0)
         {
-            actions.Add(new CastleSkipAction(playerId)); // always offered
-
-            if (player.CastlePlaceRemaining > 0
-                && player.CourtiersAvailable > 0 && player.Coins >= 2)
-                actions.Add(new CastlePlaceCourtierAction(playerId));
-
-            if (player.CastleAdvanceRemaining > 0)
-                foreach (var (from, lvl, roomIdx) in ValidAdvances(player))
-                    actions.Add(new CastleAdvanceCourtierAction(playerId, from, lvl, roomIdx));
-
+            GenerateCastleActions(playerId, player, actions);
             return actions.AsReadOnly();
         }
 
         // Player has taken a die and must place it before doing anything else
         if (player.DiceInHand.Count > 0)
         {
-            var die = player.DiceInHand[0];
-            int pc  = state.Players.Count;
-
-            // Castle rooms
-            var castleFloors = state.Board.CastleFloors;
-            for (int floor = 0; floor < castleFloors.Count; floor++)
-            {
-                var rooms = castleFloors[floor];
-                for (int room = 0; room < rooms.Count; room++)
-                {
-                    var ph    = rooms[room];
-                    int delta = die.Value - ph.GetCompareValue(pc);
-                    if (ph.CanAccept(pc)
-                        && (delta >= 0 || player.Coins >= -delta)
-                        && ph.Tokens.Any(t => t.DieColor == die.Color))
-                        actions.Add(new PlaceDieAction(playerId, new CastleRoomTarget(floor, room)));
-                }
-            }
-
-            // Well (always available as long as player can afford the delta)
-            {
-                var ph    = state.Board.Well;
-                int delta = die.Value - ph.GetCompareValue(pc);
-                if (delta >= 0 || player.Coins >= -delta)
-                    actions.Add(new PlaceDieAction(playerId, new WellTarget()));
-            }
-
-            // Outside slots
-            var outsideSlots = state.Board.OutsideSlots;
-            for (int s = 0; s < outsideSlots.Count; s++)
-            {
-                var ph    = outsideSlots[s];
-                int delta = die.Value - ph.GetCompareValue(pc);
-                if (ph.CanAccept(pc) && (delta >= 0 || player.Coins >= -delta))
-                    actions.Add(new PlaceDieAction(playerId, new OutsideSlotTarget(s)));
-            }
-
-            // Personal domain rows (die color must match; row must be empty this round)
-            for (int r = 0; r < player.PersonalDomainRows.Length; r++)
-            {
-                var row = player.PersonalDomainRows[r];
-                if (row.PlacedDie is not null) continue;
-                if (die.Color != row.Config.DieColor) continue;
-                int delta = die.Value - row.Config.CompareValue;
-                if (delta >= 0 || player.Coins >= -delta)
-                    actions.Add(new PlaceDieAction(playerId, new PersonalDomainTarget(r)));
-            }
-
+            GeneratePlaceDieActions(playerId, player, state, actions);
             return actions.AsReadOnly();
         }
 
@@ -240,6 +124,180 @@ internal static class LegalActionGenerator
 
         return actions.AsReadOnly();
     }
+
+    // ── pending-state generators ───────────────────────────────────────────────
+
+    private static void GenerateInfluencePayActions(Guid playerId, List<IGameAction> actions)
+    {
+        actions.Add(new ChooseInfluencePayAction(playerId, WillPay: true));
+        actions.Add(new ChooseInfluencePayAction(playerId, WillPay: false));
+    }
+
+    private static void GenerateChooseResourceActions(Guid playerId, List<IGameAction> actions)
+    {
+        actions.Add(new ChooseResourceAction(playerId, ResourceType.Food));
+        actions.Add(new ChooseResourceAction(playerId, ResourceType.Iron));
+        actions.Add(new ChooseResourceAction(playerId, ResourceType.MotherOfPearls));
+    }
+
+    private static void GenerateNewCardFieldActions(
+        Guid playerId, RoomCard pendingCard, Domain.Player player, List<IGameAction> actions)
+    {
+        actions.Add(new ChooseNewCardFieldAction(playerId, -1)); // skip
+        for (int fi = 0; fi < pendingCard.Fields.Count; fi++)
+        {
+            if (CanAffordField(pendingCard.Fields[fi], player))
+                actions.Add(new ChooseNewCardFieldAction(playerId, fi));
+        }
+    }
+
+    private static void GenerateOutsideActivationActions(
+        Guid playerId, int slot, List<IGameAction> actions)
+    {
+        if (slot == 0)
+        {
+            actions.Add(new ChooseOutsideActivationAction(playerId, OutsideActivation.Farm));
+            actions.Add(new ChooseOutsideActivationAction(playerId, OutsideActivation.Castle));
+        }
+        else
+        {
+            actions.Add(new ChooseOutsideActivationAction(playerId, OutsideActivation.TrainingGrounds));
+            actions.Add(new ChooseOutsideActivationAction(playerId, OutsideActivation.Castle));
+        }
+    }
+
+    private static void GenerateFarmActions(
+        Guid playerId, Domain.Player player, GameState state, List<IGameAction> actions)
+    {
+        actions.Add(new FarmSkipAction(playerId));
+        var fl = state.Board.FarmingLands;
+        foreach (BridgeColor color in Enum.GetValues<BridgeColor>())
+        {
+            foreach (bool isInland in new[] { true, false })
+            {
+                var field = fl.GetField(color, isInland);
+                if (player.FarmersAvailable > 0
+                    && player.Resources.Food >= field.Card.FoodCost
+                    && !field.HasFarmer(player.Name))
+                    actions.Add(new PlaceFarmerAction(playerId, color, isInland));
+            }
+        }
+    }
+
+    private static void GenerateTrainingGroundsActions(
+        Guid playerId, Domain.Player player, GameState state, List<IGameAction> actions)
+    {
+        actions.Add(new TrainingGroundsSkipAction(playerId));
+        var tgAreas = state.Board.TrainingGrounds.Areas;
+        for (int i = 0; i < tgAreas.Length; i++)
+        {
+            if (player.SoldiersAvailable > 0 && player.Resources.Iron >= tgAreas[i].IronCost)
+                actions.Add(new TrainingGroundsPlaceSoldierAction(playerId, i));
+        }
+    }
+
+    private static void GenerateCastleCardFieldActions(
+        Guid playerId, string filter, Domain.Player player, GameState state, List<IGameAction> actions)
+    {
+        actions.Add(new ChooseCastleCardFieldAction(playerId, -1, -1, -1)); // skip
+        var castleFloors = state.Board.CastleFloors;
+        for (int floor = 0; floor < castleFloors.Count; floor++)
+        {
+            var rooms = castleFloors[floor];
+            for (int room = 0; room < rooms.Count; room++)
+            {
+                var ph = rooms[room];
+                var card = ph.Card;
+                if (card is null) continue;
+
+                if (filter == "Red"   && !ph.Tokens.Any(t => t.DieColor == BridgeColor.Red))   continue;
+                if (filter == "Black" && !ph.Tokens.Any(t => t.DieColor == BridgeColor.Black)) continue;
+                if (filter == "White" && !ph.Tokens.Any(t => t.DieColor == BridgeColor.White)) continue;
+
+                for (int fi = 0; fi < card.Fields.Count; fi++)
+                {
+                    if (filter == "GainOnly" && card.Fields[fi] is not GainCardField) continue;
+                    if (CanAffordField(card.Fields[fi], player))
+                        actions.Add(new ChooseCastleCardFieldAction(playerId, floor, room, fi));
+                }
+            }
+        }
+    }
+
+    private static void GeneratePersonalDomainRowActions(
+        Guid playerId, Domain.Player player, List<IGameAction> actions)
+    {
+        foreach (var row in player.PersonalDomainRows)
+            actions.Add(new ChoosePersonalDomainRowAction(playerId, row.Config.DieColor));
+    }
+
+    private static void GenerateCastleActions(
+        Guid playerId, Domain.Player player, List<IGameAction> actions)
+    {
+        actions.Add(new CastleSkipAction(playerId)); // always offered
+
+        if (player.Pending.CastlePlaceRemaining > 0
+            && player.CourtiersAvailable > 0 && player.Coins >= 2)
+            actions.Add(new CastlePlaceCourtierAction(playerId));
+
+        if (player.Pending.CastleAdvanceRemaining > 0)
+            foreach (var (from, lvl, roomIdx) in ValidAdvances(player))
+                actions.Add(new CastleAdvanceCourtierAction(playerId, from, lvl, roomIdx));
+    }
+
+    private static void GeneratePlaceDieActions(
+        Guid playerId, Domain.Player player, GameState state, List<IGameAction> actions)
+    {
+        var die = player.DiceInHand[0];
+        int pc  = state.Players.Count;
+
+        // Castle rooms
+        var castleFloors = state.Board.CastleFloors;
+        for (int floor = 0; floor < castleFloors.Count; floor++)
+        {
+            var rooms = castleFloors[floor];
+            for (int room = 0; room < rooms.Count; room++)
+            {
+                var ph    = rooms[room];
+                int delta = die.Value - ph.GetCompareValue(pc);
+                if (ph.CanAccept(pc)
+                    && (delta >= 0 || player.Coins >= -delta)
+                    && ph.Tokens.Any(t => t.DieColor == die.Color))
+                    actions.Add(new PlaceDieAction(playerId, new CastleRoomTarget(floor, room)));
+            }
+        }
+
+        // Well (always available as long as player can afford the delta)
+        {
+            var ph    = state.Board.Well;
+            int delta = die.Value - ph.GetCompareValue(pc);
+            if (delta >= 0 || player.Coins >= -delta)
+                actions.Add(new PlaceDieAction(playerId, new WellTarget()));
+        }
+
+        // Outside slots
+        var outsideSlots = state.Board.OutsideSlots;
+        for (int s = 0; s < outsideSlots.Count; s++)
+        {
+            var ph    = outsideSlots[s];
+            int delta = die.Value - ph.GetCompareValue(pc);
+            if (ph.CanAccept(pc) && (delta >= 0 || player.Coins >= -delta))
+                actions.Add(new PlaceDieAction(playerId, new OutsideSlotTarget(s)));
+        }
+
+        // Personal domain rows (die color must match; row must be empty this round)
+        for (int r = 0; r < player.PersonalDomainRows.Length; r++)
+        {
+            var row = player.PersonalDomainRows[r];
+            if (row.PlacedDie is not null) continue;
+            if (die.Color != row.Config.DieColor) continue;
+            int delta = die.Value - row.Config.CompareValue;
+            if (delta >= 0 || player.Coins >= -delta)
+                actions.Add(new PlaceDieAction(playerId, new PersonalDomainTarget(r)));
+        }
+    }
+
+    // ── helpers ───────────────────────────────────────────────────────────────
 
     /// <summary>Returns true if the player can afford any cost on the given field.</summary>
     private static bool CanAffordField(CardField field, Domain.Player player)

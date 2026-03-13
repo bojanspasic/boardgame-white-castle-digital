@@ -6,15 +6,24 @@ using BoardWC.Engine.Rules;
 namespace BoardWC.Engine.Tests;
 
 /// <summary>
-/// Unit tests for PlaceDieHandler covering castle card gain/action fields,
+/// Unit tests for PlaceDie* handlers covering castle card gain/action fields,
 /// well token effects, and personal domain seed action paths.
 /// </summary>
 public class PlaceDieHandlerTests
 {
     // ── helpers ───────────────────────────────────────────────────────────────
 
+    private static IActionHandler MakePlaceHandler() =>
+        new CompositeActionHandler(new IActionHandler[]
+        {
+            new PlaceDieAtCastleHandler(),
+            new PlaceDieAtWellHandler(),
+            new PlaceDieAtOutsideHandler(),
+            new PlaceDieAtPersonalDomainHandler(),
+        });
+
     /// Two-player state so the board constructor is happy; board rooms start empty.
-    private static (Player Alice, Player Bob, GameState State, PlaceDieHandler Handler)
+    private static (Player Alice, Player Bob, GameState State, IActionHandler Handler)
         MakeState(Action<Player>? setup = null)
     {
         var alice = new Player { Name = "Alice" };
@@ -22,7 +31,7 @@ public class PlaceDieHandlerTests
         var bob   = new Player { Name = "Bob" };
         var state = new GameState(new List<Player> { alice, bob });
         state.CurrentPhase = Phase.WorkerPlacement;
-        return (alice, bob, state, new PlaceDieHandler());
+        return (alice, bob, state, MakePlaceHandler());
     }
 
     /// Give a player a die in hand. Value 5 to be above most compare values.
@@ -195,8 +204,8 @@ public class PlaceDieHandlerTests
 
         handler.Apply(new PlaceDieAction(alice.Id, new CastleRoomTarget(0, 0)), state, events);
 
-        Assert.Equal(1, alice.CastlePlaceRemaining);
-        Assert.Equal(1, alice.CastleAdvanceRemaining);
+        Assert.Equal(1, alice.Pending.CastlePlaceRemaining);
+        Assert.Equal(1, alice.Pending.CastleAdvanceRemaining);
 
         var evt = Assert.Single(events.OfType<CardActionActivatedEvent>());
         Assert.Equal(state.GameId,   evt.GameId);
@@ -224,7 +233,7 @@ public class PlaceDieHandlerTests
 
         handler.Apply(new PlaceDieAction(alice.Id, new CastleRoomTarget(0, 0)), state, events);
 
-        Assert.Equal(1, alice.PendingTrainingGroundsActions);
+        Assert.Equal(1, alice.Pending.TrainingGroundsActions);
 
         var evt = Assert.Single(events.OfType<CardActionActivatedEvent>());
         Assert.Equal("Play training grounds", evt.ActionDescription);
@@ -247,7 +256,7 @@ public class PlaceDieHandlerTests
 
         handler.Apply(new PlaceDieAction(alice.Id, new CastleRoomTarget(0, 0)), state, events);
 
-        Assert.Equal(1, alice.PendingFarmActions);
+        Assert.Equal(1, alice.Pending.FarmActions);
 
         var evt = Assert.Single(events.OfType<CardActionActivatedEvent>());
         Assert.Equal("Play farm", evt.ActionDescription);
@@ -340,7 +349,7 @@ public class PlaceDieHandlerTests
 
         handler.Apply(new PlaceDieAction(alice.Id, new WellTarget()), state, events);
 
-        Assert.Equal(1, alice.PendingAnyResourceChoices);
+        Assert.Equal(1, alice.Pending.AnyResourceChoices);
         var evt = Assert.Single(events.OfType<WellEffectAppliedEvent>());
         Assert.Equal(1, evt.PendingChoices);
     }
@@ -370,7 +379,7 @@ public class PlaceDieHandlerTests
 
     // ── PersonalDomain — seed action cards ───────────────────────────────────
 
-    private static (Player Alice, GameState State, PlaceDieHandler Handler)
+    private static (Player Alice, GameState State, IActionHandler Handler)
         MakeStateWithPdSetup(SeedActionType seedType)
     {
         var rowConfigs = PersonalDomainRowConfig.Load();
@@ -396,7 +405,7 @@ public class PlaceDieHandlerTests
         var state = new GameState(new List<Player> { alice, bob });
         state.CurrentPhase = Phase.WorkerPlacement;
 
-        return (alice, state, new PlaceDieHandler());
+        return (alice, state, MakePlaceHandler());
     }
 
     [Fact]
@@ -411,8 +420,8 @@ public class PlaceDieHandlerTests
         var events = new List<IDomainEvent>();
         handler.Apply(new PlaceDieAction(alice.Id, new PersonalDomainTarget(0)), state, events);
 
-        Assert.Equal(1, alice.CastlePlaceRemaining);
-        Assert.Equal(1, alice.CastleAdvanceRemaining);
+        Assert.Equal(1, alice.Pending.CastlePlaceRemaining);
+        Assert.Equal(1, alice.Pending.CastleAdvanceRemaining);
 
         var seedEvt = Assert.Single(events.OfType<SeedCardActivatedEvent>());
         Assert.Equal(state.GameId,    seedEvt.GameId);
@@ -434,7 +443,7 @@ public class PlaceDieHandlerTests
         var events = new List<IDomainEvent>();
         handler.Apply(new PlaceDieAction(alice.Id, new PersonalDomainTarget(0)), state, events);
 
-        Assert.Equal(1, alice.PendingFarmActions);
+        Assert.Equal(1, alice.Pending.FarmActions);
 
         var seedEvt = Assert.Single(events.OfType<SeedCardActivatedEvent>());
         Assert.Equal("PlayFarm", seedEvt.ActionType);
@@ -451,7 +460,7 @@ public class PlaceDieHandlerTests
         var events = new List<IDomainEvent>();
         handler.Apply(new PlaceDieAction(alice.Id, new PersonalDomainTarget(0)), state, events);
 
-        Assert.Equal(1, alice.PendingTrainingGroundsActions);
+        Assert.Equal(1, alice.Pending.TrainingGroundsActions);
 
         var seedEvt = Assert.Single(events.OfType<SeedCardActivatedEvent>());
         Assert.Equal("PlayTrainingGrounds", seedEvt.ActionType);
@@ -476,7 +485,7 @@ public class PlaceDieHandlerTests
         GiveDie(alice, row0.Config.DieColor, 5);
 
         var events  = new List<IDomainEvent>();
-        var handler = new PlaceDieHandler();
+        var handler = MakePlaceHandler();
         handler.Apply(new PlaceDieAction(alice.Id, new PersonalDomainTarget(0)), state, events);
 
         var pdEvt = Assert.Single(events.OfType<PersonalDomainActivatedEvent>());
@@ -521,7 +530,7 @@ public class PlaceDieHandlerTests
         GiveDie(alice, row0.Config.DieColor, 5);
 
         var events  = new List<IDomainEvent>();
-        var handler = new PlaceDieHandler();
+        var handler = MakePlaceHandler();
         handler.Apply(new PlaceDieAction(alice.Id, new PersonalDomainTarget(0)), state, events);
 
         var pdCardEvt = Assert.Single(events.OfType<PersonalDomainCardFieldActivatedEvent>());
@@ -565,12 +574,12 @@ public class PlaceDieHandlerTests
         GiveDie(alice, row0.Config.DieColor, 5);
 
         var events  = new List<IDomainEvent>();
-        var handler = new PlaceDieHandler();
+        var handler = MakePlaceHandler();
         handler.Apply(new PlaceDieAction(alice.Id, new PersonalDomainTarget(0)), state, events);
 
         // Castle should be pending now
-        Assert.Equal(1, alice.CastlePlaceRemaining);
-        Assert.Equal(1, alice.CastleAdvanceRemaining);
+        Assert.Equal(1, alice.Pending.CastlePlaceRemaining);
+        Assert.Equal(1, alice.Pending.CastleAdvanceRemaining);
 
         var pdCardEvt = Assert.Single(events.OfType<PersonalDomainCardFieldActivatedEvent>());
         Assert.Equal("pd-action", pdCardEvt.CardId);
@@ -689,7 +698,7 @@ public class PlaceDieHandlerTests
 
     // ── PersonalDomain — row 1 and row 2 activation ───────────────────────────
 
-    private static (Player Alice, GameState State, PlaceDieHandler Handler)
+    private static (Player Alice, GameState State, IActionHandler Handler)
         MakeStateWithRows()
     {
         var rowConfigs = PersonalDomainRowConfig.Load();
@@ -699,7 +708,7 @@ public class PlaceDieHandlerTests
         bob.PersonalDomainRows = rowConfigs.Select(c => new PersonalDomainRow(c)).ToArray();
         var state = new GameState(new List<Player> { alice, bob });
         state.CurrentPhase = Phase.WorkerPlacement;
-        return (alice, state, new PlaceDieHandler());
+        return (alice, state, MakePlaceHandler());
     }
 
     [Fact]
@@ -910,7 +919,7 @@ public class PlaceDieHandlerTests
         GiveDie(alice, BridgeColor.Red, 6);
         var events = new List<IDomainEvent>();
         handler.Apply(new PlaceDieAction(alice.Id, new OutsideSlotTarget(0)), state, events);
-        Assert.Equal(0, alice.PendingOutsideActivationSlot);
+        Assert.Equal(0, alice.Pending.OutsideActivationSlot);
     }
 
     [Fact]
@@ -920,7 +929,7 @@ public class PlaceDieHandlerTests
         GiveDie(alice, BridgeColor.Red, 6);
         var events = new List<IDomainEvent>();
         handler.Apply(new PlaceDieAction(alice.Id, new OutsideSlotTarget(1)), state, events);
-        Assert.Equal(1, alice.PendingOutsideActivationSlot);
+        Assert.Equal(1, alice.Pending.OutsideActivationSlot);
     }
 
     // ── PersonalDomain validation — coin boundary arithmetic ──────────────────

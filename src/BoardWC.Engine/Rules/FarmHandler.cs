@@ -23,7 +23,7 @@ internal sealed class FarmHandler : IActionHandler
             return ValidationResult.Fail("Unknown player.");
         if (state.ActivePlayer.Id != playerId)
             return ValidationResult.Fail("It is not this player's turn.");
-        if (player.PendingFarmActions <= 0)
+        if (player.Pending.FarmActions <= 0)
             return ValidationResult.Fail("No pending farm action to resolve.");
 
         if (action is PlaceFarmerAction place)
@@ -54,7 +54,7 @@ internal sealed class FarmHandler : IActionHandler
 
         if (action is FarmSkipAction)
         {
-            player.PendingFarmActions = 0;
+            player.Pending.FarmActions = 0;
             events.Add(new FarmerPlacedEvent(
                 state.GameId, player.Id,
                 BridgeColor.Red, false, true, 0, new ResourceBag(), 0, 0, 0, null));
@@ -77,7 +77,7 @@ internal sealed class FarmHandler : IActionHandler
             ApplyCardEffect(card, player);
 
         LanternHelper.Apply(player, lanternGained, state.GameId, events);
-        player.PendingFarmActions--;
+        player.Pending.FarmActions--;
 
         events.Add(new FarmerPlacedEvent(
             state.GameId, player.Id,
@@ -127,7 +127,7 @@ internal sealed class FarmHandler : IActionHandler
         string description, Domain.Player player,
         ref int coinsGained, ref int sealsGained, ref int lanternGained)
     {
-        if (CardFieldHelper.ApplyActionDescription(description, player))
+        if (CardActionApplier.ApplyAction(player, description))
             return;
 
         switch (description)

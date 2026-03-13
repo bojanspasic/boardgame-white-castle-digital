@@ -4,17 +4,17 @@ using BoardWC.Engine.Events;
 namespace BoardWC.Engine.Rules;
 
 /// <summary>
-/// Shared helpers for applying card field effects across all handlers.
+/// Applies all gains from a <see cref="GainCardField"/> to the player,
+/// including lantern chain and influence pending state.
 /// </summary>
-internal static class CardFieldHelper
+internal static class CardGainApplier
 {
     /// <summary>
-    /// Applies all gains from a <see cref="GainCardField"/> to the player,
-    /// including lantern chain and influence pending state.
+    /// Applies all gains from <paramref name="gf"/> to the player.
     /// Returns the individual gain amounts for event construction.
     /// </summary>
     internal static (ResourceBag Resources, int Coins, int Seals, int Lantern, int VP, int Influence)
-        ApplyGainField(GainCardField gf, Player player, GameState state, List<IDomainEvent> events)
+        ApplyGain(Player player, GainCardField gf, GameState state, List<IDomainEvent> events)
     {
         var resources = new ResourceBag();
         int coins = 0, seals = 0, lantern = 0, vp = 0, influence = 0;
@@ -36,7 +36,7 @@ internal static class CardFieldHelper
                         ApplyWellEffect(player, state, events);
                     break;
                 case CardGainType.CastleGainField:
-                    player.PendingCastleCardFieldFilter = "GainOnly";
+                    player.Pending.CastleCardFieldFilter = "GainOnly";
                     break;
             }
         }
@@ -73,51 +73,9 @@ internal static class CardFieldHelper
 
         player.Resources = (player.Resources + resourcesGained).Clamp(7);
         player.Coins    += coinsGained;
-        player.PendingAnyResourceChoices += pendingChoices;
+        player.Pending.AnyResourceChoices += pendingChoices;
 
         events.Add(new WellEffectAppliedEvent(
             state.GameId, player.Id, 1, resourcesGained, coinsGained, pendingChoices));
-    }
-
-    /// <summary>
-    /// Applies a named action description (from <see cref="ActionCardField.Description"/>) to the
-    /// player. Covers all "Play …" action types shared across castle rooms, farm, training grounds,
-    /// and personal domain card fields. Returns true if the description was handled.
-    /// </summary>
-    internal static bool ApplyActionDescription(string description, Player player)
-    {
-        switch (description)
-        {
-            case "Play castle":
-                player.CastlePlaceRemaining++;
-                player.CastleAdvanceRemaining++;
-                return true;
-            case "Play training grounds":
-                player.PendingTrainingGroundsActions++;
-                return true;
-            case "Play farm":
-                player.PendingFarmActions++;
-                return true;
-            case "Play red castle card field":
-                player.PendingCastleCardFieldFilter = "Red";
-                return true;
-            case "Play black castle card field":
-                player.PendingCastleCardFieldFilter = "Black";
-                return true;
-            case "Play white castle card field":
-                player.PendingCastleCardFieldFilter = "White";
-                return true;
-            case "Play any castle card field":
-                player.PendingCastleCardFieldFilter = "Any";
-                return true;
-            case "Play castle gain field":
-                player.PendingCastleCardFieldFilter = "GainOnly";
-                return true;
-            case "Play personal domain row":
-                player.PendingPersonalDomainRowChoice = true;
-                return true;
-            default:
-                return false;
-        }
     }
 }

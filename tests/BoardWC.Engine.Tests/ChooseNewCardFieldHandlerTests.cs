@@ -20,10 +20,10 @@ public class ChooseNewCardFieldHandlerTests
     {
         var alice = new Player
         {
-            Name                   = "Alice",
-            PendingNewCardActivation = pendingCard,
-            Coins                  = 5,
+            Name  = "Alice",
+            Coins = 5,
         };
+        alice.Pending.NewCardActivation = pendingCard;
         var state = new GameState(new List<Player> { alice });
         return (alice, state, new ChooseNewCardFieldHandler());
     }
@@ -92,7 +92,7 @@ public class ChooseNewCardFieldHandlerTests
 
         handler.Apply(new ChooseNewCardFieldAction(alice.Id, -1), state, events);
 
-        Assert.Null(alice.PendingNewCardActivation);
+        Assert.Null(alice.Pending.NewCardActivation);
         Assert.Single(alice.PersonalDomainCards);
         Assert.Equal(5, alice.Coins); // no coins gained
 
@@ -115,7 +115,7 @@ public class ChooseNewCardFieldHandlerTests
 
         Assert.Equal(3, alice.Resources.Food);
         Assert.Single(alice.PersonalDomainCards);
-        Assert.Null(alice.PendingNewCardActivation);
+        Assert.Null(alice.Pending.NewCardActivation);
 
         var evt = Assert.Single(events.OfType<NewCardFieldChosenEvent>());
         Assert.Equal(0, evt.FieldIndex);
@@ -146,8 +146,8 @@ public class ChooseNewCardFieldHandlerTests
 
         handler.Apply(new ChooseNewCardFieldAction(alice.Id, 0), state, events);
 
-        Assert.Equal(1, alice.PendingTrainingGroundsActions);
-        Assert.Null(alice.PendingNewCardActivation);
+        Assert.Equal(1, alice.Pending.TrainingGroundsActions);
+        Assert.Null(alice.Pending.NewCardActivation);
         Assert.Single(alice.PersonalDomainCards);
 
         var evt = Assert.Single(events.OfType<NewCardFieldChosenEvent>());
@@ -163,8 +163,8 @@ public class ChooseNewCardFieldHandlerTests
 
         handler.Apply(new ChooseNewCardFieldAction(alice.Id, 0), state, events);
 
-        Assert.Equal(1, alice.CastlePlaceRemaining);
-        Assert.Equal(1, alice.CastleAdvanceRemaining);
+        Assert.Equal(1, alice.Pending.CastlePlaceRemaining);
+        Assert.Equal(1, alice.Pending.CastleAdvanceRemaining);
 
         var evt = Assert.Single(events.OfType<NewCardFieldChosenEvent>());
         Assert.Equal("Play castle", evt.ActionTriggered);
@@ -258,7 +258,7 @@ public class ChooseNewCardFieldHandlerTests
         handler.Apply(new ChooseNewCardFieldAction(alice.Id, 0), state, events);
 
         Assert.Equal(2, alice.Coins); // 5 - 3
-        Assert.Equal(1, alice.PendingFarmActions);
+        Assert.Equal(1, alice.Pending.FarmActions);
     }
 
     [Fact]
@@ -271,9 +271,9 @@ public class ChooseNewCardFieldHandlerTests
 
         handler.Apply(new ChooseNewCardFieldAction(alice.Id, 0), state, events);
 
-        Assert.Equal("GainOnly", alice.PendingCastleCardFieldFilter);
+        Assert.Equal("GainOnly", alice.Pending.CastleCardFieldFilter);
         Assert.Single(alice.PersonalDomainCards);
-        Assert.Null(alice.PendingNewCardActivation);
+        Assert.Null(alice.Pending.NewCardActivation);
 
         var evt = Assert.Single(events.OfType<NewCardFieldChosenEvent>());
         Assert.Equal(0, evt.FieldIndex);

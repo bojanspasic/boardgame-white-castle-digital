@@ -20,7 +20,7 @@ internal sealed class ChooseSeedPairHandler : IActionHandler
             return ValidationResult.Fail("Unknown player.");
         if (state.ActivePlayer.Id != a.PlayerId)
             return ValidationResult.Fail("It is not this player's turn.");
-        if (player.PendingAnyResourceChoices > 0)
+        if (player.Pending.AnyResourceChoices > 0)
             return ValidationResult.Fail("Resolve pending resource choices first.");
         if (player.SeedCard is not null)
             return ValidationResult.Fail("Already chose a seed card.");
@@ -64,7 +64,7 @@ internal sealed class ChooseSeedPairHandler : IActionHandler
         player.Resources = (player.Resources + resourcesGained).Clamp(7);
         player.Coins     += coinsGained;
         player.DaimyoSeals = Math.Min(player.DaimyoSeals + sealsGained, 5);
-        player.PendingAnyResourceChoices += pendingChoices;
+        player.Pending.AnyResourceChoices += pendingChoices;
 
         events.Add(new SeedPairChosenEvent(
             state.GameId, player.Id,

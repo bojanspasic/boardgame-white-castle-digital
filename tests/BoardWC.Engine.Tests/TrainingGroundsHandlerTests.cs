@@ -35,10 +35,10 @@ public class TrainingGroundsHandlerTests
     {
         var alice = new Player
         {
-            Name = "Alice",
-            PendingTrainingGroundsActions = 1,
+            Name      = "Alice",
             Resources = new ResourceBag(Iron: playerIron),
         };
+        alice.Pending.TrainingGroundsActions = 1;
         var bob   = new Player { Name = "Bob" };
         var state = new GameState(new List<Player> { alice, bob });
         state.CurrentPhase = Phase.WorkerPlacement;
@@ -64,7 +64,7 @@ public class TrainingGroundsHandlerTests
     {
         var (alice, _, state, handler) = MakeState(p =>
         {
-            p.PendingTrainingGroundsActions = 1;
+            p.Pending.TrainingGroundsActions = 1;
             p.Resources = new ResourceBag(Iron: 10);
         });
 
@@ -80,7 +80,7 @@ public class TrainingGroundsHandlerTests
     {
         var (alice, _, state, handler) = MakeState(p =>
         {
-            p.PendingTrainingGroundsActions = 1;
+            p.Pending.TrainingGroundsActions = 1;
             p.Resources = new ResourceBag(Iron: 10);
         });
 
@@ -96,7 +96,7 @@ public class TrainingGroundsHandlerTests
     {
         var (alice, _, state, handler) = MakeState(p =>
         {
-            p.PendingTrainingGroundsActions = 1;
+            p.Pending.TrainingGroundsActions = 1;
             p.SoldiersAvailable             = 0;
             p.Resources                     = new ResourceBag(Iron: 10);
         });
@@ -113,7 +113,7 @@ public class TrainingGroundsHandlerTests
     {
         var (alice, _, state, handler) = MakeState(p =>
         {
-            p.PendingTrainingGroundsActions = 0;
+            p.Pending.TrainingGroundsActions = 0;
         });
 
         var result = handler.Validate(
@@ -129,7 +129,7 @@ public class TrainingGroundsHandlerTests
         // Area[0] always costs 1 iron. Give the player 0 iron.
         var (alice, _, state, handler) = MakeState(p =>
         {
-            p.PendingTrainingGroundsActions = 1;
+            p.Pending.TrainingGroundsActions = 1;
             p.Resources                     = new ResourceBag(Iron: 0);
         });
 
@@ -147,13 +147,13 @@ public class TrainingGroundsHandlerTests
     {
         var (alice, _, state, handler) = MakeState(p =>
         {
-            p.PendingTrainingGroundsActions = 1;
+            p.Pending.TrainingGroundsActions = 1;
         });
 
         var events = new List<IDomainEvent>();
         handler.Apply(new TrainingGroundsSkipAction(alice.Id), state, events);
 
-        Assert.Equal(0, alice.PendingTrainingGroundsActions);
+        Assert.Equal(0, alice.Pending.TrainingGroundsActions);
 
         var evt = Assert.Single(events.OfType<TrainingGroundsUsedEvent>());
         Assert.Equal(state.GameId, evt.GameId);
@@ -276,8 +276,8 @@ public class TrainingGroundsHandlerTests
         var events = new List<IDomainEvent>();
         handler.Apply(new TrainingGroundsPlaceSoldierAction(alice.Id, 1), state, events);
 
-        Assert.Equal(1, alice.CastlePlaceRemaining);
-        Assert.Equal(1, alice.CastleAdvanceRemaining);
+        Assert.Equal(1, alice.Pending.CastlePlaceRemaining);
+        Assert.Equal(1, alice.Pending.CastleAdvanceRemaining);
 
         var evt = Assert.Single(events.OfType<TrainingGroundsUsedEvent>());
         Assert.Equal("Play castle", evt.ActionTriggered);
@@ -352,7 +352,7 @@ public class TrainingGroundsHandlerTests
         var events = new List<IDomainEvent>();
         handler.Apply(new TrainingGroundsPlaceSoldierAction(alice.Id, 1), state, events);
 
-        Assert.Equal(1, alice.PendingFarmActions);
+        Assert.Equal(1, alice.Pending.FarmActions);
 
         var evt = Assert.Single(events.OfType<TrainingGroundsUsedEvent>());
         Assert.Equal("Play farm", evt.ActionTriggered);
@@ -365,11 +365,11 @@ public class TrainingGroundsHandlerTests
     {
         var alice = new Player
         {
-            Name = "Alice",
-            PendingTrainingGroundsActions = 1,
-            Resources                     = new ResourceBag(Iron: 10),
-            DaimyoSeals               = 5, // already at cap
+            Name        = "Alice",
+            Resources   = new ResourceBag(Iron: 10),
+            DaimyoSeals = 5, // already at cap
         };
+        alice.Pending.TrainingGroundsActions = 1;
         var bob   = new Player { Name = "Bob" };
         var state = new GameState(new List<Player> { alice, bob });
         state.CurrentPhase = Phase.WorkerPlacement;
@@ -407,7 +407,7 @@ public class TrainingGroundsHandlerTests
 
         Assert.Equal(4,  alice.SoldiersAvailable); // 5 - 1
         Assert.Equal(5,  alice.Resources.Iron);     // 10 - 5
-        Assert.Equal(1,  alice.PendingFarmActions);
+        Assert.Equal(1,  alice.Pending.FarmActions);
         Assert.Equal(1,  alice.Resources.Food);
     }
 }

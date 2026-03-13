@@ -23,7 +23,7 @@ internal sealed class TrainingGroundsHandler : IActionHandler
             return ValidationResult.Fail("Unknown player.");
         if (state.ActivePlayer.Id != playerId)
             return ValidationResult.Fail("It is not this player's turn.");
-        if (player.PendingTrainingGroundsActions <= 0)
+        if (player.Pending.TrainingGroundsActions <= 0)
             return ValidationResult.Fail("No pending training grounds action to resolve.");
 
         if (action is TrainingGroundsPlaceSoldierAction place)
@@ -53,7 +53,7 @@ internal sealed class TrainingGroundsHandler : IActionHandler
 
         if (action is TrainingGroundsSkipAction)
         {
-            player.PendingTrainingGroundsActions = 0;
+            player.Pending.TrainingGroundsActions = 0;
             events.Add(new TrainingGroundsUsedEvent(
                 state.GameId, player.Id,
                 -1, 0, new ResourceBag(), 0, 0, 0, null));
@@ -101,7 +101,7 @@ internal sealed class TrainingGroundsHandler : IActionHandler
         }
 
         LanternHelper.Apply(player, lanternGained, state.GameId, events);
-        player.PendingTrainingGroundsActions--;
+        player.Pending.TrainingGroundsActions--;
 
         events.Add(new TrainingGroundsUsedEvent(
             state.GameId, player.Id,
@@ -112,7 +112,7 @@ internal sealed class TrainingGroundsHandler : IActionHandler
 
     private static void ApplyNamedAction(string description, Domain.Player player, ref int lanternGained)
     {
-        if (CardFieldHelper.ApplyActionDescription(description, player))
+        if (CardActionApplier.ApplyAction(player, description))
             return;
 
         switch (description)

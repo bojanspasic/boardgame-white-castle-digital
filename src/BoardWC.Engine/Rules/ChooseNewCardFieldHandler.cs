@@ -17,13 +17,13 @@ internal sealed class ChooseNewCardFieldHandler : IActionHandler
             return ValidationResult.Fail("Unknown player.");
         if (state.ActivePlayer.Id != a.PlayerId)
             return ValidationResult.Fail("It is not this player's turn.");
-        if (player.PendingNewCardActivation is null)
+        if (player.Pending.NewCardActivation is null)
             return ValidationResult.Fail("No pending new card field choice to resolve.");
 
         if (a.FieldIndex == -1)
             return ValidationResult.Ok(); // skip is always valid
 
-        var card = player.PendingNewCardActivation;
+        var card = player.Pending.NewCardActivation;
         if (a.FieldIndex < 0 || a.FieldIndex >= card.Fields.Count)
             return ValidationResult.Fail("Invalid field index.");
 
@@ -52,8 +52,8 @@ internal sealed class ChooseNewCardFieldHandler : IActionHandler
         var a      = (ChooseNewCardFieldAction)action;
         var player = state.Players.First(p => p.Id == a.PlayerId);
 
-        var card = player.PendingNewCardActivation!;
-        player.PendingNewCardActivation = null;
+        var card = player.Pending.NewCardActivation!;
+        player.Pending.NewCardActivation = null;
         player.PersonalDomainCards.Add(card);
 
         if (a.FieldIndex == -1)
@@ -72,7 +72,7 @@ internal sealed class ChooseNewCardFieldHandler : IActionHandler
         if (field is GainCardField gf)
         {
             (resources, coins, seals, lantern, vp, influence) =
-                CardFieldHelper.ApplyGainField(gf, player, state, events);
+                CardGainApplier.ApplyGain(player, gf, state, events);
         }
         else if (field is ActionCardField af)
         {
@@ -87,7 +87,7 @@ internal sealed class ChooseNewCardFieldHandler : IActionHandler
             }
 
             actionTriggered = af.Description;
-            CardFieldHelper.ApplyActionDescription(af.Description, player);
+            CardActionApplier.ApplyAction(player, af.Description, state, events);
         }
 
         events.Add(new NewCardFieldChosenEvent(

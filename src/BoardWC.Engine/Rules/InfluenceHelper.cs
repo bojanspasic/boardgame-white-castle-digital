@@ -7,8 +7,8 @@ internal static class InfluenceHelper
 {
     /// <summary>
     /// Applies an influence gain. If the gain would cross a threshold (5, 10, or 15),
-    /// sets <see cref="Player.PendingInfluenceGain"/> and
-    /// <see cref="Player.PendingInfluenceSealCost"/> and emits
+    /// sets <see cref="PlayerPendingState.InfluenceGain"/> and
+    /// <see cref="PlayerPendingState.InfluenceSealCost"/> and emits
     /// <see cref="InfluenceGainPendingEvent"/> instead of applying directly.
     /// Returns true when a pending state was set (caller must hold the turn).
     /// </summary>
@@ -28,8 +28,8 @@ internal static class InfluenceHelper
         }
 
         // Threshold crossed — player must decide whether to pay
-        player.PendingInfluenceGain     = influenceGain;
-        player.PendingInfluenceSealCost = cost;
+        player.Pending.InfluenceGain     = influenceGain;
+        player.Pending.InfluenceSealCost = cost;
         events.Add(new InfluenceGainPendingEvent(state.GameId, player.Id, influenceGain, cost));
         return true;
     }

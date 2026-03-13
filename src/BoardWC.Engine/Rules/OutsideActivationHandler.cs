@@ -16,10 +16,10 @@ internal sealed class OutsideActivationHandler : IActionHandler
             return ValidationResult.Fail("Unknown player.");
         if (state.ActivePlayer.Id != a.PlayerId)
             return ValidationResult.Fail("Not this player's turn.");
-        if (player.PendingOutsideActivationSlot < 0)
+        if (player.Pending.OutsideActivationSlot < 0)
             return ValidationResult.Fail("No pending outside activation choice.");
 
-        int slot = player.PendingOutsideActivationSlot;
+        int slot = player.Pending.OutsideActivationSlot;
         if (slot == 0 && a.Choice == OutsideActivation.TrainingGrounds)
             return ValidationResult.Fail("Slot 0 only offers Farm or Castle.");
         if (slot == 1 && a.Choice == OutsideActivation.Farm)
@@ -32,21 +32,21 @@ internal sealed class OutsideActivationHandler : IActionHandler
     {
         var a      = (ChooseOutsideActivationAction)action;
         var player = state.Players.First(p => p.Id == a.PlayerId);
-        int slot   = player.PendingOutsideActivationSlot;
+        int slot   = player.Pending.OutsideActivationSlot;
 
-        player.PendingOutsideActivationSlot = -1;
+        player.Pending.OutsideActivationSlot = -1;
 
         switch (a.Choice)
         {
             case OutsideActivation.Farm:
-                player.PendingFarmActions++;
+                player.Pending.FarmActions++;
                 break;
             case OutsideActivation.Castle:
-                player.CastlePlaceRemaining++;
-                player.CastleAdvanceRemaining++;
+                player.Pending.CastlePlaceRemaining++;
+                player.Pending.CastleAdvanceRemaining++;
                 break;
             case OutsideActivation.TrainingGrounds:
-                player.PendingTrainingGroundsActions++;
+                player.Pending.TrainingGroundsActions++;
                 break;
         }
 
